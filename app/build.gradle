@@ -5,9 +5,10 @@ android {
     buildToolsVersion "25.0.1"
 
     defaultConfig {
-        applicationId "com.forum.fiend.osp"
+        applicationId "de.enlightened.peris"
         minSdkVersion 11
         targetSdkVersion 21
+        buildConfigField "long", "BUILD_TIMESTAMP", System.currentTimeMillis() + "L"
     }
 
     buildTypes {

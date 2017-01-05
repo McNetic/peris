@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.forum.fiend.osp"
+    package="de.enlightened.peris"
     android:versionCode="41"
-    android:versionName="1.3.3" 
+    android:versionName="@string/app_version"
     android:installLocation="auto">
 
     <uses-sdk
@@ -17,7 +17,7 @@
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true"
         android:largeHeap="true"
-        android:label="@string/app_name" android:name=".ForumFiendApp">
+        android:label="@string/app_name" android:name=".PerisApp">
         
         <activity
             android:name=".IntroScreen"
@@ -47,7 +47,7 @@
         <activity
             android:name=".Discussions_Main"
             android:uiOptions="splitActionBarWhenNarrow"
-            android:label="@string/app_name" >
+            android:label="@string/app_title" >
         </activity>
 
         <activity

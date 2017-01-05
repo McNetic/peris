@@ -11,27 +11,28 @@
 	    android:layout_margin="12dp"
 	    android:layout_gravity="center_horizontal"
 	    android:orientation="vertical" >
-	    
-	    <ImageView 
-	        android:layout_width="300dp"
-	        android:layout_height="wrap_content"
+
+	    <ImageView
+	        android:layout_width="340dp"
+	        android:layout_height="101dp"
 	        android:src="@drawable/about_logo"
 	        android:scaleType="centerInside"
 	        android:layout_gravity="center_horizontal"
 	        />
-	    
-	    <TextView 
+
+		<TextView
             android:layout_width="wrap_content"
-        	android:layout_height="wrap_content"
-        	android:layout_margin="18dp"
-        	android:textStyle="bold"
-        	android:textColor="#aaffffff"
-        	android:text="Standard Edition"
-        	android:layout_gravity="center_horizontal"
-        	android:id="@+id/about_tv_edition"
+            android:layout_height="wrap_content"
+            android:layout_margin="18dp"
+            android:textSize="32dp"
+            android:textStyle="bold"
+            android:textColor="#aaffffff"
+            android:text="F o r u m   R e a d e r"
+            android:layout_gravity="center_horizontal"
+            android:id="@+id/about_tv_edition"
             />
-	    
-	    <LinearLayout 
+
+		<LinearLayout
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:orientation="horizontal"
@@ -44,7 +45,7 @@
 	        	android:layout_marginRight="6dp"
 	        	android:textStyle="bold"
 	        	android:textColor="#aaffffff"
-	        	android:text="Build Version:"
+	        	android:text="Version:"
 	            />
 	        
 	        <TextView 
@@ -71,7 +72,7 @@
 	        	android:layout_marginRight="6dp"
 	        	android:textStyle="bold"
 	        	android:textColor="#aaffffff"
-	        	android:text="Build Date:"
+	        	android:text="Date:"
 	            />
 	        
 	        <TextView 
@@ -84,58 +85,112 @@
 	            />
 	        
 	    </LinearLayout>
-	    
-	    <LinearLayout 
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="horizontal"
-	        android:layout_marginTop="6dp"
-	        >
-	        
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#aaffffff"
-	        	android:text="Developer:"
-	            />
-	        
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#ffffff"
-	        	android:text="Forum Fiend Open Source Project"
-	            />
-	        
-	    </LinearLayout>
-	    
-	    <LinearLayout 
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:layout_marginTop="6dp"
+			>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginRight="6dp"
+				android:textStyle="bold"
+				android:textColor="#ffffff"
+				android:text="©"
+				/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginRight="6dp"
+				android:textStyle="bold"
+				android:textColor="#ffffff"
+				android:text="2014 - 2016 Original Author"
+				/>
+
+		</LinearLayout>
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			android:layout_marginTop="6dp"
+			>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginRight="6dp"
+				android:textStyle="bold"
+				android:textColor="#ffffff"
+				android:text="©"
+				/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginRight="6dp"
+				android:textStyle="bold"
+				android:textColor="#ffffff"
+				android:text="@string/copyright_years"
+				/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginRight="6dp"
+				android:textStyle="bold"
+				android:textColor="#ffffff"
+				android:text="@string/app_author"
+				/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textStyle="bold"
+				android:textColor="#ffffff"
+				android:text="("
+				/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:textStyle="bold"
+				android:textColorLink="#ffffff"
+				android:text="@string/app_author_email"
+				android:autoLink="email"
+				/>
+
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginRight="6dp"
+				android:textStyle="bold"
+				android:textColor="#ffffff"
+				android:text=")"
+				/>
+
+		</LinearLayout>
+
+		<LinearLayout
 	        android:layout_width="match_parent"
 	        android:layout_height="wrap_content"
 	        android:orientation="horizontal"
 	        android:layout_marginTop="6dp"
 	        android:id="@+id/about_ll_contact_support"
 	        >
-	        
+
 	        <TextView 
 	            android:layout_width="wrap_content"
 	        	android:layout_height="wrap_content"
 	        	android:layout_marginRight="6dp"
 	        	android:textStyle="bold"
-	        	android:textColor="#aaffffff"
-	        	android:text="Contact:"
-	            />
-	        
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#ffffff"
-	        	android:text="support@ape-apps.com"
+	        	android:textColorLink="#ffffff"
+	        	android:text="@string/app_url"
+				android:autoLink="web"
 	            />
 	        
 	    </LinearLayout>

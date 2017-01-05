@@ -61,7 +61,7 @@
 	        android:background="#dd0000"
 	        android:textColor="#ffffff"
 	        android:textStyle="bold"
-	        android:text="Forum Fiend Open Source Project"
+	        android:text="Peris Open Source Project"
 	        android:gravity="center"
 	        android:layout_width="match_parent"
 	        android:layout_height="50dp"

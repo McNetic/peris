@@ -59,7 +59,7 @@
  	    android:id="@+id/tv_login_disclaimer"
  	    android:layout_width="wrap_content"
  	    android:layout_height="wrap_content"
- 	    android:text="Note: You will be signing in to a 3rd party server whose contents cannot be verified by Ape Apps.  We suggest that you only sign in to forums that you trust!  Use at your own discretion."
+ 	    android:text="Note: You will be signing in to a 3rd party server whose contents cannot be verified by Peris and/or its developer(s).  We suggest that you only sign in to forums that you trust!  Use at your own discretion."
  	    android:textAppearance="?android:attr/textAppearanceSmall" />
 
  </LinearLayout>

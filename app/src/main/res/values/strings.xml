@@ -2,12 +2,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="TypographyDashes">
     
     <!-- Basic Strings -->
-    <string name="app_name">Forum Fiend OSP</string>
+    <string name="app_name">Peris</string>
+    <string name="app_title">Peris Forum Reader</string>
     <string name="ape_market_id">231</string>
-    <string name="android_market_package">com.forum.fiend.osp</string>
-    <string name="app_version">1.3.3</string>
+    <string name="android_market_package">de.enlightened.peris</string>
+    <string name="app_version">1.4.0</string>
     <string name="analytics_app_tracker">UA-59270103-44</string>
-    <string name="compile_date">20150313</string>
+    <string name="compile_date">20161228</string>
+    <string name="copyright_years">2016</string>
+    <string name="app_author">Nicolai Ehemann</string>
+    <string name="app_author_email">en@enlightened.de</string>
+    <string name="app_url">https://github.com/McNetic/peris</string>
     
     <!-- Stand Alone App Strings -->
     <string name="server_location">0</string>
@@ -30,6 +35,6 @@
 	<string name="default_divider_color">0</string>
     
     <!-- Misc. Strings -->
-    <string name="fiend_core">1.3.3</string>
+    <string name="peris_core">1.4.0</string>
 
 </resources>
