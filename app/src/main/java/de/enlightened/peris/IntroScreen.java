@@ -165,7 +165,7 @@ public class IntroScreen extends FragmentActivity {
         }
         
         
-        TextView tvTapaShoutout = (TextView) findViewById(R.id.intro_screen_tapatalk_notice);
+        TextView tvTapaShoutout = (TextView) findViewById(R.id.intro_screen_app_title);
         tvTapaShoutout.setOnClickListener(new View.OnClickListener() {
 			
 			public void onClick(View v) {

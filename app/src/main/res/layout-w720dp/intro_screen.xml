@@ -68,11 +68,11 @@
 		        android:background="#aa000000"
 		        android:textColor="#ffffff"
 		        android:textStyle="bold"
-		        android:text="Powered by Tapatalk API"
+		        android:text="@string/app_title"
 		        android:gravity="center"
 		        android:layout_width="match_parent"
 		        android:layout_height="50dp"
-		        android:id="@+id/intro_screen_tapatalk_notice"
+		        android:id="@+id/intro_screen_app_title"
 		        />
 		    
 		
