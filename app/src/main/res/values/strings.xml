@@ -22,10 +22,13 @@
 	<string name="chat_thread">0</string>
 	<string name="new_chat_id">0</string>
 	<string name="subforum_id">0</string>
-	
+
 	<!-- Theme Related Strings -->
-	<string name="default_color">#dd0000</string>
-    <color name="color_code">#dd0000</color>
+	<string name="default_color">#2277cc</string>
+    <color name="color_theme">#2277cc</color>
+    <color name="color_theme_text">#ffffff</color>
+    <color name="color_sub">#75aadf</color>
+    <color name="color_bg">#acccec</color>
 	<string name="default_theme">5</string>
 	<string name="default_background">#F5F5F5</string>
 	<string name="default_element_background">#F5F5F5</string>

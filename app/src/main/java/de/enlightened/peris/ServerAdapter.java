@@ -77,8 +77,8 @@ public class ServerAdapter extends BaseAdapter {
 		} else {
 			serverTabColor.setBackgroundColor(Color.parseColor(c.getString(R.string.default_color)));
 		}
-		
-		
+
+
 		ImageView serverIcon = (ImageView) v.findViewById(R.id.server_server_icon);
 		
 		if(s.serverIcon.contains("http")) {

@@ -58,7 +58,7 @@
 	        />
 	    
 	    <TextView 
-	        android:background="#dd0000"
+	        android:background="@color/color_theme"
 	        android:textColor="#ffffff"
 	        android:textStyle="bold"
 	        android:text="@string/app_title"
