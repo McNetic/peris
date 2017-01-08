@@ -76,6 +76,8 @@ public class AnalyticsHelper {
 
 		@Override
 		protected String doInBackground(String... params) {
+			//TODO: re-enable or remove
+			if (true) return "fail";
 			HttpClient httpclient = new DefaultHttpClient(); 
             HttpPost httppost;
             
