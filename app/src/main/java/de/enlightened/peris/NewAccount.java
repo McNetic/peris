@@ -81,14 +81,8 @@ public class NewAccount extends FragmentActivity {
 		
 		TextView disclaimer = (TextView) findViewById(R.id.tv_new_account_disclaimer);
 		
-		if(server_address.contains("alien-forums.com") || server_address.contains("rp-forums.net")) {
-			disclaimer.setVisibility(View.GONE);
-		} else {
-			disclaimer.setText(disclaimer.getText().toString().replace("SERVERNAME", server_address.replace("http://", "")));
-		}
-		
-		
-		
+		disclaimer.setText(disclaimer.getText().toString().replace("SERVERNAME", server_address.replace("http://", "")));
+
 		CheckBox cbAge = (CheckBox) findViewById(R.id.cb_new_account_age);
 		cbAge.setOnCheckedChangeListener(AgreementChangedListener);
 

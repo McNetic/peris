@@ -79,11 +79,7 @@ public class Login extends Fragment
 		btnNewAccount = (Button) getActivity().findViewById(R.id.login_new_account);
 		
 		TextView disclaimer = (TextView) getActivity().findViewById(R.id.tv_login_disclaimer);
-		
-		if(server_address.contains("alien-forums.com") || server_address.contains("rp-forums.net")) {
-			disclaimer.setVisibility(View.GONE);
-		}
-		
+
 		cbAgreement.setText(cbAgreement.getText().toString().replace("SERVERNAME", server_address.replace("http://", "")));
 		
 		btnLogin.setEnabled(false);
