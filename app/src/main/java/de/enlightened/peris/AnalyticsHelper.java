@@ -100,7 +100,7 @@ public class AnalyticsHelper {
                 nameValuePairs.add(new BasicNameValuePair("cid", uniqueID)); 
                 nameValuePairs.add(new BasicNameValuePair("t", "appview")); 
                 nameValuePairs.add(new BasicNameValuePair("an", appName)); 
-                nameValuePairs.add(new BasicNameValuePair("av", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName)); 
+                nameValuePairs.add(new BasicNameValuePair("av", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName));
                 nameValuePairs.add(new BasicNameValuePair("cd", viewName)); 
                 httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));  
 

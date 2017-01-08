@@ -6,9 +6,9 @@
     <string name="app_title">Peris Forum Reader</string>
     <string name="ape_market_id">231</string>
     <string name="android_market_package">de.enlightened.peris</string>
-    <string name="app_version">1.4.0</string>
     <string name="analytics_app_tracker">UA-59270103-44</string>
-    <string name="compile_date">20161228</string>
+    <string name="app_version">@string/gradle.versionName</string>
+    <string name="compile_date">@string/gradle.buildDate</string>
     <string name="copyright_years">2016</string>
     <string name="app_author">Nicolai Ehemann</string>
     <string name="app_author_email">en@enlightened.de</string>

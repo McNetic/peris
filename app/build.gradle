@@ -9,8 +9,14 @@ android {
         minSdkVersion 11
         targetSdkVersion 21
         buildConfigField "long", "BUILD_TIMESTAMP", System.currentTimeMillis() + "L"
+        versionCode 42
+        versionName "1.4.0"
     }
 
+    applicationVariants.all { variant ->
+        variant.resValue "string", "gradle.buildDate", new Date().format('yyyyMMdd')
+        variant.resValue "string", "gradle.versionName", variant.versionName
+    }
     buildTypes {
         release {
             minifyEnabled false
