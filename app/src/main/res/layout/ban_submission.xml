@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:padding="12dp"
-    android:orientation="vertical" >
+    android:orientation="vertical"
+    android:padding="12dp">
 
     <TextView
         android:id="@+id/tvBanIntro"
@@ -18,36 +18,35 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:lines="3"
         android:gravity="top"
         android:hint="ban reason"
-        android:inputType="textMultiLine" >
-        
+        android:inputType="textMultiLine"
+        android:lines="3">
+
         <requestFocus />
-        
+
     </EditText>
-    
+
     <LinearLayout
         android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:orientation="horizontal"
-        
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+
         >
-        
-        
-         <Button
-	        android:id="@+id/btnBanSubmit"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="Submit" />
-         
-         <ProgressBar 
-             android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-             android:id="@+id/ban_dialog_working"
-             android:indeterminate="true"
-             />
-        
+
+
+        <Button
+            android:id="@+id/btnBanSubmit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit" />
+
+        <ProgressBar
+            android:id="@+id/ban_dialog_working"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true" />
+
     </LinearLayout>
 
     <TextView
@@ -56,6 +55,6 @@
         android:layout_marginTop="6dp"
         android:text="* Bans made through the app are permanent bans!  For more control, please use the website."
         android:textAppearance="?android:attr/textAppearanceSmall" />
-   
+
 
 </LinearLayout>

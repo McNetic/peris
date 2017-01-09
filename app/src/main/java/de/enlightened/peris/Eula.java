@@ -5,12 +5,12 @@ package de.enlightened.peris;
  * Author: Brandon A. Stecklein
  * Version: 1.0
  * Prerequisites: eula.txt in res/raw directory
- * Description: Displays an End User License Agreement.  
- * 
+ * Description: Displays an End User License Agreement.
+ * <p>
  * Usage Example
  * -------------
  * Eula.showEula(this);
- * 
+ * <p>
  * Change Log
  * ----------
  * v1.0
@@ -40,9 +40,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 
-import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**

@@ -1,8 +1,8 @@
 package de.enlightened.peris;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStreamReader;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -15,46 +15,45 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
-import android.content.Context;
-
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
 
 public class FileUploader {
-	
-	public String uploadBitmap(Context context, String url, Bitmap bitmap,PerisApp application) {
 
-		String result = "fail";
-		
-		try {
-		
-			HttpClient httpClient = new DefaultHttpClient();  
-	        HttpContext localContext = new BasicHttpContext(); 
-	        
-	        HttpPost httpPost = new HttpPost(url);  
+    public String uploadBitmap(Context context, String url, Bitmap bitmap, PerisApp application) {
 
-	        MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-	        
-	        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-	        
-	        bitmap.compress(CompressFormat.JPEG, 100, bos);  
-	        byte[] data = bos.toByteArray();  
+        String result = "fail";
 
-	        entity.addPart("uploadedfile", new ByteArrayBody(data, "temp.jpg"));
-	        entity.addPart("server_address", new StringBody(application.getSession().getServer().serverAddress));
-	        entity.addPart("id", new StringBody(application.getSession().getServer().serverUserName));
-	        
-	        httpPost.setEntity(entity);  
-	        
-	        HttpResponse response = httpClient.execute(httpPost, localContext);  
-	        BufferedReader reader = new BufferedReader(new InputStreamReader( response.getEntity().getContent(), "UTF-8"));  
-	        result = reader.readLine();
-        
-		} catch(Exception ex) {
-			//fuck it
-		}
-		
-		return result;
-	}
-	
+        try {
+
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpContext localContext = new BasicHttpContext();
+
+            HttpPost httpPost = new HttpPost(url);
+
+            MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+            bitmap.compress(CompressFormat.JPEG, 100, bos);
+            byte[] data = bos.toByteArray();
+
+            entity.addPart("uploadedfile", new ByteArrayBody(data, "temp.jpg"));
+            entity.addPart("server_address", new StringBody(application.getSession().getServer().serverAddress));
+            entity.addPart("id", new StringBody(application.getSession().getServer().serverUserName));
+
+            httpPost.setEntity(entity);
+
+            HttpResponse response = httpClient.execute(httpPost, localContext);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+            result = reader.readLine();
+
+        } catch (Exception ex) {
+            //fuck it
+        }
+
+        return result;
+    }
+
 }

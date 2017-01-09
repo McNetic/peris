@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<EditText
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="fill_parent"
-  android:layout_height="fill_parent"
-  android:lines="3"
-  android:gravity="top"
-  android:autoText="true">
-</EditText>
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:autoText="true"
+    android:gravity="top"
+    android:lines="3"></EditText>

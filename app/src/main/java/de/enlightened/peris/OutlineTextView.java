@@ -6,13 +6,13 @@ import android.widget.TextView;
 
 public class OutlineTextView extends TextView {
 
-	public OutlineTextView(Context context) {
-		super(context);
-		// TODO Auto-generated constructor stub
-		
-	}
+    public OutlineTextView(Context context) {
+        super(context);
+        // TODO Auto-generated constructor stub
 
-	@Override
+    }
+
+    @Override
     public void draw(Canvas canvas) {
         for (int i = 0; i < 5; i++) {
             super.draw(canvas);

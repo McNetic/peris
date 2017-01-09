@@ -3,30 +3,30 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:baselineAligned="true"
-    android:padding="6dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="6dp">
 
     <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:layout_margin="6dp"
+        android:layout_weight="1"
         android:text="Please enter the full URL of the wallpaper you want to use." />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="6dp"
-        android:layout_weight="1" >
+        android:layout_weight="1">
 
         <EditText
             android:id="@+id/etWallpaperURL"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="example: http://www.backgroundbag.com/backgrounds/blue_sky_21.png"
-            android:ems="10" />
+            android:ems="10"
+            android:hint="example: http://www.backgroundbag.com/backgrounds/blue_sky_21.png" />
 
         <Button
             android:id="@+id/btnSetWallpaper"
@@ -37,20 +37,18 @@
 
     </LinearLayout>
 
-        
-        
-    
+
     <Button
-	    android:id="@+id/btnFindWallpapers"
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Find Backgrounds Online" />
-    
+        android:id="@+id/btnFindWallpapers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Find Backgrounds Online" />
+
     <Button
-	    android:id="@+id/btnClearWallpaper"
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Remove Wallpaper" />
+        android:id="@+id/btnClearWallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Remove Wallpaper" />
 
 
 </LinearLayout>

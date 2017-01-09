@@ -3,55 +3,50 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:baselineAligned="true"
-    android:padding="6dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="6dp">
 
     <RadioGroup
         android:layout_width="match_parent"
-	    android:layout_height="0dp"
-	    android:layout_weight="1" >
-        
-        <RadioButton 
-            android:layout_width="match_parent"
-	    	android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <RadioButton
             android:id="@+id/start_location_index"
-            android:text="Forum Index"
-            />
-        
-        <RadioButton 
             android:layout_width="match_parent"
-	    	android:layout_height="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Forum Index" />
+
+        <RadioButton
             android:id="@+id/start_location_favorites"
-            android:text="Favorites"
-            />
-        
-        <RadioButton 
             android:layout_width="match_parent"
-	    	android:layout_height="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Favorites" />
+
+        <RadioButton
             android:id="@+id/start_location_unread"
-            android:text="Unread Topics"
-            />
-        
-        <RadioButton 
             android:layout_width="match_parent"
-	    	android:layout_height="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unread Topics" />
+
+        <RadioButton
             android:id="@+id/start_location_participated"
-            android:text="Participated Topics"
-            />
-        
-        <RadioButton 
             android:layout_width="match_parent"
-	    	android:layout_height="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Participated Topics" />
+
+        <RadioButton
             android:id="@+id/start_location_subscribed"
-            android:text="Subscribed Topics"
-            />
-        
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Subscribed Topics" />
+
     </RadioGroup>
-    
+
     <Button
-	    android:id="@+id/start_location_save"
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Save" />
+        android:id="@+id/start_location_save"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save" />
 
 </LinearLayout>

@@ -2,132 +2,117 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
-    
-    <FrameLayout 
+    android:orientation="vertical">
+
+    <FrameLayout
         android:id="@+id/theme_editor_preview"
-        android:layout_height="0dp"
         android:layout_width="match_parent"
-        android:layout_weight="1"
-        >
-        
-        <ImageView 
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ImageView
             android:id="@+id/theme_editor_preview_wallpaper"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            />
-        
-        <LinearLayout 
+            android:layout_height="match_parent" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical"
-            >
-            
-            <TextView 
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/theme_editor_preview_appbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Theme Editor"
-                android:padding="12dp"
-                android:textColor="#ffffff"
                 android:background="@color/color_sub"
-                android:textStyle="bold"
+                android:padding="12dp"
+                android:text="Theme Editor"
+                android:textColor="#ffffff"
                 android:textSize="18sp"
-                android:id="@+id/theme_editor_preview_appbar"
-                />
-            
-            <ScrollView 
+                android:textStyle="bold" />
+
+            <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                >
-                
-                <LinearLayout 
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:id="@+id/theme_editor_preview_holder"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/theme_editor_preview_holder"
-                    android:orientation="vertical"
-                    ></LinearLayout>
-                
+                    android:orientation="vertical"></LinearLayout>
+
             </ScrollView>
-            
+
         </LinearLayout>
-        
+
     </FrameLayout>
-    
-    <ScrollView 
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        >
-        
-        <LinearLayout 
+        android:layout_weight="1">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp"
-            >
-            
-            <Button 
+            android:padding="8dp">
+
+            <Button
                 android:id="@+id/theme_editor_accent_color"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Accent"
-                />
-            
-            <Button 
+                android:text="Accent" />
+
+            <Button
                 android:id="@+id/theme_editor_background_color"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Background"
-                />
-            
-            <Button 
+                android:text="Background" />
+
+            <Button
                 android:id="@+id/theme_editor_text_color"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Text"
-                />
-            
-            <Button 
+                android:text="Text" />
+
+            <Button
                 android:id="@+id/theme_editor_element_color"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Elements"
-                />
-            
-            <Button 
+                android:text="Elements" />
+
+            <Button
                 android:id="@+id/theme_editor_borders"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Borders"
-                />
-            
-            <Button 
+                android:text="Borders" />
+
+            <Button
                 android:id="@+id/theme_editor_wallpaper"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Wallpaper"
-                />
-            
+                android:text="Wallpaper" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="6dp"
-                android:visibility="gone"
-                android:text="Wallpaper Opacity" />
-            
-            <SeekBar 
+                android:text="Wallpaper Opacity"
+                android:visibility="gone" />
+
+            <SeekBar
                 android:id="@+id/theme_editor_opacity"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:max="100"
                 android:progress="100"
-                android:visibility="gone"
-                />
-            
+                android:visibility="gone" />
+
         </LinearLayout>
-        
+
     </ScrollView>
-    
+
 
 </LinearLayout>

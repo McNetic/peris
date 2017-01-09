@@ -1,67 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:padding="12dp"
+
+    >
+
+    <LinearLayout
         android:layout_width="fill_parent"
-  android:layout_height="fill_parent"
-  android:padding="12dp"
-    
-     >
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
 
-    <LinearLayout 
-        android:layout_width="fill_parent"
-  android:layout_height="fill_parent"
-  android:orientation="vertical"
-        >
+        <EditText
+            android:id="@+id/login_username"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            android:inputType="textNoSuggestions" />
 
- <EditText
- 	android:layout_width="fill_parent"
- 	android:layout_height="wrap_content"
- 	android:inputType="textNoSuggestions"
- 	android:hint="Username"
- 	android:id="@+id/login_username" />
+        <EditText
+            android:id="@+id/login_password"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:hint="Password"
+            android:password="true" />
 
- <EditText
- 	android:layout_width="fill_parent"
- 	android:layout_height="wrap_content"
- 	android:password="true"
- 	android:layout_marginTop="6dp"
- 	android:hint="Password"
- 	android:id="@+id/login_password" />
- 
- <CheckBox
- 	android:layout_width="fill_parent"
- 	android:layout_height="wrap_content"
- 	android:text="I am at least 13 years old."
- 	android:id="@+id/login_age"
- 	android:layout_marginTop="6dp" />
- 
- <CheckBox
- 	android:layout_width="fill_parent"
- 	android:layout_height="wrap_content"
- 	android:text="I agree to follow all rules of conduct for SERVERNAME."
- 	android:id="@+id/login_agreement"
- 	android:layout_marginTop="6dp" />
- 
- <Button
- 		android:layout_width="fill_parent"
- 		android:layout_height="wrap_content"
- 		android:text="Login"
- 		android:id="@+id/login_login" />
- 	
- 	<Button
- 		android:layout_width="fill_parent"
- 		android:layout_height="wrap_content"
- 		android:text="New Account"
- 		android:id="@+id/login_new_account" />
+        <CheckBox
+            android:id="@+id/login_age"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="I am at least 13 years old." />
 
- 	<TextView
- 	    android:id="@+id/tv_login_disclaimer"
- 	    android:layout_width="wrap_content"
- 	    android:layout_height="wrap_content"
- 	    android:text="Note: You will be signing in to a 3rd party server whose contents cannot be verified by Peris and/or its developer(s).  We suggest that you only sign in to forums that you trust!  Use at your own discretion."
- 	    android:textAppearance="?android:attr/textAppearanceSmall" />
+        <CheckBox
+            android:id="@+id/login_agreement"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="I agree to follow all rules of conduct for SERVERNAME." />
 
- </LinearLayout>
- 
-    </ScrollView>
+        <Button
+            android:id="@+id/login_login"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Login" />
+
+        <Button
+            android:id="@+id/login_new_account"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="New Account" />
+
+        <TextView
+            android:id="@+id/tv_login_disclaimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Note: You will be signing in to a 3rd party server whose contents cannot be verified by Peris and/or its developer(s).  We suggest that you only sign in to forums that you trust!  Use at your own discretion."
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    </LinearLayout>
+
+</ScrollView>

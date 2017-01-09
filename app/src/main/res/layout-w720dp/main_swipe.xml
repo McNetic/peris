@@ -1,89 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-        >
-
-<android.support.v4.widget.DrawerLayout
-    android:id="@+id/drawer_layout"
-    android:background="#dddddd"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    
-    <RelativeLayout 
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <android.support.v4.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-    android:layout_height="match_parent"
-        >
-        
-        <ImageView 
-            android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/main_swipe_image_background"
-android:scaleType="centerCrop"
-            />
-
-    <LinearLayout
-	  android:orientation="vertical"
-	  android:layout_width="match_parent"
-	    android:layout_height="match_parent" >
-	    
-        <LinearLayout 
-            android:layout_width="match_parent"
-	    	android:layout_height="0dp"
-	    	android:layout_weight="1"
-	    	android:orientation="horizontal"
-            >
-            
-            <android.gesture.GestureOverlayView
-			    android:id="@+id/gestures"
-			    android:layout_width="0dp"
-			   	android:layout_height="match_parent"
-			   	android:layout_weight="1"
-			    android:gestureStrokeType="single"
-			    android:eventsInterceptionEnabled="true"
-			    android:orientation="vertical">
-
-	            <FrameLayout 
-					android:layout_width="match_parent"
-		    		android:layout_height="match_parent"
-		    		android:id="@+id/main_page_frame_primary"
-	                ></FrameLayout>
-            
-            </android.gesture.GestureOverlayView>
-            
-            <View
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="#bbbbbb"
-                android:id="@+id/main_page_seperator"
-                 />
-            
-            <FrameLayout 
-				android:layout_width="320dp"
-	    		android:layout_height="match_parent"
-	    		android:id="@+id/main_page_frame_right"
-                ></FrameLayout>
-            
-        </LinearLayout>
-
-	
-		<RelativeLayout
-	        android:id="@+id/adsdkContent"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"  />
-	
-	
-	</LinearLayout>
-	
-    </RelativeLayout>
-	
-    <FrameLayout android:id="@+id/left_drawer"
-        android:layout_width="240dp"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="@drawable/drawer_shadow" />
+        android:background="#dddddd">
 
-</android.support.v4.widget.DrawerLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/main_swipe_image_background"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <android.gesture.GestureOverlayView
+                        android:id="@+id/gestures"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:eventsInterceptionEnabled="true"
+                        android:gestureStrokeType="single"
+                        android:orientation="vertical">
+
+                        <FrameLayout
+                            android:id="@+id/main_page_frame_primary"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"></FrameLayout>
+
+                    </android.gesture.GestureOverlayView>
+
+                    <View
+                        android:id="@+id/main_page_seperator"
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="#bbbbbb" />
+
+                    <FrameLayout
+                        android:id="@+id/main_page_frame_right"
+                        android:layout_width="320dp"
+                        android:layout_height="match_parent"></FrameLayout>
+
+                </LinearLayout>
+
+
+                <RelativeLayout
+                    android:id="@+id/adsdkContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/left_drawer"
+            android:layout_width="240dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="@drawable/drawer_shadow" />
+
+    </android.support.v4.widget.DrawerLayout>
 </RelativeLayout>

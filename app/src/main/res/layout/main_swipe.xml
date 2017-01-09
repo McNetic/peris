@@ -1,78 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout 
-    xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-        >
-<android.support.v4.widget.DrawerLayout
-    
-    android:id="@+id/drawer_layout"
-    android:background="#dddddd"
-    android:fitsSystemWindows="true"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    
-    <RelativeLayout 
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <android.support.v4.widget.DrawerLayout
+
+        android:id="@+id/drawer_layout"
         android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-        >
-        
-        <ImageView 
-            android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/main_swipe_image_background"
-android:scaleType="centerCrop"
-            />
-
-    <LinearLayout
-	  android:orientation="vertical"
-	  android:layout_width="match_parent"
-	    android:layout_height="match_parent" >
-	    
-        <android.gesture.GestureOverlayView
-		    android:id="@+id/gestures"
-		    android:layout_width="match_parent"
-		   	android:layout_height="0dp"
-		   	android:layout_weight="1"
-		    android:gestureStrokeType="single"
-		    android:eventsInterceptionEnabled="true"
-		    android:orientation="vertical">
-	    
-			<FrameLayout 
-				android:layout_width="match_parent"
-		   		android:layout_height="match_parent"
-		   		android:id="@+id/main_page_frame_primary"
-		              ></FrameLayout>
-	
-	</android.gesture.GestureOverlayView>
-	
-		<RelativeLayout
-	        android:id="@+id/adsdkContent"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"  />
-	
-	
-	</LinearLayout>
-	
-    </RelativeLayout>
-	
-    <FrameLayout android:id="@+id/left_drawer"
-        android:layout_width="300dp"
         android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:paddingTop="8dp"
-        android:paddingBottom="20dp"
-        android:background="@drawable/drawer_shadow" />
-    
-    <FrameLayout 
-		android:layout_width="320dp"
-  		android:layout_height="match_parent"
-  		android:layout_gravity="end"
-  		android:id="@+id/main_page_frame_right"
+        android:background="#dddddd"
+        android:fitsSystemWindows="true">
 
-             ></FrameLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true">
 
-</android.support.v4.widget.DrawerLayout>
+            <ImageView
+                android:id="@+id/main_swipe_image_background"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <android.gesture.GestureOverlayView
+                    android:id="@+id/gestures"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:eventsInterceptionEnabled="true"
+                    android:gestureStrokeType="single"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:id="@+id/main_page_frame_primary"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"></FrameLayout>
+
+                </android.gesture.GestureOverlayView>
+
+                <RelativeLayout
+                    android:id="@+id/adsdkContent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <FrameLayout
+            android:id="@+id/left_drawer"
+            android:layout_width="300dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="@drawable/drawer_shadow"
+            android:paddingBottom="20dp"
+            android:paddingTop="8dp" />
+
+        <FrameLayout
+            android:id="@+id/main_page_frame_right"
+            android:layout_width="320dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+
+            ></FrameLayout>
+
+    </android.support.v4.widget.DrawerLayout>
 </RelativeLayout>

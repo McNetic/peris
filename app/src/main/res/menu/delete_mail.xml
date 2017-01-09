@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-  xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:id="@+id/mail_delete" android:titleCondensed="Delete" android:title="Delete Message"></item>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/mail_delete"
+        android:title="Delete Message"
+        android:titleCondensed="Delete"></item>
 </menu>

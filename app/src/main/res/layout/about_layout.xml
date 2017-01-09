@@ -1,257 +1,231 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:background="@color/color_theme"
-	android:fitsSystemWindows="true"
-    >
-	<LinearLayout 
-	    android:layout_width="match_parent"
-	    android:layout_height="wrap_content"
-	    android:layout_margin="12dp"
-	    android:layout_gravity="center_horizontal"
-	    android:orientation="vertical" >
+    android:layout_height="match_parent"
+    android:background="@color/color_theme"
+    android:fitsSystemWindows="true">
 
-	    <ImageView
-	        android:layout_width="340dp"
-	        android:layout_height="101dp"
-	        android:src="@drawable/about_logo"
-	        android:scaleType="centerInside"
-	        android:layout_gravity="center_horizontal"
-	        />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="12dp"
+        android:orientation="vertical">
 
-		<TextView
+        <ImageView
+            android:layout_width="340dp"
+            android:layout_height="101dp"
+            android:layout_gravity="center_horizontal"
+            android:scaleType="centerInside"
+            android:src="@drawable/about_logo" />
+
+        <TextView
+            android:id="@+id/about_tv_edition"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="18dp"
-            android:textSize="32dp"
-            android:textStyle="bold"
-            android:textColor="#aaffffff"
-            android:text="F o r u m   R e a d e r"
             android:layout_gravity="center_horizontal"
-            android:id="@+id/about_tv_edition"
-            />
+            android:layout_margin="18dp"
+            android:text="F o r u m   R e a d e r"
+            android:textColor="#aaffffff"
+            android:textSize="32dp"
+            android:textStyle="bold" />
 
-		<LinearLayout
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="horizontal"
-	        android:layout_marginTop="6dp"
-	        >
-	        
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#aaffffff"
-	        	android:text="Version:"
-	            />
-	        
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#ffffff"
-	        	android:text="@string/app_version"
-	            />
-	        
-	    </LinearLayout>
-	    
-	    <LinearLayout 
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="horizontal"
-	        android:layout_marginTop="6dp"
-	        >
-	        
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#aaffffff"
-	        	android:text="Date:"
-	            />
-	        
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#ffffff"
-	        	android:text="@string/compile_date"
-	            />
-	        
-	    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
 
-		<LinearLayout
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="horizontal"
-			android:layout_marginTop="6dp"
-			>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="Version:"
+                android:textColor="#aaffffff"
+                android:textStyle="bold" />
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginRight="6dp"
-				android:textStyle="bold"
-				android:textColor="#ffffff"
-				android:text="©"
-				/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="@string/app_version"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginRight="6dp"
-				android:textStyle="bold"
-				android:textColor="#ffffff"
-				android:text="2014 - 2016 Original Author"
-				/>
+        </LinearLayout>
 
-		</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
 
-		<LinearLayout
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:orientation="horizontal"
-			android:layout_marginTop="6dp"
-			>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="Date:"
+                android:textColor="#aaffffff"
+                android:textStyle="bold" />
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginRight="6dp"
-				android:textStyle="bold"
-				android:textColor="#ffffff"
-				android:text="©"
-				/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="@string/compile_date"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginRight="6dp"
-				android:textStyle="bold"
-				android:textColor="#ffffff"
-				android:text="@string/copyright_years"
-				/>
+        </LinearLayout>
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginRight="6dp"
-				android:textStyle="bold"
-				android:textColor="#ffffff"
-				android:text="@string/app_author"
-				/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:textStyle="bold"
-				android:textColor="#ffffff"
-				android:text="("
-				/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="©"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:textStyle="bold"
-				android:textColorLink="#ffffff"
-				android:text="@string/app_author_email"
-				android:autoLink="email"
-				/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="2014 - 2016 Original Author"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
 
-			<TextView
-				android:layout_width="wrap_content"
-				android:layout_height="wrap_content"
-				android:layout_marginRight="6dp"
-				android:textStyle="bold"
-				android:textColor="#ffffff"
-				android:text=")"
-				/>
+        </LinearLayout>
 
-		</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
 
-		<LinearLayout
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="horizontal"
-	        android:layout_marginTop="6dp"
-	        android:id="@+id/about_ll_contact_support"
-	        >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="©"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
 
-	        <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginRight="6dp"
-	        	android:textStyle="bold"
-	        	android:textColorLink="#ffffff"
-	        	android:text="@string/app_url"
-				android:autoLink="web"
-	            />
-	        
-	    </LinearLayout>
-	    
-	    <LinearLayout 
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:orientation="vertical"
-	        android:id="@+id/amazon_scary_about_section"
-	        >
-	    
-		    <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginTop="18dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#aaffffff"
-	        	android:text="External Libraries Used"
-	            />
-		    
-		    <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginTop="6dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#ffffff"
-	        	android:text="android-support-v4.jar\naXMLRPC_v1.7.2.jar\ngson-2.2.4.jar\nhttpmime-4.2.5.jar\nuniversal-image-loader-1.9.3.jar"
-	            />
-		    
-		    <ImageView 
-		        android:layout_width="300dp"
-		        android:layout_height="wrap_content"
-		        android:src="@drawable/powered_by"
-		        android:scaleType="centerInside"
-		        android:layout_gravity="center_horizontal"
-		        android:id="@+id/about_powered_by"
-		        />
-		    
-		    <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginTop="18dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#aaffffff"
-	        	android:id="@+id/about_tv_changelog_header"
-	        	android:text="Changelog"
-	            />
-		    
-		    <TextView 
-	            android:layout_width="wrap_content"
-	        	android:layout_height="wrap_content"
-	        	android:layout_marginTop="6dp"
-	        	android:layout_marginBottom="26dp"
-	        	android:textStyle="bold"
-	        	android:textColor="#ffffff"
-	        	android:text="changelog here"
-	        	android:id="@+id/about_tv_changelog"
-	        	android:typeface="monospace"
-	            />
-	    
-	    </LinearLayout>
-	
-	</LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="@string/copyright_years"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="@string/app_author"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="("
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:autoLink="email"
+                android:text="@string/app_author_email"
+                android:textColorLink="#ffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text=")"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/about_ll_contact_support"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:autoLink="web"
+                android:text="@string/app_url"
+                android:textColorLink="#ffffff"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/amazon_scary_about_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="External Libraries Used"
+                android:textColor="#aaffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="android-support-v4.jar\naXMLRPC_v1.7.2.jar\ngson-2.2.4.jar\nhttpmime-4.2.5.jar\nuniversal-image-loader-1.9.3.jar"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/about_powered_by"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:scaleType="centerInside"
+                android:src="@drawable/powered_by" />
+
+            <TextView
+                android:id="@+id/about_tv_changelog_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Changelog"
+                android:textColor="#aaffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/about_tv_changelog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="26dp"
+                android:layout_marginTop="6dp"
+                android:text="changelog here"
+                android:textColor="#ffffff"
+                android:textStyle="bold"
+                android:typeface="monospace" />
+
+        </LinearLayout>
+
+    </LinearLayout>
 </ScrollView>

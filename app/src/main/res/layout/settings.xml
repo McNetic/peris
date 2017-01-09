@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.gesture.GestureOverlayView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.gesture.GestureOverlayView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/gestures"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:gestureStrokeType="single"
     android:eventsInterceptionEnabled="true"
+    android:gestureStrokeType="single"
     android:orientation="vertical">
-    
+
     <ListView
-        android:layout_width="fill_parent"
-    	android:layout_height="fill_parent"
         android:id="@android:id/list"
-         ></ListView>
-    
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"></ListView>
+
 </android.gesture.GestureOverlayView>

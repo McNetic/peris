@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="TypographyDashes">
-    
+
     <!-- Basic Strings -->
     <string name="app_name">Peris</string>
     <string name="app_title">Peris Forum Reader</string>
@@ -13,30 +13,30 @@
     <string name="app_author">Nicolai Ehemann</string>
     <string name="app_author_email">en@enlightened.de</string>
     <string name="app_url">https://github.com/McNetic/peris</string>
-    
+
     <!-- Stand Alone App Strings -->
     <string name="server_location">0</string>
     <string name="registration_url">0</string>
     <string name="chat_name">Chat</string>
-	<string name="chat_forum">0</string>
-	<string name="chat_thread">0</string>
-	<string name="new_chat_id">0</string>
-	<string name="subforum_id">0</string>
+    <string name="chat_forum">0</string>
+    <string name="chat_thread">0</string>
+    <string name="new_chat_id">0</string>
+    <string name="subforum_id">0</string>
 
-	<!-- Theme Related Strings -->
-	<string name="default_color">#2277cc</string>
+    <!-- Theme Related Strings -->
+    <string name="default_color">#2277cc</string>
     <color name="color_theme">#2277cc</color>
     <color name="color_theme_text">#ffffff</color>
     <color name="color_sub">#75aadf</color>
     <color name="color_bg">#acccec</color>
-	<string name="default_theme">5</string>
-	<string name="default_background">#F5F5F5</string>
-	<string name="default_element_background">#F5F5F5</string>
-	<string name="default_element_border">0</string>
-	<string name="default_text_color">#222222</string>
-	<string name="default_wallpaper_url">0</string>
-	<string name="default_divider_color">0</string>
-    
+    <string name="default_theme">5</string>
+    <string name="default_background">#F5F5F5</string>
+    <string name="default_element_background">#F5F5F5</string>
+    <string name="default_element_border">0</string>
+    <string name="default_text_color">#222222</string>
+    <string name="default_wallpaper_url">0</string>
+    <string name="default_divider_color">0</string>
+
     <!-- Misc. Strings -->
     <string name="peris_core">1.4.0</string>
 

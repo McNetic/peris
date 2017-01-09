@@ -3,14 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="6dp"
-    android:orientation="vertical" >
+    android:orientation="vertical">
 
     <CheckBox
         android:id="@+id/text_settings_cb_smoothing"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Use Text Smoothing" />
-    
+
     <CheckBox
         android:id="@+id/text_settings_cb_opensans"
         android:layout_width="wrap_content"
@@ -21,15 +21,15 @@
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Font Size:"
         android:layout_margin="6dp"
+        android:text="Font Size:"
         android:textAppearance="?android:attr/textAppearanceSmall" />
 
     <SeekBar
         android:id="@+id/text_settings_sb_font_size"
-        android:max="30"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:max="30" />
 
     <TextView
         android:id="@+id/text_settings_tb_sample"
@@ -46,5 +46,5 @@
         android:layout_margin="6dp"
         android:text="NOTE: Some changes may not take effect until you restart the app."
         android:textAppearance="?android:attr/textAppearanceSmall" />
-    
+
 </LinearLayout>
