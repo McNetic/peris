@@ -30,106 +30,98 @@ import java.net.CookiePolicy;
 
 public class AvatarUploader {
 
-    public String uploadBitmap(Context context, String url, Bitmap bitmap, PerisApp application) {
+  private static final int JPEG_COMPRESSION_QUALITY = 75;
 
-        String result = "fail";
+  public final String uploadBitmap(final Context context, final String url, final Bitmap bitmap, final PerisApp application) {
 
+    String result = "fail";
 
-        BasicCookieStore cStore = new BasicCookieStore();
+    final BasicCookieStore cStore = new BasicCookieStore();
 
-        CookieManager cookiemanager = new CookieManager();
-        cookiemanager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        CookieHandler.setDefault(cookiemanager);
+    final CookieManager cookiemanager = new CookieManager();
+    cookiemanager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+    CookieHandler.setDefault(cookiemanager);
 
-        String cookieString = "";
+    String cookieString = "";
 
+    for (String s : application.getSession().getCookies().keySet()) {
+      try {
+        final BasicClientCookie aCookie = new BasicClientCookie(s, application.getSession().getCookies().get(s));
+        cStore.addCookie(aCookie);
 
-        for (String s : application.getSession().getCookies().keySet()) {
-            try {
-                BasicClientCookie aCookie = new BasicClientCookie(s, application.getSession().getCookies().get(s));
-                cStore.addCookie(aCookie);
-
-                cookieString = cookieString + s + "=" + application.getSession().getCookies().get(s) + ";";
-            } catch (Exception ex) {
-                //nobody cares
-            }
-        }
-
-        try {
-
-            HttpClient httpClient = new DefaultHttpClient();
-            HttpContext localContext = new BasicHttpContext();
-
-            localContext.setAttribute(ClientContext.COOKIE_STORE, cStore);
-
-            HttpPost httpPost = new HttpPost(url);
-
-            //httpPost.setHeader("User-Agent", "Peris");
-            httpPost.setHeader("Cookie", cookieString);
-
-            Log.d(context.getString(R.string.app_name), "Cookie String: " + cookieString);
-
-            MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
-
-
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-
-            bitmap.compress(CompressFormat.JPEG, 60, bos);
-
-
-            Log.d(context.getString(R.string.app_name), "Outgoing Avatar Size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
-
-
-            byte[] data = bos.toByteArray();
-
-            //entity.addPart("myParam", new StringBody("my value"));
-
-            File f = new File(context.getCacheDir(), "temp.jpg");
-            f.createNewFile();
-            FileOutputStream fos = new FileOutputStream(f);
-            fos.write(data);
-            fos.close();
-
-            FileBody bin = new FileBody(f, "image/jpeg");
-
-
-            String methodName = "upload_avatar";
-            String uploadFileFieldName;
-
-            //String uploadFileFieldName = "uploadfile";
-
-            uploadFileFieldName = application.getSession().getAvatarName();
-
-            Log.d(context.getString(R.string.app_name), "Avatar Upload Field Name: " + uploadFileFieldName);
-
-            entity.addPart(uploadFileFieldName, bin);
-            entity.addPart("method_name", new StringBody(methodName));
-
-            httpPost.setEntity(entity);
-
-
-            HttpResponse response = httpClient.execute(httpPost, localContext);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-
-
-            String line;
-            String xml = "";
-
-            while ((line = reader.readLine()) != null) {
-                xml = xml + line;
-                Log.d("Discussions", line);
-            }
-
-
-            result = reader.readLine();
-
-        } catch (Exception ex) {
-            //fuck it
-            Log.d("Discussions", ex.getMessage());
-        }
-
-
-        return result;
+        cookieString = cookieString + s + "=" + application.getSession().getCookies().get(s) + ";";
+      } catch (Exception ex) {
+        // nobody cares
+        cookieString = "";
+      }
     }
+
+    try {
+
+      final HttpClient httpClient = new DefaultHttpClient();
+      final HttpContext localContext = new BasicHttpContext();
+
+      localContext.setAttribute(ClientContext.COOKIE_STORE, cStore);
+
+      final HttpPost httpPost = new HttpPost(url);
+
+      //httpPost.setHeader("User-Agent", "Peris");
+      httpPost.setHeader("Cookie", cookieString);
+
+      Log.d(context.getString(R.string.app_name), "Cookie String: " + cookieString);
+
+      final MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+      final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+
+      bitmap.compress(CompressFormat.JPEG, JPEG_COMPRESSION_QUALITY, bos);
+
+      Log.d(context.getString(R.string.app_name), "Outgoing Avatar Size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+
+
+      final byte[] data = bos.toByteArray();
+
+      //entity.addPart("myParam", new StringBody("my value"));
+
+      final File f = new File(context.getCacheDir(), "temp.jpg");
+      f.createNewFile();
+      final FileOutputStream fos = new FileOutputStream(f);
+      fos.write(data);
+      fos.close();
+
+      final FileBody bin = new FileBody(f, "image/jpeg");
+
+      final String methodName = "upload_avatar";
+      String uploadFileFieldName;
+
+      //String uploadFileFieldName = "uploadfile";
+
+      uploadFileFieldName = application.getSession().getAvatarName();
+
+      Log.d(context.getString(R.string.app_name), "Avatar Upload Field Name: " + uploadFileFieldName);
+
+      entity.addPart(uploadFileFieldName, bin);
+      entity.addPart("method_name", new StringBody(methodName));
+
+      httpPost.setEntity(entity);
+
+      final HttpResponse response = httpClient.execute(httpPost, localContext);
+      final BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+
+      String line;
+      String xml = "";
+
+      while ((line = reader.readLine()) != null) {
+        xml = xml + line;
+        Log.d("Discussions", line);
+      }
+
+      result = reader.readLine();
+
+    } catch (Exception ex) {
+      //fuck it
+      Log.d("Discussions", ex.getMessage());
+    }
+    return result;
+  }
 
 }
