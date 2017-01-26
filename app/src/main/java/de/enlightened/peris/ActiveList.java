@@ -18,147 +18,161 @@ import java.util.Vector;
 @SuppressLint("NewApi")
 public class ActiveList extends ListFragment {
 
-    private PerisApp application;
-    private OnProfileSelectedListener profileSelected = null;
+  private PerisApp application;
+  private OnProfileSelectedListener profileSelected;
 
+  @Override
+  public final void onCreate(final Bundle bundle) {
+    super.onCreate(bundle);
+
+    this.application = (PerisApp) getActivity().getApplication();
+
+    setHasOptionsMenu(true);
+  }
+
+  @Override
+  public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+
+    return super.onCreateView(inflater, container, savedInstanceState);
+  }
+
+  @Override
+  public final void onStart() {
+
+    super.onStart();
+
+    getListView().setDivider(null);
+
+    this.loadMail();
+  }
+
+  private void loadMail() {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+      new DownloadMailTask(this.profileSelected).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    } else {
+      new DownloadMailTask(this.profileSelected).execute();
+    }
+  }
+
+  public final void setOnProfileSelectedListener(final OnProfileSelectedListener l) {
+    this.profileSelected = l;
+  }
+
+  //Profile selected interface
+  public interface OnProfileSelectedListener {
+    void onProfileSelected(String username, String userid);
+  }
+
+  private class DownloadMailTask extends AsyncTask<String, Void, Object[]> {
+    private static final int NUM_MAIL_TASKS = 50;
+    private final OnProfileSelectedListener profileSelected;
+
+    DownloadMailTask(final OnProfileSelectedListener profileSelected) {
+      this.profileSelected = profileSelected;
+    }
+
+    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
     @Override
-    public void onCreate(Bundle bundle) {
-        super.onCreate(bundle);
+    protected Object[] doInBackground(final String... params) {
 
-        application = (PerisApp) getActivity().getApplication();
+      final Object[] result = new Object[NUM_MAIL_TASKS];
 
-        setHasOptionsMenu(true);
+      try {
+
+        final Vector paramz = new Vector();
+
+        result[0] = (HashMap) application.getSession().performSynchronousCall("get_online_users", paramz);
+      } catch (Exception e) {
+        Log.w("Discussions", e.getMessage());
+        return null;
+      }
+      return result;
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    @Override
-    public void onStart() {
-
-        super.onStart();
-
-        getListView().setDivider(null);
-
-        load_mail();
-    }
-
-    private void load_mail() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            new download_mail().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } else {
-            new download_mail().execute();
-        }
-    }
-
-    public void setOnProfileSelectedListener(OnProfileSelectedListener l) {
-        profileSelected = l;
-    }
-
-    //Profile selected interface
-    public interface OnProfileSelectedListener {
-        public abstract void onProfileSelected(String username, String userid);
-    }
-
-    private class download_mail extends AsyncTask<String, Void, Object[]> {
-        @SuppressWarnings("rawtypes")
-        @Override
-        protected Object[] doInBackground(String... params) {
-
-            Object[] result = new Object[50];
-
-            try {
-
-                Vector paramz = new Vector();
-
-                result[0] = (HashMap) application.getSession().performSynchronousCall("get_online_users", paramz);
-            } catch (Exception e) {
-                Log.w("Discussions", e.getMessage());
-                return null;
-            }
-            return result;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected void onPostExecute(final Object[] result) {
-            if (result == null) {
-                Log.d("Discussions", "Null active list");
-                return;
-            }
+    @SuppressWarnings("rawtypes")
+    protected void onPostExecute(final Object[] result) {
+      if (result == null) {
+        Log.d("Discussions", "Null active list");
+        return;
+      }
 
 
-            try {
-                try {
-                    ArrayList<IgnoreItem> inboxList = new ArrayList<IgnoreItem>();
+      try {
+        try {
+          final ArrayList<IgnoreItem> inboxList = new ArrayList<IgnoreItem>();
 
 
-                    for (Object o : result) {
+          for (Object o : result) {
 
-                        if (o != null) {
-                            HashMap map = (HashMap) o;
+            if (o != null) {
+              final HashMap map = (HashMap) o;
 
-                            if (map.containsKey("list")) {
-                                Object[] topics = (Object[]) map.get("list");
-                                for (Object t : topics) {
+              if (map.containsKey("list")) {
+                final Object[] topics = (Object[]) map.get("list");
+                for (Object t : topics) {
 
-                                    HashMap topicMap = (HashMap) t;
+                  final HashMap topicMap = (HashMap) t;
 
-                                    IgnoreItem ii = new IgnoreItem();
+                  final IgnoreItem ii = new IgnoreItem();
 
-                                    if (topicMap.containsKey("username")) {
-                                        ii.ignoreItemUsername = new String((byte[]) topicMap.get("username"));
-                                    } else {
-                                        if (topicMap.containsKey("user_name")) {
-                                            ii.ignoreItemUsername = new String((byte[]) topicMap.get("user_name"));
-                                        }
-                                    }
-
-                                    if (topicMap.containsKey("icon_url")) {
-                                        ii.ignoreItemAvatar = (String) topicMap.get("icon_url");
-                                    }
-
-                                    if (topicMap.containsKey("display_text")) {
-                                        ii.ignoreItemDate = new String((byte[]) topicMap.get("display_text"));
-                                    }
-
-                                    if (topicMap.containsKey("user_id")) {
-                                        ii.ignoreUserId = (String) topicMap.get("user_id");
-                                    }
-
-
-                                    ii.ignoreProfileColor = "#000000";
-
-                                    inboxList.add(ii);
-
-                                }
-                            }
-                        }
+                  if (topicMap.containsKey("username")) {
+                    ii.ignoreItemUsername = new String((byte[]) topicMap.get("username"));
+                  } else {
+                    if (topicMap.containsKey("user_name")) {
+                      ii.ignoreItemUsername = new String((byte[]) topicMap.get("user_name"));
                     }
+                  }
+
+                  if (topicMap.containsKey("icon_url")) {
+                    ii.ignoreItemAvatar = (String) topicMap.get("icon_url");
+                  }
+
+                  if (topicMap.containsKey("display_text")) {
+                    ii.ignoreItemDate = new String((byte[]) topicMap.get("display_text"));
+                  }
+
+                  if (topicMap.containsKey("user_id")) {
+                    ii.ignoreUserId = (String) topicMap.get("user_id");
+                  }
 
 
-                    setListAdapter(new UserCardAdapter(inboxList, getActivity()));
-                    //registerForContextMenu(getListView());
+                  ii.ignoreProfileColor = "#000000";
 
-                    getListView().setOnItemClickListener(new OnItemClickListener() {
+                  inboxList.add(ii);
 
-                        public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-                            IgnoreItem sender = (IgnoreItem) arg0.getItemAtPosition(arg2);
-
-                            if (profileSelected != null) {
-                                profileSelected.onProfileSelected(sender.ignoreItemUsername, sender.ignoreUserId);
-                            }
-                        }
-                    });
-
-                } catch (Exception ex) {
-                    Log.d("Discussions", "ex1 - " + ex.getMessage());
                 }
-            } catch (Exception e) {
-                Log.d("Discussions", "ex2 - " + e.getMessage());
+              }
             }
+          }
+
+
+          setListAdapter(new UserCardAdapter(inboxList, getActivity()));
+          //registerForContextMenu(getListView());
+
+          getListView().setOnItemClickListener(new OnItemClickListener() {
+
+            private OnProfileSelectedListener profileSelected;
+
+            private OnItemClickListener initialize(final OnProfileSelectedListener profileSelectedListener) {
+              this.profileSelected = profileSelectedListener;
+              return this;
+            };
+
+            public void onItemClick(final AdapterView<?> adapterView, final View view, final int itemPosition, final long arg3) {
+              final IgnoreItem sender = (IgnoreItem) adapterView.getItemAtPosition(itemPosition);
+
+              if (this.profileSelected != null) {
+                this.profileSelected.onProfileSelected(sender.ignoreItemUsername, sender.ignoreUserId);
+              }
+            }
+          }.initialize(this.profileSelected));
+
+        } catch (Exception ex) {
+          Log.d("Discussions", "ex1 - " + ex.getMessage());
         }
+      } catch (Exception e) {
+        Log.d("Discussions", "ex2 - " + e.getMessage());
+      }
     }
+  }
 }
