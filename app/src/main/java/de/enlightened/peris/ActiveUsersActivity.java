@@ -8,60 +8,58 @@ import android.support.v4.app.FragmentTransaction;
 
 public class ActiveUsersActivity extends FragmentActivity {
 
-    private AnalyticsHelper ah;
+  private AnalyticsHelper ah;
 
-    @SuppressLint("NewApi")
-    public void onCreate(Bundle savedInstanceState) {
+  @SuppressLint("NewApi")
+  public final void onCreate(final Bundle savedInstanceState) {
 
-        String backgroundColor = ((PerisApp) getApplication()).getSession().getServer().serverColor;
+    final String backgroundColor = ((PerisApp) getApplication()).getSession().getServer().serverColor;
 
-        ThemeSetter.setTheme(this, backgroundColor);
+    ThemeSetter.setTheme(this, backgroundColor);
 
-        super.onCreate(savedInstanceState);
+    super.onCreate(savedInstanceState);
 
-        ThemeSetter.setActionBar(this, backgroundColor);
+    ThemeSetter.setActionBar(this, backgroundColor);
 
-        //Track app analytics
-        ah = ((PerisApp) getApplication()).getAnalyticsHelper();
-        ah.trackScreen(getClass().getSimpleName(), false);
+    //Track app analytics
+    this.ah = ((PerisApp) getApplication()).getAnalyticsHelper();
+    this.ah.trackScreen(getClass().getSimpleName(), false);
 
-        setContentView(R.layout.single_frame_activity);
+    setContentView(R.layout.single_frame_activity);
 
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction ft = null;
+    final FragmentManager fragmentManager = getSupportFragmentManager();
+    final FragmentTransaction ft = fragmentManager.beginTransaction();
 
-        ft = fragmentManager.beginTransaction();
+    final ActiveList subforums = new ActiveList();
 
-        final ActiveList subforums = new ActiveList();
+    ft.replace(R.id.single_frame_layout_frame, subforums, "Active Users");
 
-        ft.replace(R.id.single_frame_layout_frame, subforums, "Active Users");
+    ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+    ft.commit();
 
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        ft.commit();
+    setTitle("Active Users");
 
-        setTitle("Active Users");
-
-        if (getString(R.string.server_location).contentEquals("0")) {
-            if (ForegroundColorSetter.getForegroundDark(backgroundColor)) {
-                getActionBar().setIcon(R.drawable.ic_ab_main_black);
-            } else {
-                getActionBar().setIcon(R.drawable.ic_ab_main_white);
-            }
-        }
-
+    if (getString(R.string.server_location).contentEquals("0")) {
+      if (ForegroundColorSetter.getForegroundDark(backgroundColor)) {
+        getActionBar().setIcon(R.drawable.ic_ab_main_black);
+      } else {
+        getActionBar().setIcon(R.drawable.ic_ab_main_white);
+      }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
+  }
 
-    }
+  @Override
+  public final void onStart() {
+    super.onStart();
 
-    @Override
-    public void onStop() {
-        super.onStop();
+  }
 
-    }
+  @Override
+  public final void onStop() {
+    super.onStop();
+
+  }
 
 
 }
