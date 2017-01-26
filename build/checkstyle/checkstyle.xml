@@ -14,9 +14,9 @@
 
     <!-- Checks that property files contain the same keys.         -->
     <!-- See http://checkstyle.sf.net/config_misc.html#Translation -->
-    <!--<module name="Translation">
-        <property name="baseName" value="^messages_.*$"/>
-    </module>-->
+    <module name="Translation">
+        <!--<property name="baseName" value="^messages_.*$"/>-->
+    </module>
 
     <!-- Checks for Size Violations.                    -->
     <!-- See http://checkstyle.sf.net/config_sizes.html -->
@@ -72,7 +72,6 @@
         <!-- See http://checkstyle.sf.net/config_sizes.html -->
         <module name="MethodLength"/>
         <module name="ParameterNumber">
-            <property name="max" value="10"/>
             <!--<property name="ignoreOverriddenMethods" value="true"/>-->
         </module>
 
@@ -127,7 +126,7 @@
         <module name="ArrayTypeStyle"/>
         <module name="FinalParameters"/>
         <module name="TodoComment">
-            <property name="severity" value="warning"/>
+            <property name="severity" value="ignore"/>
         </module>
 
         <module name="UpperEll"/>
@@ -143,13 +142,15 @@
         <module name="CovariantEquals"/>
         <module name="DefaultComesLast"/>
         <module name="EqualsAvoidNull"/>
-        <module name="ExplicitInitialization"/>
+        <!--<module name="ExplicitInitialization"/>-->
         <module name="FallThrough"/>
         <module name="FinalLocalVariable"/>
         <module name="IllegalThrows"/>
         <module name="IllegalToken"/>
         <module name="IllegalTokenText"/>
-        <module name="MagicNumber"/>
+        <module name="MagicNumber">
+            <property name="ignoreNumbers" value="-1,0,1,2,3,4,5,6,7"/>
+        </module>
         <module name="ModifiedControlVariable"/>
         <module name="MultipleVariableDeclarations"/>
         <module name="NestedForDepth"/>
@@ -163,7 +164,7 @@
         <module name="OverloadMethodsDeclarationOrder"/>
         <module name="PackageDeclaration"/>
         <module name="ParameterAssignment"/>
-        <module name="RequireThis"/>
+        <module name="RequireThis" />
         <module name="ReturnCount"/>
         <module name="StringLiteralEquality"/>
         <module name="SuperClone"/>
