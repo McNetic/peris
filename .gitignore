@@ -7,3 +7,6 @@
 .externalNativeBuild
 /app/build
 /local
+/build/android-profile
+/build/generated
+/build/intermediates
