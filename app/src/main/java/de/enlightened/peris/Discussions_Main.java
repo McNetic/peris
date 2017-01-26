@@ -75,7 +75,7 @@ public class Discussions_Main extends FragmentActivity {
     private AnalyticsHelper ah;
 
     private boolean sidebarOption;
-    private PostsFragment.onProfileSelectedListener profileSelected = new PostsFragment.onProfileSelectedListener() {
+    private PostsFragment.ProfileSelectedListener profileSelected = new PostsFragment.ProfileSelectedListener() {
 
         @Override
         public void onProfileSelected(String username, String userid) {

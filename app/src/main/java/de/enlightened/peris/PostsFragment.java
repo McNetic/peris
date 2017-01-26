@@ -42,1084 +42,936 @@ import java.util.Vector;
 @SuppressWarnings("deprecation")
 public class PostsFragment extends Fragment {
 
-    static final int POST_RESPONSE = 1;
-    private String server_address;
-    private String subforum_id;
-    private String category_id;
-    private String thread_id;
-    private String userid;
-    private Integer page_number;
-    private Integer total_pages;
-    private String storagePrefix = "";
-    private download_posts postsDownloader;
-    private Post selected_post;
-    private String lock;
-    private String post_count;
-    private String background;
-    private String currentThreadSubject;
-    private String shareURL = "0";
-    private int scrollLocation = 0;
-    private int curMinPost = 0;
-    private int curMaxPost = 19;
-    private int curTotalPosts = 0;
-    private boolean forceBottomScroll = false;
-    private boolean canPost = false;
-    ;
+  static final int POST_RESPONSE = 1;
+  static final int POSTS_PER_PAGE = 20;
+  private static final int MAX_ITEM_COUNT = 50;
+  private static final int MAX_SUBJECT_LENGTH = 45;
+  private String serverAddress;
+  private String subforumId;
+  private String categoryId;
+  private String threadId;
+  private String userid;
+  private Integer pageNumber;
+  private Integer totalPages;
+  private String storagePrefix = "";
+  private DownloadPostsTask postsDownloader;
+  private Post selectedPost;
+  private String lock;
+  private String postCount;
+  private String background;
+  private String currentThreadSubject;
+  private String shareURL = "0";
+  private int scrollLocation = 0;
+  private int curMinPost = 0;
+  private int curMaxPost = POSTS_PER_PAGE - 1;
+  private int curTotalPosts = 0;
+  private boolean forceBottomScroll = false;
+  private boolean canPost = false;
+
+  private PerisApp application;
+
+  private ListView mainList;
+
+  private LinearLayout postsBottomholder;
+  private LinearLayout postsInputArea;
+  private LinearLayout postsPagination;
+
+  private EditText postsQuickReply;
+  private Button postsQuickReplySubmit;
+
+  private ImageView imFirst;
+  private ImageView imPrevious;
+  private ImageView imNext;
+  private ImageView imLast;
+
+  private TextView postsPageNumber;
+
+  private FragmentActivity activity;
+  private ProfileSelectedListener profileSelected = null;
+
+  @Override
+  public final void onCreate(final Bundle bundle) {
+    super.onCreate(bundle);
+
+    this.activity = (FragmentActivity) getActivity();
+
+    this.application = (PerisApp) this.activity.getApplication();
+
+    setHasOptionsMenu(true);
+  }
+
+  @Override
+  public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.posts, container, false);
+  }
+
+  @Override
+  public final void onStart() {
+    super.onStart();
+
+    this.mainList = (ListView) this.activity.findViewById(R.id.posts_list_view);
+
+    // Set up reply and pagination colors
+    this.postsBottomholder = (LinearLayout) this.activity.findViewById(R.id.posts_bottom_holder);
+    this.postsInputArea = (LinearLayout) this.activity.findViewById(R.id.posts_input_area);
+    this.postsPagination = (LinearLayout) this.activity.findViewById(R.id.posts_pagination);
+    this.postsQuickReply = (EditText) this.activity.findViewById(R.id.posts_quick_reply);
+    this.postsQuickReplySubmit = (Button) this.activity.findViewById(R.id.posts_quick_reply_submit);
+    this.imFirst = (ImageView) this.activity.findViewById(R.id.imFirst);
+    this.imPrevious = (ImageView) this.activity.findViewById(R.id.imPrevious);
+    this.imNext = (ImageView) this.activity.findViewById(R.id.imNext);
+    this.imLast = (ImageView) this.activity.findViewById(R.id.imLast);
+    this.postsPageNumber = (TextView) this.activity.findViewById(R.id.posts_page_number);
+
+    this.postsQuickReplySubmit.setOnClickListener(new OnClickListener() {
+      @Override
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        postsQuickReply.setEnabled(false);
+        postsQuickReplySubmit.setEnabled(false);
+        new QuickReplyTask().execute();
+      }
+    });
+
+    this.imFirst.setOnClickListener(new OnClickListener() {
+      @Override
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        firstPage();
+      }
+    });
+
+    this.imPrevious.setOnClickListener(new OnClickListener() {
+      @Override
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        prevPage();
+      }
+    });
+
+    this.imNext.setOnClickListener(new OnClickListener() {
+      @Override
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        nextPage();
+      }
+    });
+
+    this.imLast.setOnClickListener(new OnClickListener() {
+      @Override
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        lastPage();
+      }
+    });
+
+    if (this.application.getSession().getServer().serverColor.contains("#")) {
+      this.postsQuickReplySubmit.setTextColor(Color.parseColor(this.application.getSession().getServer().serverColor));
+
+      this.imFirst.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverColor));
+      this.imPrevious.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverColor));
+      this.imNext.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverColor));
+      this.imLast.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverColor));
+    }
+
+    if (this.application.getSession().getServer().serverTextColor.contains("#")) {
+      this.postsQuickReply.setTextColor(Color.parseColor(this.application.getSession().getServer().serverTextColor));
+      this.postsPageNumber.setTextColor(Color.parseColor(this.application.getSession().getServer().serverTextColor));
+
+      if (this.application.getSession().getServer().serverColor.contentEquals(this.application.getSession().getServer().serverBoxColor)) {
+        this.postsQuickReplySubmit.setTextColor(Color.parseColor(this.application.getSession().getServer().serverTextColor));
+
+        this.imFirst.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverTextColor));
+        this.imPrevious.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverTextColor));
+        this.imNext.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverTextColor));
+        this.imLast.setColorFilter(Color.parseColor(this.application.getSession().getServer().serverTextColor));
+      }
+
+    }
+
+    String boxColor = getString(R.string.default_element_background);
+
+    if (this.application.getSession().getServer().serverBoxColor != null) {
+      boxColor = this.application.getSession().getServer().serverBoxColor;
+    }
+
+    if (boxColor.contains("#")) {
+      this.postsBottomholder.setBackgroundColor(Color.parseColor(boxColor));
+    }
+
+    if (!(this.application.getSession().getServer().serverBackground.contentEquals(
+        this.application.getSession().getServer().serverBoxColor)
+        && this.application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
+      this.mainList.setDivider(null);
+    }
+
+    final Bundle bundle = getArguments();
+    this.subforumId = bundle.getString("subforumId");
+    this.categoryId = bundle.getString("categoryId");
+    this.threadId = bundle.getString("threadId");
+    this.lock = bundle.getString("lock");
+    this.postCount = bundle.getString("posts");
+    this.currentThreadSubject = bundle.getString("subject");
+
+    if (this.application.getSession().forumSystem == 1) {
+      this.shareURL = this.application.getSession().getServer().serverAddress + "/viewtopic.php?f=" + this.subforumId + "&t=" + this.threadId;
+    }
+
+    this.background = this.application.getSession().getServer().serverColor;
+
+    final SharedPreferences appPreferences = this.activity.getSharedPreferences("prefs", 0);
+    this.serverAddress = this.application.getSession().getServer().serverAddress;
 
 
-    private PerisApp application;
+    if (getString(R.string.server_location).contentEquals("0")) {
+      this.storagePrefix = this.serverAddress + "_";
+    }
 
-    private ListView mainList;
+    this.userid = this.application.getSession().getServer().serverUserId;
 
-    private LinearLayout posts_bottom_holder;
-    private LinearLayout posts_input_area;
-    private LinearLayout posts_pagination;
 
-    private EditText posts_quick_reply;
-    private Button posts_quick_reply_submit;
+    if (this.lock.contentEquals("1")) {
+      final Toast toast = Toast.makeText(this.activity, "Thread is locked!", Toast.LENGTH_LONG);
+      toast.show();
+    }
 
-    private ImageView imFirst;
-    private ImageView imPrevious;
-    private ImageView imNext;
-    private ImageView imLast;
+    this.pageNumber = 1;
+    this.pageNumber = appPreferences.getInt(this.storagePrefix + "thread_" + this.threadId + "_retained_page", -1);
+    this.totalPages = ((Integer.parseInt(this.postCount) - 1) / POSTS_PER_PAGE) + 1;
 
-    private TextView posts_page_number;
+    if (this.pageNumber == -1) {
+      this.pageNumber = this.totalPages;
 
-    private FragmentActivity activity;
-    private onProfileSelectedListener profileSelected = null;
+      if (this.pageNumber > 1) {
+        this.forceBottomScroll = true;
+      }
+    }
 
+    this.curMinPost = (this.pageNumber - 1) * POSTS_PER_PAGE;
+    this.curMaxPost = this.curMinPost + POSTS_PER_PAGE - 1;
+
+    this.postsInputArea.setVisibility(View.GONE);
+  }
+
+  @Override
+  public final void onStop() {
+    this.endCurrentlyRunning();
+    super.onStop();
+
+  }
+
+  @Override
+  public final void onPause() {
+
+    final SharedPreferences preferences = this.activity.getSharedPreferences("prefs", 0);
+    final SharedPreferences.Editor editor = preferences.edit();
+    editor.putInt(this.storagePrefix + "t_" + this.threadId + "_p_" + this.pageNumber + "_position", this.mainList.getFirstVisiblePosition());
+    editor.commit();
+
+    this.endCurrentlyRunning();
+    super.onPause();
+  }
+
+  @Override
+  public final void onResume() {
+
+    this.activity.getActionBar().setTitle(this.currentThreadSubject);
+
+    final SharedPreferences preferences = this.activity.getSharedPreferences("prefs", 0);
+    this.scrollLocation = preferences.getInt(this.storagePrefix + "t_" + this.threadId + "_p_" + this.pageNumber + "_position", 0);
+
+    this.loadPosts();
+    super.onResume();
+  }
+
+  public final void onDestroy() {
+    super.onDestroy();
+  }
+
+  private void setupPagination() {
+    this.totalPages = ((this.curTotalPosts - 1) / POSTS_PER_PAGE) + 1;
+    this.postsPageNumber.setText(this.pageNumber + " of " + this.totalPages);
+
+    if (this.totalPages > 1) {
+      this.postsPagination.setVisibility(View.VISIBLE);
+    } else {
+      this.postsPagination.setVisibility(View.GONE);
+    }
+
+  }
+
+  private void loadPosts() {
+    //getActivity().getActionBar().setSubtitle("Page " + pageNumber + " of " + totalPages);
+
+    final SharedPreferences appPreferences = this.activity.getSharedPreferences("prefs", 0);
+
+    //Save what page we are on
+    final SharedPreferences.Editor editor = appPreferences.edit();
+    editor.putInt(this.storagePrefix + "thread_" + this.threadId + "_retained_page", this.pageNumber);
+    editor.commit();
+
+    this.endCurrentlyRunning();
+
+    this.postsDownloader = new DownloadPostsTask();
+
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+      this.postsDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    } else {
+      this.postsDownloader.execute();
+    }
+  }
+
+  private void endCurrentlyRunning() {
+    //Stop any running tasks
+    if (this.postsDownloader != null) {
+      if (this.postsDownloader.getStatus() == Status.RUNNING) {
+        this.postsDownloader.cancel(true);
+      }
+    }
+  }
+
+  private void refresh() {
+    this.loadPosts();
+  }
+
+  private void nextPage() {
+    if (this.pageNumber < this.totalPages) {
+      this.curMinPost = this.curMinPost + POSTS_PER_PAGE;
+      this.curMaxPost = this.curMaxPost + POSTS_PER_PAGE;
+      this.pageNumber += 1;
+      this.loadPosts();
+    }
+  }
+
+  private void prevPage() {
+    if (this.pageNumber > 1) {
+      this.curMinPost = this.curMinPost - POSTS_PER_PAGE;
+      this.curMaxPost = this.curMaxPost - POSTS_PER_PAGE;
+      this.pageNumber -= 1;
+      this.loadPosts();
+    }
+  }
+
+  private void firstPage() {
+    this.curMinPost = 0;
+    this.curMaxPost = POSTS_PER_PAGE - 1;
+    this.pageNumber = 1;
+    this.loadPosts();
+  }
+
+  private void lastPage() {
+    this.curMinPost = (this.totalPages - 1) * POSTS_PER_PAGE;
+    this.curMaxPost = this.curMinPost + POSTS_PER_PAGE - 1;
+    this.pageNumber = this.totalPages;
+    this.loadPosts();
+  }
+
+  private void startPost() {
+    if (this.lock.contentEquals("1")) {
+      final Toast toast = Toast.makeText(this.activity, "Thread is locked!", Toast.LENGTH_LONG);
+      toast.show();
+    } else if (this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+      final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
+      toast.show();
+    } else {
+      final Intent myIntent = new Intent(this.activity, New_Post.class);
+
+      final Bundle bundle = new Bundle();
+      bundle.putString("postid", (String) "0");
+      bundle.putString("parent", (String) this.threadId);
+      bundle.putString("category", (String) this.categoryId);
+      bundle.putString("subforumId", (String) this.subforumId);
+      bundle.putString("original_text", (String) "");
+      bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
+      bundle.putString("picture", (String) "0");
+      bundle.putString("color", (String) this.background);
+      bundle.putString("subject", (String) this.currentThreadSubject);
+      bundle.putInt("post_type", (Integer) 2);
+      myIntent.putExtras(bundle);
+
+      PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
+    }
+  }
+
+  private void editPost() {
+    if (this.lock.contentEquals("1")) {
+      final Toast toast = Toast.makeText(this.activity, "Thread is locked!", Toast.LENGTH_LONG);
+      toast.show();
+    } else if (this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+      final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
+      toast.show();
+    } else {
+      final Intent myIntent = new Intent(this.activity, New_Post.class);
+      final Bundle bundle = new Bundle();
+      bundle.putString("postid", (String) this.selectedPost.post_id);
+      bundle.putString("parent", (String) this.threadId);
+      bundle.putString("category", (String) this.categoryId);
+      bundle.putString("subforumId", (String) this.subforumId);
+      bundle.putString("original_text", (String) this.selectedPost.post_body);
+      bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
+      bundle.putString("picture", (String) this.selectedPost.post_picture);
+      bundle.putString("color", (String) this.background);
+      bundle.putString("subject", (String) this.currentThreadSubject);
+      bundle.putInt("post_type", (Integer) 3);
+      myIntent.putExtras(bundle);
+
+      PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
+    }
+  }
+
+  private void quotePost() {
+    if (this.lock.contentEquals("1")) {
+      final Toast toast = Toast.makeText(this.activity, "Thread is locked!", Toast.LENGTH_LONG);
+      toast.show();
+    } else if (this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+      final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
+      toast.show();
+    } else {
+      final Intent myIntent = new Intent(this.activity, New_Post.class);
+      final Bundle bundle = new Bundle();
+      bundle.putString("postid", (String) "0");
+      bundle.putString("parent", (String) this.threadId);
+      bundle.putString("category", (String) this.categoryId);
+      bundle.putString("subforumId", (String) this.subforumId);
+      bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
+      bundle.putString("original_text", (String) "[quote=\"" + this.selectedPost.post_author + "\"]" + this.selectedPost.post_body + "[/quote]<br /><br />");
+      bundle.putString("picture", (String) "0");
+      bundle.putString("color", (String) this.background);
+      bundle.putInt("post_type", (Integer) 2);
+      bundle.putString("subject", (String) this.currentThreadSubject);
+      myIntent.putExtras(bundle);
+
+      PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
+    }
+  }
+
+  public final void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+    if (requestCode == POST_RESPONSE) {
+      this.pageNumber = this.totalPages;
+      this.loadPosts();
+    }
+  }
+
+  public final void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+    //Block profile viewing on restricted accounts
+    final SharedPreferences appPreferences = this.activity.getSharedPreferences("prefs", 0);
+    final boolean accountRestricted = appPreferences.getBoolean(this.storagePrefix + "logged_banned", false);
+    if (accountRestricted) {
+      return;
+    }
+
+    final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+    this.selectedPost = (Post) this.mainList.getItemAtPosition(info.position);
+
+    super.onCreateContextMenu(menu, v, menuInfo);
+    final MenuInflater inflater = this.activity.getMenuInflater();
+    inflater.inflate(R.menu.posts_context, menu);
+
+    if (!this.userid.contentEquals("0")) {
+      final MenuItem item3 = menu.findItem(R.id.posts_quote);
+      item3.setVisible(true);
+
+      final MenuItem item5 = menu.findItem(R.id.posts_message);
+      item5.setVisible(true);
+    }
+
+    if (this.selectedPost.post_author_id != null) {
+      if (this.userid.contentEquals(this.selectedPost.post_author_id)) {
+        final MenuItem item5 = menu.findItem(R.id.posts_message);
+        item5.setVisible(false);
+      }
+    }
+
+    final MenuItem itemBan = menu.findItem(R.id.posts_context_ban);
+    final MenuItem itemDelete = menu.findItem(R.id.posts_context_delete);
+    final MenuItem itemEdit = menu.findItem(R.id.posts_edit);
+    final MenuItem itemThank = menu.findItem(R.id.posts_thank);
+    final MenuItem itemLike = menu.findItem(R.id.posts_like);
+
+    if (this.selectedPost.canThank) {
+      itemThank.setVisible(true);
+    } else {
+      itemThank.setVisible(false);
+    }
+
+    if (this.selectedPost.canLike) {
+      itemLike.setVisible(true);
+    } else {
+      itemLike.setVisible(false);
+    }
+
+    if (this.selectedPost.canBan && !this.selectedPost.userBanned) {
+      itemBan.setVisible(true);
+    } else {
+      itemBan.setVisible(false);
+    }
+
+    if (this.selectedPost.canDelete) {
+      itemDelete.setVisible(true);
+    } else {
+      itemDelete.setVisible(false);
+    }
+
+    if (this.selectedPost.canEdit) {
+      itemEdit.setVisible(true);
+    } else {
+      itemEdit.setVisible(false);
+    }
+  }
+
+  public final boolean onContextItemSelected(final MenuItem item) {
+    final int itemId = item.getItemId();
+    if (itemId == R.id.posts_edit) {
+      this.editPost();
+    } else if (itemId == R.id.posts_quote) {
+      this.quotePost();
+    } else if (itemId == R.id.posts_message) {
+      this.startConvo();
+    } else if (itemId == R.id.posts_copy) {
+      this.storePostInClipboard();
+    } else if (itemId == R.id.posts_context_delete_yes) {
+      new DeletePostTask().execute(this.selectedPost.post_id);
+    } else if (itemId == R.id.posts_context_ban) {
+      this.dropTheHammer();
+    } else if (itemId == R.id.posts_thank) {
+      new ThankPostTask().execute(this.selectedPost.post_id);
+    } else if (itemId == R.id.posts_like) {
+      new LikePostTask().execute(this.selectedPost.post_id);
+    } else {
+      return super.onContextItemSelected(item);
+    }
+    return true;
+  }
+
+  @SuppressLint("NewApi")
+  private void storePostInClipboard() {
+
+    //Copy text support for all Android versions
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+      final ClipboardManager clipboard = (ClipboardManager) this.activity.getSystemService(Context.CLIPBOARD_SERVICE);
+      final ClipData cd = ClipData.newHtmlText(this.currentThreadSubject, this.selectedPost.post_body, this.selectedPost.post_body);
+      clipboard.setPrimaryClip(cd);
+    } else {
+      final android.text.ClipboardManager clipboard = (android.text.ClipboardManager) this.activity.getSystemService(Context.CLIPBOARD_SERVICE);
+      clipboard.setText(this.selectedPost.post_body);
+    }
+
+    final Toast toast = Toast.makeText(this.activity, "Text copied!", Toast.LENGTH_SHORT);
+    toast.show();
+  }
+
+  @SuppressLint("NewApi")
+  @Override
+  public final void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
+    inflater.inflate(R.menu.post_n_page, menu);
+
+    final MenuItem itemRefresh = menu.findItem(R.id.menu_refresh);
+    final MenuItem itemNew = menu.findItem(R.id.menu_newpost);
+
+    if (ForegroundColorSetter.getForegroundDark(this.background)) {
+      itemRefresh.setIcon(R.drawable.ic_action_refresh_dark);
+      itemNew.setIcon(R.drawable.ic_action_new_dark);
+    }
+
+    if (this.totalPages == null) {
+      this.totalPages = 0;
+    }
+
+
+    final MenuItem browserItem = menu.findItem(R.id.posts_menu_browser);
+    final MenuItem shareItem = menu.findItem(R.id.posts_menu_share);
+
+    if (this.shareURL.contentEquals("0")) {
+      browserItem.setVisible(false);
+      shareItem.setVisible(false);
+    } else {
+      browserItem.setVisible(true);
+      shareItem.setVisible(true);
+    }
+
+    super.onCreateOptionsMenu(menu, inflater);
+  }
+
+  public final boolean onOptionsItemSelected(final MenuItem item) {
+    final int itemId = item.getItemId();
+    if (itemId == R.id.posts_menu_browser) {
+      final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(this.shareURL));
+      startActivity(browserIntent);
+    } else if (itemId == R.id.posts_menu_share) {
+      final Intent sendIntent = new Intent(Intent.ACTION_SEND);
+      sendIntent.putExtra(Intent.EXTRA_SUBJECT, this.currentThreadSubject);
+      sendIntent.putExtra(Intent.EXTRA_TEXT, this.shareURL);
+      sendIntent.setType("text/plain");
+      startActivity(sendIntent);
+    } else if (itemId == R.id.menu_newpost) {
+      this.startPost();
+    } else if (itemId == R.id.menu_refresh) {
+      this.refresh();
+    } else {
+      return super.onOptionsItemSelected(item);
+    }
+    return true;
+  }
+
+  private void startConvo() {
+    final Intent myIntent = new Intent(this.activity, New_Post.class);
+    final Bundle bundle = new Bundle();
+    bundle.putString("postid", (String) "0");
+    bundle.putString("parent", (String) "0");
+    bundle.putString("category", this.selectedPost.post_author);
+    bundle.putString("subforumId", (String) "0");
+    bundle.putString("original_text", (String) "");
+    bundle.putString("boxTitle", (String) "New Message");
+    bundle.putString("picture", (String) "0");
+    bundle.putString("color", (String) getString(R.string.default_color));
+    bundle.putString("subject", (String) "");
+    bundle.putInt("post_type", (Integer) 4);
+    myIntent.putExtras(bundle);
+
+    startActivity(myIntent);
+  }
+
+  private void dropTheHammer() {
+    final Bundle bundle = new Bundle();
+    bundle.putString("username", this.selectedPost.post_author);
+
+    final BanHammerDialogFragment newFragment = BanHammerDialogFragment.newInstance();
+    newFragment.setArguments(bundle);
+    newFragment.show(this.activity.getSupportFragmentManager(), "dialog");
+  }
+
+  public final void setOnProfileSelectedListener(final ProfileSelectedListener listener) {
+    this.profileSelected = listener;
+  }
+
+  //Profile selected interface
+  public interface ProfileSelectedListener {
+    void onProfileSelected(String username, String userid);
+  }
+
+  private class DownloadPostsTask extends AsyncTask<String, Void, Object[]> {
+    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
-    public void onCreate(Bundle bundle) {
-        super.onCreate(bundle);
+    protected Object[] doInBackground(final String... params) {
 
-        activity = (FragmentActivity) getActivity();
+      Log.d("Peris", "Posts - DownloadPostsTask");
 
-        application = (PerisApp) activity.getApplication();
+      final Object[] result = new Object[MAX_ITEM_COUNT];
 
-        setHasOptionsMenu(true);
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(threadId);
+        paramz.addElement(curMinPost);
+        paramz.addElement(curMaxPost);
+        paramz.addElement(true);
+
+        result[0] = application.getSession().performSynchronousCall("get_thread", paramz);
+
+      } catch (Exception e) {
+        Log.w("Peris", e.getMessage());
+        return null;
+      }
+      return result;
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-        View v = inflater.inflate(R.layout.posts, container, false);
-        return v;
-    }
-
-    @Override
-    public void onStart() {
-
-        super.onStart();
-
-        mainList = (ListView) activity.findViewById(R.id.posts_list_view);
-
-        // Set up reply and pagination colors
-        posts_bottom_holder = (LinearLayout) activity.findViewById(R.id.posts_bottom_holder);
-        posts_input_area = (LinearLayout) activity.findViewById(R.id.posts_input_area);
-        posts_pagination = (LinearLayout) activity.findViewById(R.id.posts_pagination);
-        posts_quick_reply = (EditText) activity.findViewById(R.id.posts_quick_reply);
-        posts_quick_reply_submit = (Button) activity.findViewById(R.id.posts_quick_reply_submit);
-        imFirst = (ImageView) activity.findViewById(R.id.imFirst);
-        imPrevious = (ImageView) activity.findViewById(R.id.imPrevious);
-        imNext = (ImageView) activity.findViewById(R.id.imNext);
-        imLast = (ImageView) activity.findViewById(R.id.imLast);
-        posts_page_number = (TextView) activity.findViewById(R.id.posts_page_number);
-
-        posts_quick_reply_submit.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                posts_quick_reply.setEnabled(false);
-                posts_quick_reply_submit.setEnabled(false);
-                new QuickReply().execute();
-            }
-        });
-
-        imFirst.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                first_page();
-            }
-        });
-
-        imPrevious.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                prev_page();
-            }
-        });
-
-        imNext.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                next_page();
-            }
-        });
-
-        imLast.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                last_page();
-            }
-        });
-
-        if (application.getSession().getServer().serverColor.contains("#")) {
-            posts_quick_reply_submit.setTextColor(Color.parseColor(application.getSession().getServer().serverColor));
-
-            imFirst.setColorFilter(Color.parseColor(application.getSession().getServer().serverColor));
-            imPrevious.setColorFilter(Color.parseColor(application.getSession().getServer().serverColor));
-            imNext.setColorFilter(Color.parseColor(application.getSession().getServer().serverColor));
-            imLast.setColorFilter(Color.parseColor(application.getSession().getServer().serverColor));
-        }
-
-        if (application.getSession().getServer().serverTextColor.contains("#")) {
-            posts_quick_reply.setTextColor(Color.parseColor(application.getSession().getServer().serverTextColor));
-            posts_page_number.setTextColor(Color.parseColor(application.getSession().getServer().serverTextColor));
-
-            if (application.getSession().getServer().serverColor.contentEquals(application.getSession().getServer().serverBoxColor)) {
-                posts_quick_reply_submit.setTextColor(Color.parseColor(application.getSession().getServer().serverTextColor));
-
-                imFirst.setColorFilter(Color.parseColor(application.getSession().getServer().serverTextColor));
-                imPrevious.setColorFilter(Color.parseColor(application.getSession().getServer().serverTextColor));
-                imNext.setColorFilter(Color.parseColor(application.getSession().getServer().serverTextColor));
-                imLast.setColorFilter(Color.parseColor(application.getSession().getServer().serverTextColor));
-            }
-
-        }
-
-        String boxColor = getString(R.string.default_element_background);
-
-        if (application.getSession().getServer().serverBoxColor != null) {
-            boxColor = application.getSession().getServer().serverBoxColor;
-        }
-
-        if (boxColor.contains("#")) {
-            posts_bottom_holder.setBackgroundColor(Color.parseColor(boxColor));
-        }
-
-        if (!(application.getSession().getServer().serverBackground.contentEquals(application.getSession().getServer().serverBoxColor) && application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
-            mainList.setDivider(null);
-        }
-
-        Bundle bundle = getArguments();
-        subforum_id = bundle.getString("subforum_id");
-        category_id = bundle.getString("category_id");
-        thread_id = bundle.getString("thread_id");
-        lock = bundle.getString("lock");
-        post_count = bundle.getString("posts");
-        currentThreadSubject = bundle.getString("subject");
-
-        if (application.getSession().forumSystem == 1) {
-            shareURL = application.getSession().getServer().serverAddress + "/viewtopic.php?f=" + subforum_id + "&t=" + thread_id;
-        }
-
-        background = application.getSession().getServer().serverColor;
-
-        SharedPreferences app_preferences = activity.getSharedPreferences("prefs", 0);
-        server_address = application.getSession().getServer().serverAddress;
-
-
-        if (getString(R.string.server_location).contentEquals("0")) {
-            storagePrefix = server_address + "_";
-        }
-
-        userid = application.getSession().getServer().serverUserId;
-
-
-        if (lock.contentEquals("1")) {
-            Toast toast = Toast.makeText(activity, "Thread is locked!", Toast.LENGTH_LONG);
-            toast.show();
-        }
-
-        page_number = 1;
-        page_number = app_preferences.getInt(storagePrefix + "thread_" + thread_id + "_retained_page", -1);
-        total_pages = (((Integer.parseInt(post_count) - 1) / 20) + 1);
-
-        if (page_number == -1) {
-            page_number = total_pages;
-
-            if (page_number > 1) {
-                forceBottomScroll = true;
-            }
-        }
-
-        curMinPost = (page_number - 1) * 20;
-        curMaxPost = curMinPost + 19;
-
-        posts_input_area.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void onStop() {
-
-        endCurrentlyRunning();
-
-        super.onStop();
-
-    }
-
-    @Override
-    public void onPause() {
-
-        final SharedPreferences preferences = activity.getSharedPreferences("prefs", 0);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putInt(storagePrefix + "t_" + thread_id + "_p_" + page_number + "_position", mainList.getFirstVisiblePosition());
-        editor.commit();
-
-        endCurrentlyRunning();
-
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-
-        activity.getActionBar().setTitle(currentThreadSubject);
-
-        final SharedPreferences preferences = activity.getSharedPreferences("prefs", 0);
-        scrollLocation = preferences.getInt(storagePrefix + "t_" + thread_id + "_p_" + page_number + "_position", 0);
-
-        load_posts();
-
-        super.onResume();
-    }
-
-    public void onDestroy() {
-
-        super.onDestroy();
-
-    }
-
-    private void setupPagination() {
-
-        total_pages = (((curTotalPosts - 1) / 20) + 1);
-
-        posts_page_number.setText(page_number + " of " + total_pages);
-
-
-        if (total_pages > 1) {
-            posts_pagination.setVisibility(View.VISIBLE);
+    @SuppressWarnings({"rawtypes", "checkstyle:requirethis", "checkstyle:nestedifdepth", "checkstyle:nestedfordepth"})
+    protected void onPostExecute(final Object[] result) {
+      if (activity != null) {
+        if (result == null) {
+          final Toast toast = Toast.makeText(activity, "No response from the server!", Toast.LENGTH_LONG);
+          toast.show();
         } else {
-            posts_pagination.setVisibility(View.GONE);
-        }
-
-    }
-
-    private void load_posts() {
-        //getActivity().getActionBar().setSubtitle("Page " + page_number + " of " + total_pages);
-
-        SharedPreferences app_preferences = activity.getSharedPreferences("prefs", 0);
-
-        //Save what page we are on
-        SharedPreferences.Editor editor = app_preferences.edit();
-        editor.putInt(storagePrefix + "thread_" + thread_id + "_retained_page", page_number);
-        editor.commit();
-
-        endCurrentlyRunning();
-
-        postsDownloader = new download_posts();
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            postsDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } else {
-            postsDownloader.execute();
-        }
-    }
-
-    private void endCurrentlyRunning() {
-        //Stop any running tasks
-        if (postsDownloader != null) {
-            if (postsDownloader.getStatus() == Status.RUNNING) {
-                postsDownloader.cancel(true);
-            }
-        }
-    }
-
-    private void refresh() {
-
-        load_posts();
-    }
-
-    private void next_page() {
-        if (page_number < total_pages) {
-            curMinPost = curMinPost + 20;
-            curMaxPost = curMaxPost + 20;
-            page_number++;
-            load_posts();
-
-        }
-    }
-
-    private void prev_page() {
-        if (page_number > 1) {
-            curMinPost = curMinPost - 20;
-            curMaxPost = curMaxPost - 20;
-            page_number--;
-            load_posts();
-
-        }
-    }
-
-    private void first_page() {
-        curMinPost = 0;
-        curMaxPost = 19;
-        page_number = 1;
-        load_posts();
-
-    }
-
-    private void last_page() {
-        curMinPost = (total_pages - 1) * 20;
-        curMaxPost = curMinPost + 19;
-        page_number = total_pages;
-        load_posts();
-
-    }
-
-    private void start_post() {
-        if (lock.contentEquals("1")) {
-            Toast toast = Toast.makeText(activity, "Thread is locked!", Toast.LENGTH_LONG);
-            toast.show();
-            return;
-        }
-
-        if (application.getSession().getServer().serverUserId.contentEquals("0")) {
-            Toast toast = Toast.makeText(activity, "You must be logged in to post!", Toast.LENGTH_LONG);
-            toast.show();
-            return;
-        }
-
-        Intent myIntent = new Intent(activity, New_Post.class);
-
-        Bundle bundle = new Bundle();
-        bundle.putString("postid", (String) "0");
-        bundle.putString("parent", (String) thread_id);
-        bundle.putString("category", (String) category_id);
-        bundle.putString("subforum_id", (String) subforum_id);
-        bundle.putString("original_text", (String) "");
-        bundle.putString("boxTitle", (String) "RE: " + currentThreadSubject);
-        bundle.putString("picture", (String) "0");
-        bundle.putString("color", (String) background);
-        bundle.putString("subject", (String) currentThreadSubject);
-        bundle.putInt("post_type", (Integer) 2);
-        myIntent.putExtras(bundle);
-
-        PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
-    }
-
-    private void edit_post() {
-        if (lock.contentEquals("1")) {
-            Toast toast = Toast.makeText(activity, "Thread is locked!", Toast.LENGTH_LONG);
-            toast.show();
-            return;
-        }
-
-        if (application.getSession().getServer().serverUserId.contentEquals("0")) {
-            Toast toast = Toast.makeText(activity, "You must be logged in to post!", Toast.LENGTH_LONG);
-            toast.show();
-            return;
-        }
-
-
-        Intent myIntent = new Intent(activity, New_Post.class);
-
-        Bundle bundle = new Bundle();
-        bundle.putString("postid", (String) selected_post.post_id);
-        bundle.putString("parent", (String) thread_id);
-        bundle.putString("category", (String) category_id);
-        bundle.putString("subforum_id", (String) subforum_id);
-        bundle.putString("original_text", (String) selected_post.post_body);
-        bundle.putString("boxTitle", (String) "RE: " + currentThreadSubject);
-        bundle.putString("picture", (String) selected_post.post_picture);
-        bundle.putString("color", (String) background);
-        bundle.putString("subject", (String) currentThreadSubject);
-        bundle.putInt("post_type", (Integer) 3);
-        myIntent.putExtras(bundle);
-
-        PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
-
-    }
-
-    private void quote_post() {
-        if (lock.contentEquals("1")) {
-            Toast toast = Toast.makeText(activity, "Thread is locked!", Toast.LENGTH_LONG);
-            toast.show();
-            return;
-        }
-
-        if (application.getSession().getServer().serverUserId.contentEquals("0")) {
-            Toast toast = Toast.makeText(activity, "You must be logged in to post!", Toast.LENGTH_LONG);
-            toast.show();
-            return;
-        }
-
-        Intent myIntent = new Intent(activity, New_Post.class);
-
-        Bundle bundle = new Bundle();
-        bundle.putString("postid", (String) "0");
-        bundle.putString("parent", (String) thread_id);
-        bundle.putString("category", (String) category_id);
-        bundle.putString("subforum_id", (String) subforum_id);
-        bundle.putString("boxTitle", (String) "RE: " + currentThreadSubject);
-        bundle.putString("original_text", (String) "[quote=\"" + selected_post.post_author + "\"]" + selected_post.post_body + "[/quote]<br /><br />");
-        bundle.putString("picture", (String) "0");
-        bundle.putString("color", (String) background);
-        bundle.putInt("post_type", (Integer) 2);
-        bundle.putString("subject", (String) currentThreadSubject);
-        myIntent.putExtras(bundle);
-
-        PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
-    }
-
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == POST_RESPONSE) {
-            page_number = total_pages;
-            load_posts();
-        } else {
-            //do nothing at this time
-        }
-    }
-
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        //Block profile viewing on restricted accounts
-        SharedPreferences app_preferences = activity.getSharedPreferences("prefs", 0);
-        boolean accountRestricted = app_preferences.getBoolean(storagePrefix + "logged_banned", false);
-        if (accountRestricted) {
-            return;
-        }
-
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-        selected_post = (Post) mainList.getItemAtPosition(info.position);
-
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater inflater = activity.getMenuInflater();
-        inflater.inflate(R.menu.posts_context, menu);
-
-
-        if (!userid.contentEquals("0")) {
-            MenuItem item3 = menu.findItem(R.id.posts_quote);
-            item3.setVisible(true);
-
-            MenuItem item5 = menu.findItem(R.id.posts_message);
-            item5.setVisible(true);
-        }
-
-
-        if (selected_post.post_author_id != null) {
-            if (userid.contentEquals(selected_post.post_author_id)) {
-                MenuItem item5 = menu.findItem(R.id.posts_message);
-                item5.setVisible(false);
-            }
-        }
-
-        MenuItem itemBan = menu.findItem(R.id.posts_context_ban);
-        MenuItem itemDelete = menu.findItem(R.id.posts_context_delete);
-        MenuItem itemEdit = menu.findItem(R.id.posts_edit);
-        MenuItem itemThank = menu.findItem(R.id.posts_thank);
-        MenuItem itemLike = menu.findItem(R.id.posts_like);
-
-        if (selected_post.canThank) {
-            itemThank.setVisible(true);
-        } else {
-            itemThank.setVisible(false);
-        }
-
-        if (selected_post.canLike) {
-            itemLike.setVisible(true);
-        } else {
-            itemLike.setVisible(false);
-        }
-
-        if (selected_post.canBan && !selected_post.userBanned) {
-            itemBan.setVisible(true);
-        } else {
-            itemBan.setVisible(false);
-        }
-
-        if (selected_post.canDelete) {
-            itemDelete.setVisible(true);
-        } else {
-            itemDelete.setVisible(false);
-        }
-
-        if (selected_post.canEdit) {
-            itemEdit.setVisible(true);
-        } else {
-            itemEdit.setVisible(false);
-        }
-    }
-
-    public boolean onContextItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-
-            case R.id.posts_edit:
-                edit_post();
-                return true;
-            case R.id.posts_quote:
-                quote_post();
-                return true;
-            case R.id.posts_message:
-                startConvo();
-                return true;
-            case R.id.posts_copy:
-                storePostInClipboard();
-                return true;
-            case R.id.posts_context_delete_yes:
-                new deletePost().execute(selected_post.post_id);
-                return true;
-            case R.id.posts_context_ban:
-                dropTheHammer();
-                return true;
-            case R.id.posts_thank:
-                new thankPost().execute(selected_post.post_id);
-                return true;
-            case R.id.posts_like:
-                new likePost().execute(selected_post.post_id);
-                return true;
-            default:
-                return super.onContextItemSelected(item);
-        }
-    }
-
-    @SuppressLint("NewApi")
-    private void storePostInClipboard() {
-
-        //Copy text support for all Android versions
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            ClipboardManager clipboard = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData cd = ClipData.newHtmlText(currentThreadSubject, selected_post.post_body, selected_post.post_body);
-            clipboard.setPrimaryClip(cd);
-        } else {
-            android.text.ClipboardManager clipboard = (android.text.ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
-            clipboard.setText(selected_post.post_body);
-        }
-
-        Toast toast = Toast.makeText(activity, "Text copied!", Toast.LENGTH_SHORT);
-        toast.show();
-    }
-
-    @SuppressLint("NewApi")
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-
-
-        inflater.inflate(R.menu.post_n_page, menu);
-
-        MenuItem itemRefresh = menu.findItem(R.id.menu_refresh);
-        MenuItem itemNew = menu.findItem(R.id.menu_newpost);
-
-        if (ForegroundColorSetter.getForegroundDark(background)) {
-            itemRefresh.setIcon(R.drawable.ic_action_refresh_dark);
-            itemNew.setIcon(R.drawable.ic_action_new_dark);
-        }
-
-        if (total_pages == null) {
-            total_pages = 0;
-        }
-
-
-        MenuItem browserItem = menu.findItem(R.id.posts_menu_browser);
-        MenuItem shareItem = menu.findItem(R.id.posts_menu_share);
-
-        if (shareURL.contentEquals("0")) {
-            browserItem.setVisible(false);
-            shareItem.setVisible(false);
-        } else {
-            browserItem.setVisible(true);
-            shareItem.setVisible(true);
-        }
-
-        super.onCreateOptionsMenu(menu, inflater);
-
-    }
-
-
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.posts_menu_browser:
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(shareURL));
-                startActivity(browserIntent);
-                return true;
-            case R.id.posts_menu_share:
-                Intent sendIntent = new Intent(android.content.Intent.ACTION_SEND);
-                sendIntent.putExtra(Intent.EXTRA_SUBJECT, currentThreadSubject);
-                sendIntent.putExtra(Intent.EXTRA_TEXT, shareURL);
-                sendIntent.setType("text/plain");
-                startActivity(sendIntent);
-                return true;
-            case R.id.menu_newpost:
-                start_post();
-                return true;
-            case R.id.menu_refresh:
-                refresh();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void startConvo() {
-
-        Intent myIntent = new Intent(activity, New_Post.class);
-
-        Bundle bundle = new Bundle();
-        bundle.putString("postid", (String) "0");
-        bundle.putString("parent", (String) "0");
-        bundle.putString("category", selected_post.post_author);
-        bundle.putString("subforum_id", (String) "0");
-        bundle.putString("original_text", (String) "");
-        bundle.putString("boxTitle", (String) "New Message");
-        bundle.putString("picture", (String) "0");
-        bundle.putString("color", (String) getString(R.string.default_color));
-        bundle.putString("subject", (String) "");
-        bundle.putInt("post_type", (Integer) 4);
-        myIntent.putExtras(bundle);
-
-        startActivity(myIntent);
-
-
-    }
-
-    private void dropTheHammer() {
-
-        Bundle bundle = new Bundle();
-        bundle.putString("username", selected_post.post_author);
-
-        BanHammerDialogFragment newFragment = BanHammerDialogFragment.newInstance();
-        newFragment.setArguments(bundle);
-        newFragment.show(activity.getSupportFragmentManager(), "dialog");
-    }
-
-    public void setOnProfileSelectedListener(onProfileSelectedListener l) {
-        profileSelected = l;
-    }
-
-    //Profile selected interface
-    public interface onProfileSelectedListener {
-        public abstract void onProfileSelected(String username, String userid);
-    }
-
-    private class download_posts extends AsyncTask<String, Void, Object[]> {
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        @Override
-        protected Object[] doInBackground(String... params) {
-
-            Log.d("Peris", "Posts - download_posts");
-
-            Object[] result = new Object[50];
-
-            try {
-                Vector paramz = new Vector();
-                paramz.addElement(thread_id);
-                paramz.addElement(curMinPost);
-                paramz.addElement(curMaxPost);
-                paramz.addElement(true);
-
-                result[0] = application.getSession().performSynchronousCall("get_thread", paramz);
-
-            } catch (Exception e) {
-                Log.w("Peris", e.getMessage());
-                return null;
-            }
-            return result;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected void onPostExecute(final Object[] result) {
-            if (activity == null) {
-                return;
-            }
-
-            if (result == null) {
-                Toast toast = Toast.makeText(activity, "No response from the server!", Toast.LENGTH_LONG);
-                toast.show();
-                return;
-            }
-
-            ArrayList<Post> postList = new ArrayList<Post>();
-
-            for (Object o : result) {
-
-                if (o != null) {
-                    HashMap map = (HashMap) o;
-
-                    if (map.get("total_post_num") != null) {
-                        curTotalPosts = (Integer) map.get("total_post_num");
-                    }
-
-                    if (map.get("can_reply") != null) {
-                        canPost = (Boolean) map.get("can_reply");
-
-                        if (canPost) {
-
-                            SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-                            boolean quickReplySetting = app_preferences.getBoolean("show_quick_reply", true);
-
-                            if (quickReplySetting) {
-                                posts_input_area.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    }
-
-
-                    if (map.containsKey("posts")) {
-                        Object[] topics = (Object[]) map.get("posts");
-                        for (Object t : topics) {
-
-                            HashMap topicMap = (HashMap) t;
-
-                            Date timestamp = (Date) topicMap.get("post_time");
-
-                            Post po = new Post();
-                            po.category_id = category_id;
-                            po.subforum_id = subforum_id;
-                            po.thread_id = thread_id;
-                            //po.categoryModerator = moderator;
-
-                            if (!topicMap.containsKey("post_author_id")) {
-                                Log.w("Peris", "There is no author id with this post!");
-                            }
-
-                            po.post_author = new String((byte[]) topicMap.get("post_author_name"));
-                            po.post_author_id = (String) topicMap.get("post_author_id");
-                            po.post_body = new String((byte[]) topicMap.get("post_content"));
-                            po.post_avatar = (String) topicMap.get("icon_url");
-
-                            po.post_id = (String) topicMap.get("post_id");
-                            po.post_tagline = "tagline";
-
-                            if (timestamp != null) {
-                                po.post_timestamp = timestamp.toString();
-                            }
-
-                            if (topicMap.containsKey("attachments")) {
-                                Object[] attachments = (Object[]) topicMap.get("attachments");
-
-                                for (Object a : attachments) {
-
-                                    HashMap attachmentMap = (HashMap) a;
-
-                                    String attachmentType = (String) attachmentMap.get("content_type");
-                                    String attachmentUrl = (String) attachmentMap.get("url");
-
-                                    String attachmentName = null;
-
-                                    if (attachmentMap.containsKey("filename")) {
-                                        attachmentName = new String((byte[]) attachmentMap.get("filename"));
-                                    }
-
-                                    if (attachmentType != null) {
-                                        Log.i("Peris", "Post has attachment of type: " + attachmentType);
-                                    }
-
-                                    if (attachmentUrl != null) {
-                                        Log.i("Peris", "Post has attachment of url: " + attachmentUrl);
-                                    }
-
-                                    if (attachmentName != null) {
-                                        Log.i("Peris", "Post has attachment of type: " + attachmentName);
-                                    }
-
-                                    if (attachmentType != null && attachmentUrl != null && attachmentName != null) {
-                                        PostAttachment pa = new PostAttachment();
-                                        pa.content_type = attachmentType;
-                                        pa.url = attachmentUrl;
-                                        pa.filename = attachmentName;
-                                        po.attachmentList.add(pa);
-                                    }
-                                }
-
-
-                            }
-
-                            if (topicMap.containsKey("is_online")) {
-                                po.userOnline = (Boolean) topicMap.get("is_online");
-                            }
-
-                            if (topicMap.containsKey("is_ban")) {
-                                po.userBanned = (Boolean) topicMap.get("is_ban");
-                            }
-
-                            if (topicMap.containsKey("can_delete")) {
-                                po.canDelete = (Boolean) topicMap.get("can_delete");
-                            }
-
-                            if (topicMap.containsKey("can_ban")) {
-                                po.canBan = (Boolean) topicMap.get("can_ban");
-                            }
-
-                            if (topicMap.containsKey("can_edit")) {
-                                po.canEdit = (Boolean) topicMap.get("can_edit");
-                            }
-
-                            if (topicMap.containsKey("can_thank")) {
-                                po.canThank = (Boolean) topicMap.get("can_thank");
-                            }
-
-                            if (topicMap.containsKey("can_like")) {
-                                po.canLike = (Boolean) topicMap.get("can_like");
-                            }
-
-                            if (topicMap.containsKey("thanks_info")) {
-                                Object[] thankses = (Object[]) topicMap.get("thanks_info");
-
-                                int thanksCount = thankses.length;
-
-                                po.thanksCount = thanksCount;
-                            }
-
-                            if (topicMap.containsKey("likes_info")) {
-                                Object[] likes = (Object[]) topicMap.get("likes_info");
-
-                                int likesCount = likes.length;
-
-                                po.likeCount = likesCount;
-                            }
-
-                            postList.add(po);
-
-                        }
-                    }
+          final ArrayList<Post> postList = new ArrayList<Post>();
+          for (Object o : result) {
+            if (o != null) {
+              final HashMap map = (HashMap) o;
+              if (map.get("total_post_num") != null) {
+                curTotalPosts = (Integer) map.get("total_post_num");
+              }
+              if (map.get("can_reply") != null) {
+                canPost = (Boolean) map.get("can_reply");
+                if (canPost) {
+                  final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+                  if (appPreferences.getBoolean("show_quick_reply", true)) {
+                    postsInputArea.setVisibility(View.VISIBLE);
+                  }
                 }
-            }
+              }
 
-            setupPagination();
+              if (map.containsKey("posts")) {
+                final Object[] topics = (Object[]) map.get("posts");
+                for (Object t : topics) {
+                  final HashMap topicMap = (HashMap) t;
+                  final Date timestamp = (Date) topicMap.get("post_time");
+                  final Post po = new Post();
+                  po.category_id = categoryId;
+                  po.subforum_id = subforumId;
+                  po.thread_id = threadId;
+                  //po.categoryModerator = moderator;
 
-            ListView lvPosts;
+                  if (!topicMap.containsKey("post_author_id")) {
+                    Log.w("Peris", "There is no author id with this post!");
+                  }
 
-            try {
-                lvPosts = mainList;
-            } catch (Exception ex) {
-                return;
-            }
+                  po.post_author = new String((byte[]) topicMap.get("post_author_name"));
+                  po.post_author_id = (String) topicMap.get("post_author_id");
+                  po.post_body = new String((byte[]) topicMap.get("post_content"));
+                  po.post_avatar = (String) topicMap.get("icon_url");
 
-            if (lvPosts == null) {
-                return;
-            }
+                  po.post_id = (String) topicMap.get("post_id");
+                  po.post_tagline = "tagline";
 
-            registerForContextMenu(lvPosts);
+                  if (timestamp != null) {
+                    po.post_timestamp = timestamp.toString();
+                  }
 
+                  if (topicMap.containsKey("attachments")) {
+                    final Object[] attachments = (Object[]) topicMap.get("attachments");
 
-            lvPosts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    for (Object a : attachments) {
+                      final HashMap attachmentMap = (HashMap) a;
+                      final String attachmentType = (String) attachmentMap.get("content_type");
+                      final String attachmentUrl = (String) attachmentMap.get("url");
+                      String attachmentName = null;
 
-                public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-
-                    if (userid.contentEquals("0")) {
-                        return;
+                      if (attachmentMap.containsKey("filename")) {
+                        attachmentName = new String((byte[]) attachmentMap.get("filename"));
+                      }
+                      if (attachmentType != null) {
+                        Log.i("Peris", "Post has attachment of type: " + attachmentType);
+                      }
+                      if (attachmentUrl != null) {
+                        Log.i("Peris", "Post has attachment of url: " + attachmentUrl);
+                      }
+                      if (attachmentName != null) {
+                        Log.i("Peris", "Post has attachment of type: " + attachmentName);
+                      }
+                      if (attachmentType != null && attachmentUrl != null && attachmentName != null) {
+                        final PostAttachment pa = new PostAttachment();
+                        pa.content_type = attachmentType;
+                        pa.url = attachmentUrl;
+                        pa.filename = attachmentName;
+                        po.attachmentList.add(pa);
+                      }
                     }
+                  }
 
-                    if (profileSelected != null) {
-                        Post sender = (Post) arg0.getItemAtPosition(arg2);
-                        profileSelected.onProfileSelected(sender.post_author, sender.post_author_id);
-                    }
-
+                  if (topicMap.containsKey("is_online")) {
+                    po.userOnline = (Boolean) topicMap.get("is_online");
+                  }
+                  if (topicMap.containsKey("is_ban")) {
+                    po.userBanned = (Boolean) topicMap.get("is_ban");
+                  }
+                  if (topicMap.containsKey("can_delete")) {
+                    po.canDelete = (Boolean) topicMap.get("can_delete");
+                  }
+                  if (topicMap.containsKey("can_ban")) {
+                    po.canBan = (Boolean) topicMap.get("can_ban");
+                  }
+                  if (topicMap.containsKey("can_edit")) {
+                    po.canEdit = (Boolean) topicMap.get("can_edit");
+                  }
+                  if (topicMap.containsKey("can_thank")) {
+                    po.canThank = (Boolean) topicMap.get("can_thank");
+                  }
+                  if (topicMap.containsKey("can_like")) {
+                    po.canLike = (Boolean) topicMap.get("can_like");
+                  }
+                  if (topicMap.containsKey("thanks_info")) {
+                    final Object[] thankses = (Object[]) topicMap.get("thanks_info");
+                    po.thanksCount = thankses.length;
+                  }
+                  if (topicMap.containsKey("likes_info")) {
+                    final Object[] likes = (Object[]) topicMap.get("likes_info");
+                    po.likeCount = likes.length;
+                  }
+                  postList.add(po);
                 }
+              }
+            }
+          }
+          setupPagination();
+          if (mainList != null) {
+            registerForContextMenu(mainList);
+            mainList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+              public void onItemClick(final AdapterView<?> adapterView, final View view, final int itemPos, final long arg3) {
+                if (userid.contentEquals("0")) {
+                  return;
+                }
+
+                if (profileSelected != null) {
+                  final Post sender = (Post) adapterView.getItemAtPosition(itemPos);
+                  profileSelected.onProfileSelected(sender.post_author, sender.post_author_id);
+                }
+              }
             });
 
-            mainList.setAdapter(new PostAdapter(postList, activity, application, page_number));
+            PostsFragment.this.mainList.setAdapter(new PostAdapter(postList, activity, application, pageNumber));
 
-            lvPosts.setItemsCanFocus(true);
+            mainList.setItemsCanFocus(true);
             activity.setProgressBarIndeterminateVisibility(false);
 
             if (forceBottomScroll) {
-                Log.d("Peris", "Force Bottom Scroll: " + (postList.size() - 1));
-                forceBottomScroll = false;
-                lvPosts.setSelection(postList.size() - 1);
+              Log.d("Peris", "Force Bottom Scroll: " + (postList.size() - 1));
+              forceBottomScroll = false;
+              mainList.setSelection(postList.size() - 1);
             } else {
-                lvPosts.setSelection(scrollLocation);
-                Log.d("Peris", "Retained Scroll: " + scrollLocation);
+              mainList.setSelection(scrollLocation);
+              Log.d("Peris", "Retained Scroll: " + scrollLocation);
             }
-
+          }
         }
+      }
+    }
+  }
+
+  private class DeletePostTask extends AsyncTask<String, Void, String> {
+
+    // parm[0] - (string)topic_id
+
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        paramz.addElement(2);
+
+        application.getSession().performSynchronousCall("m_delete_post", paramz);
+      } catch (Exception ex) {
+        Log.w("Peris", ex.getMessage());
+      }
+
+      return "";
     }
 
-    private class deletePost extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity == null) {
+        return;
+      }
+      loadPosts();
+    }
+  }
 
-        // parm[0] - (string)topic_id
+  private class ThankPostTask extends AsyncTask<String, Void, String> {
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
-
-            if (activity == null) {
-                return null;
-            }
-
-            String result = "";
-
-
-            try {
-
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                paramz.addElement(2);
-
-                application.getSession().performSynchronousCall("m_delete_post", paramz);
-
-
-            } catch (Exception ex) {
-                Log.w("Peris", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            load_posts();
-        }
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        application.getSession().performSynchronousCall("thank_post", paramz);
+      } catch (Exception ex) {
+        Log.w("Peris", ex.getMessage());
+      }
+      return "";
     }
 
-    private class thankPost extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
+      if (activity == null) {
+        return;
+      }
 
-            if (activity == null) {
-                return null;
-            }
+      loadPosts();
+    }
+  }
 
-            String result = "";
+  private class LikePostTask extends AsyncTask<String, Void, String> {
 
-
-            try {
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-
-                application.getSession().performSynchronousCall("thank_post", paramz);
-
-
-            } catch (Exception ex) {
-                Log.w("Peris", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            load_posts();
-        }
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        application.getSession().performSynchronousCall("like_post", paramz);
+      } catch (Exception ex) {
+        Log.w("Peris", ex.getMessage());
+      }
+      return "";
     }
 
-    private class likePost extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity == null) {
+        return;
+      }
+      loadPosts();
+    }
+  }
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
+  private class QuickReplyTask extends AsyncTask<String, Void, Object[]> {
 
-            if (activity == null) {
-                return null;
-            }
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    protected Object[] doInBackground(final String... args) {
+      String comment = postsQuickReply.getText().toString().trim();
+      if (comment.length() > 0) {
+        String subject = currentThreadSubject.trim();
 
-            String result = "";
+        final Object[] result = new Object[MAX_ITEM_COUNT];
 
-
-            try {
-
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-
-                application.getSession().performSynchronousCall("like_post", paramz);
-
-
-            } catch (Exception ex) {
-                Log.w("Peris", ex.getMessage());
-            }
-
-            return result;
+        if (subject.length() > MAX_SUBJECT_LENGTH) {
+          subject = subject.substring(0, MAX_SUBJECT_LENGTH - 1);
+        }
+        if (subject.length() < 1) {
+          subject = "no subject";
         }
 
-        protected void onPostExecute(final String result) {
+        final String tagline = application.getSession().getServer().serverTagline;
 
-            if (activity == null) {
-                return;
-            }
-
-            load_posts();
+        if (tagline.length() > 0) {
+          comment = comment + "\n\n" + tagline;
         }
+
+        try {
+          final Vector paramz = new Vector();
+          paramz.addElement(categoryId);
+          paramz.addElement(threadId);
+          paramz.addElement(subject.getBytes());
+          paramz.addElement(comment.getBytes());
+          result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
+          return result;
+        } catch (Exception e) {
+          Log.w("Peris", e.getMessage());
+        }
+      }
+      return null;
     }
 
-    private class QuickReply extends AsyncTask<String, Void, Object[]> {
+    //This method is executed after the thread has completed.
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final Object[] result) {
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        protected Object[] doInBackground(final String... args) {
-            String comment;
-            String subject = currentThreadSubject;
+      postsQuickReplySubmit.setEnabled(true);
+      postsQuickReply.setEnabled(true);
 
-            comment = posts_quick_reply.getText().toString();
+      if (result == null) {
+        final Toast toast = Toast.makeText(activity, "Submission error, please retry :-(", Toast.LENGTH_LONG);
+        toast.show();
+        return;
+      }
 
-            Object[] result = new Object[50];
-
-            comment = comment.trim();
-            subject = subject.trim();
-
-            if (subject.length() > 45)
-                subject = subject.substring(0, 44);
-
-            if (subject.length() < 1)
-                subject = "no subject";
-
-            if (comment.length() < 1) {
-                return null;
-            }
-
-            String tagline = application.getSession().getServer().serverTagline;
-
-            if (tagline.length() > 0) {
-                comment = comment + "\n\n" + tagline;
-            }
-
-            try {
-                Vector paramz = new Vector();
-                paramz.addElement(category_id);
-                paramz.addElement(thread_id);
-                paramz.addElement(subject.getBytes());
-                paramz.addElement(comment.getBytes());
-                result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
-            } catch (Exception e) {
-                Log.w("Peris", e.getMessage());
-                return null;
-            }
-
-
-            return result;
-        }
-
-        //This method is executed after the thread has completed.
-        protected void onPostExecute(final Object[] result) {
-
-            posts_quick_reply_submit.setEnabled(true);
-            posts_quick_reply.setEnabled(true);
-
-            if (result == null) {
-                Toast toast = Toast.makeText(activity, "Submission error, please retry :-(", Toast.LENGTH_LONG);
-                toast.show();
-                return;
-            }
-
-            forceBottomScroll = true;
-            posts_quick_reply.setText("");
-            load_posts();
-        }
-
+      forceBottomScroll = true;
+      postsQuickReply.setText("");
+      loadPosts();
     }
+
+  }
 }
