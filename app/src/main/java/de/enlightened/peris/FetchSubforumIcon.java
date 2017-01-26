@@ -100,7 +100,7 @@ public class FetchSubforumIcon extends AsyncTask<Object, Void, String> {
 
         //Save the image to cache.
         try {
-            File saveDirectory = new File(Environment.getExternalStorageDirectory(), ApeImageCacher.cacheDirectory);
+            File saveDirectory = new File(Environment.getExternalStorageDirectory(), ApeImageCacher.CACHE_DIRECTORY);
             File file = new File(saveDirectory.getPath() + File.separator + cacheName);
             OutputStream os = new FileOutputStream(file);
             bmImg.compress(Bitmap.CompressFormat.JPEG, 80, os);

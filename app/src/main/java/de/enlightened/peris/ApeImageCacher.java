@@ -14,70 +14,67 @@ import java.io.File;
 import java.io.FileInputStream;
 
 @SuppressLint("NewApi")
-public class ApeImageCacher {
+class ApeImageCacher {
 
-    public static final String cacheDirectory = ".ff_cache";
+  public static final String CACHE_DIRECTORY = ".ff_cache";
 
-    public static final void DownloadImage(String ImageURL, ImageView ivHolder, PerisApp application, Context context) {
+  protected ApeImageCacher() {
+  }
 
-        Log.d("Peris", "Downloading " + ImageURL + " with the ApeImageCacher");
+  public static final void downloadImage(final String imageURL, final ImageView ivHolder, final PerisApp application, final Context context) {
 
-        String cacheName = application.getSession().getServer().serverAddress.replace("http", "").replace("/", "").replace(".", "").replace("https", "").replace(":", "");
+    Log.d("Peris", "Downloading " + imageURL + " with the ApeImageCacher");
 
-        cacheName = cacheName + "_" + ImageURL.substring((ImageURL.lastIndexOf("?")) + 1, ImageURL.length());
-        cacheName = cacheName + ".jpg";
+    String cacheName = application.getSession().getServer().serverAddress.replace("http", "").replace("/", "").replace(".", "").replace("https", "").replace(":", "");
 
-        if (ivHolder == null) {
-            return;
-        }
+    cacheName = cacheName + "_" + imageURL.substring((imageURL.lastIndexOf("?")) + 1, imageURL.length());
+    cacheName = cacheName + ".jpg";
 
-        File saveDirectory = new File(Environment.getExternalStorageDirectory(), cacheDirectory);
-
-        if (!saveDirectory.exists()) {
-            if (!saveDirectory.mkdirs()) {
-                Log.d("Peris", "failed to create directory");
-                return;
-            }
-        }
-
-        try {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-
-            File file = new File(saveDirectory.getPath() + File.separator + cacheName);
-
-            FileInputStream fis = new FileInputStream(file);
-
-            BufferedInputStream buf = new BufferedInputStream(fis);
-            Bitmap bmImg = BitmapFactory.decodeStream(buf, null, options);
-
-            if (bmImg.getHeight() < 2) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-                    new FetchSubforumIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, ImageURL, application);
-                } else {
-                    new FetchSubforumIcon().execute(cacheName, ivHolder, ImageURL, application);
-                }
-
-                Log.d("Peris", "Downloading new copy for " + ImageURL);
-                return;
-            }
-
-            ivHolder.setImageBitmap(bmImg);
-
-            Log.d("Peris", "Using cached image for " + ImageURL);
-        } catch (Exception e) {
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-                new FetchSubforumIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, ImageURL, application);
-            } else {
-                new FetchSubforumIcon().execute(cacheName, ivHolder, ImageURL, application);
-            }
-
-            Log.d("Peris", "Downloading new copy for " + ImageURL);
-            return;
-        }
-
-
+    if (ivHolder == null) {
+      return;
     }
+
+    final File saveDirectory = new File(Environment.getExternalStorageDirectory(), CACHE_DIRECTORY);
+
+    if (!saveDirectory.exists() && !saveDirectory.mkdirs()) {
+      Log.d("Peris", "failed to create directory");
+    } else {
+
+      try {
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+
+        final File file = new File(saveDirectory.getPath() + File.separator + cacheName);
+
+        final FileInputStream fis = new FileInputStream(file);
+
+        final BufferedInputStream buf = new BufferedInputStream(fis);
+        final Bitmap bmImg = BitmapFactory.decodeStream(buf, null, options);
+
+        if (bmImg.getHeight() < 2) {
+          if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+            new FetchSubforumIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, imageURL, application);
+          } else {
+            new FetchSubforumIcon().execute(cacheName, ivHolder, imageURL, application);
+          }
+
+          Log.d("Peris", "Downloading new copy for " + imageURL);
+        } else {
+
+          ivHolder.setImageBitmap(bmImg);
+          Log.d("Peris", "Using cached image for " + imageURL);
+        }
+      } catch (Exception e) {
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+          new FetchSubforumIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, imageURL, application);
+        } else {
+          new FetchSubforumIcon().execute(cacheName, ivHolder, imageURL, application);
+        }
+
+        Log.d("Peris", "Downloading new copy for " + imageURL);
+      }
+    }
+  }
 
 
 }

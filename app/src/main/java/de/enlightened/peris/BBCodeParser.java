@@ -175,7 +175,7 @@ public class BBCodeParser {
                 ivNewPic.setOnClickListener(picClicked);
 
                 if (inlineImageUrl.contains(".php")) {
-                    ApeImageCacher.DownloadImage(inlineImageUrl, ivNewPic, app, c);
+                    ApeImageCacher.downloadImage(inlineImageUrl, ivNewPic, app, c);
                 } else {
                     ImageLoader.getInstance().displayImage(inlineImageUrl, ivNewPic);
                 }
@@ -208,7 +208,7 @@ public class BBCodeParser {
                     ivNewPic.setOnClickListener(picClicked);
 
                     if (inlineImageUrl.contains(".php")) {
-                        ApeImageCacher.DownloadImage(inlineImageUrl, ivNewPic, app, c);
+                        ApeImageCacher.downloadImage(inlineImageUrl, ivNewPic, app, c);
                     } else {
                         ImageLoader.getInstance().displayImage(inlineImageUrl, ivNewPic);
                     }
