@@ -11,42 +11,42 @@ import java.io.InputStream;
 
 public class About extends Activity {
 
-    private AnalyticsHelper ah;
+  private AnalyticsHelper ah;
 
-    protected void onCreate(Bundle savedInstanceState) {
+  protected final void onCreate(final Bundle savedInstanceState) {
 
-        ThemeSetter.setThemeNoTitlebar(this, getString(R.string.default_color));
+    ThemeSetter.setThemeNoTitlebar(this, getString(R.string.default_color));
 
-        super.onCreate(savedInstanceState);
+    super.onCreate(savedInstanceState);
 
-        ThemeSetter.setNavAndStatusBar(this, getString(R.string.default_color));
+    ThemeSetter.setNavAndStatusBar(this, getString(R.string.default_color));
 
-        ah = ((PerisApp) getApplication()).getAnalyticsHelper();
-        ah.trackScreen(getClass().getSimpleName(), false);
+    this.ah = ((PerisApp) getApplication()).getAnalyticsHelper();
+    this.ah.trackScreen(getClass().getSimpleName(), false);
 
-        setContentView(R.layout.about_layout);
+    setContentView(R.layout.about_layout);
 
-        TextView tvChangelog = (TextView) findViewById(R.id.about_tv_changelog);
+    final TextView tvChangelog = (TextView) findViewById(R.id.about_tv_changelog);
 
-        try {
-            Resources res = getResources();
-            InputStream in_s = res.openRawResource(R.raw.changelog);
+    try {
+      final Resources res = getResources();
+      final InputStream inputStream = res.openRawResource(R.raw.changelog);
 
-            byte[] b = new byte[in_s.available()];
-            in_s.read(b);
-            tvChangelog.setText(new String(b));
-        } catch (Exception e) {
-            // e.printStackTrace();
-            tvChangelog.setText("Error: can't show help.");
-        }
-
-        TextView tvEdition = (TextView) findViewById(R.id.about_tv_edition);
-        //tvEdition.setText("Community Edition (OSP)");
-
-        ImageView ivPowered = (ImageView) findViewById(R.id.about_powered_by);
-
-        if (getString(R.string.server_location).contentEquals("0")) {
-            ivPowered.setVisibility(View.GONE);
-        }
+      final byte[] b = new byte[inputStream.available()];
+      inputStream.read(b);
+      tvChangelog.setText(new String(b));
+    } catch (Exception e) {
+      // e.printStackTrace();
+      tvChangelog.setText("Error: can't show help.");
     }
+
+    final TextView tvEdition = (TextView) findViewById(R.id.about_tv_edition);
+    //tvEdition.setText("Community Edition (OSP)");
+
+    final ImageView ivPowered = (ImageView) findViewById(R.id.about_powered_by);
+
+    if (getString(R.string.server_location).contentEquals("0")) {
+      ivPowered.setVisibility(View.GONE);
+    }
+  }
 }
