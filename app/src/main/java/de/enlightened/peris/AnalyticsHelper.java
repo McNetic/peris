@@ -17,158 +17,152 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
+@SuppressWarnings("checkstyle:requirethis")
 public class AnalyticsHelper {
 
-    private String analyticsId;
-    private String appName;
+  private String analyticsId;
+  private String appName;
 
-    private Context context;
+  private Context context;
 
-    private String uniqueID;
+  private String uniqueID;
 
-    public AnalyticsHelper(Context c, String analytics, String name) {
-        context = c;
-        analyticsId = analytics;
-        appName = name;
+  public AnalyticsHelper(final Context c, final String analytics, final String name) {
+    this.context = c;
+    this.analyticsId = analytics;
+    this.appName = name;
 
-        SharedPreferences app_preferences = context.getSharedPreferences("prefs", 0);
-        uniqueID = app_preferences.getString("analytics_uuid", "0");
+    final SharedPreferences appPreferences = this.context.getSharedPreferences("prefs", 0);
+    this.uniqueID = appPreferences.getString("analytics_uuid", "0");
 
-        if (uniqueID.contentEquals("0")) {
-            uniqueID = UUID.randomUUID().toString();
-            SharedPreferences.Editor editor = app_preferences.edit();
-            editor.putString("analytics_uuid", uniqueID);
-            editor.commit();
+    if (this.uniqueID.contentEquals("0")) {
+      this.uniqueID = UUID.randomUUID().toString();
+      final SharedPreferences.Editor editor = appPreferences.edit();
+      editor.putString("analytics_uuid", this.uniqueID);
+      editor.commit();
+    }
+
+
+  }
+
+  public final void trackScreen(final String name, final boolean global) {
+    new LogAnalyticsViewTask().execute(name);
+  }
+
+  public final void trackCustomScreen(final String analytics, final String name) {
+    new LogAnalyticsViewTask().execute(name);
+
+  }
+
+  public final void trackCustomEvent(final String analytics, final String cat, final String act, final String lab) {
+    new LogAnalyticsEvent().execute(cat, act, lab, analytics);
+  }
+
+  public final void trackEvent(final String cat, final String act, final String lab, final boolean global) {
+    new LogAnalyticsEvent().execute(cat, act, lab);
+  }
+
+  private class LogAnalyticsViewTask extends AsyncTask<String, Void, String> {
+
+    @Override
+    protected String doInBackground(final String... params) {
+      String rv;
+      //TODO: re-enable or remove
+      if (false) {
+        final HttpClient httpclient = new DefaultHttpClient();
+        HttpPost httppost;
+
+        final String viewName = params[0];
+
+        String viewId = null;
+
+        if (params.length > 1) {
+          viewId = params[1];
         }
 
+        if (viewId == null) {
+          viewId = analyticsId;
+        }
+
+        httppost = new HttpPost("http://www.google-analytics.com/collect");
+
+        try {
+          final List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+          nameValuePairs.add(new BasicNameValuePair("v", "1"));
+          nameValuePairs.add(new BasicNameValuePair("tid", viewId));
+          nameValuePairs.add(new BasicNameValuePair("cid", uniqueID));
+          nameValuePairs.add(new BasicNameValuePair("t", "appview"));
+          nameValuePairs.add(new BasicNameValuePair("an", appName));
+          nameValuePairs.add(new BasicNameValuePair("av", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName));
+          nameValuePairs.add(new BasicNameValuePair("cd", viewName));
+          httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+          final ResponseHandler<String> responseHandler = new BasicResponseHandler();
+          final String response = httpclient.execute(httppost, responseHandler);
+          rv = response;
+
+        } catch (Exception e) {
+          rv = "fail";
+        }
+      }
+      rv = "fail";
+      return rv;
+    }
+
+    protected void onPostExecute(final String result) {
+
+      // yay
+    }
+
+  }
+
+  private class LogAnalyticsEvent extends AsyncTask<String, Void, String> {
+
+    @Override
+    protected String doInBackground(final String... params) {
+      final HttpClient httpclient = new DefaultHttpClient();
+      HttpPost httppost;
+
+      final String eventCat = params[0];
+      final String eventAct = params[1];
+      final String eventLab = params[2];
+      String eventId = null;
+
+      if (params.length > 3) {
+        eventId = params[3];
+      }
+
+      if (eventId == null) {
+        eventId = analyticsId;
+      }
+
+      httppost = new HttpPost("http://www.google-analytics.com/collect");
+
+      try {
+        final List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
+        nameValuePairs.add(new BasicNameValuePair("v", "1"));
+        nameValuePairs.add(new BasicNameValuePair("tid", eventId));
+        nameValuePairs.add(new BasicNameValuePair("cid", uniqueID));
+        nameValuePairs.add(new BasicNameValuePair("t", "event"));
+        nameValuePairs.add(new BasicNameValuePair("ec", eventCat));
+        nameValuePairs.add(new BasicNameValuePair("ea", eventAct));
+        nameValuePairs.add(new BasicNameValuePair("el", eventLab));
+        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+        final ResponseHandler<String> responseHandler = new BasicResponseHandler();
+        final String response = httpclient.execute(httppost, responseHandler);
+        return response;
+
+      } catch (Exception e) {
+        return "fail";
+      }
 
     }
 
-    public void trackScreen(String name, boolean global) {
-        new LogAnalyticsView().execute(name);
+    protected void onPostExecute(final String result) {
 
-        if (global) {
-            // not used currently
-        }
+      // yay
     }
 
-    public void trackCustomScreen(String analytics, String name) {
-        new LogAnalyticsView().execute(name);
-
-    }
-
-    public void trackCustomEvent(String analytics, String cat, String act, String lab) {
-        new LogAnalyticsEvent().execute(cat, act, lab, analytics);
-    }
-
-    public void trackEvent(String cat, String act, String lab, boolean global) {
-
-        new LogAnalyticsEvent().execute(cat, act, lab);
-
-        if (global) {
-            // not used currently
-        }
-    }
-
-    private class LogAnalyticsView extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-            //TODO: re-enable or remove
-            if (true) return "fail";
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost;
-
-            String viewName = params[0];
-
-            String viewId = null;
-
-            if (params.length > 1) {
-                viewId = params[1];
-            }
-
-            if (viewId == null) {
-                viewId = analyticsId;
-            }
-
-            httppost = new HttpPost("http://www.google-analytics.com/collect");
-
-            try {
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
-                nameValuePairs.add(new BasicNameValuePair("v", "1"));
-                nameValuePairs.add(new BasicNameValuePair("tid", viewId));
-                nameValuePairs.add(new BasicNameValuePair("cid", uniqueID));
-                nameValuePairs.add(new BasicNameValuePair("t", "appview"));
-                nameValuePairs.add(new BasicNameValuePair("an", appName));
-                nameValuePairs.add(new BasicNameValuePair("av", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName));
-                nameValuePairs.add(new BasicNameValuePair("cd", viewName));
-                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                ResponseHandler<String> responseHandler = new BasicResponseHandler();
-                String response = httpclient.execute(httppost, responseHandler);
-                return response;
-
-            } catch (Exception e) {
-                return "fail";
-            }
-
-        }
-
-        protected void onPostExecute(final String result) {
-
-            // yay
-        }
-
-    }
-
-    private class LogAnalyticsEvent extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost;
-
-            String eventCat = params[0];
-            String eventAct = params[1];
-            String eventLab = params[2];
-            String eventId = null;
-
-            if (params.length > 3) {
-                eventId = params[3];
-            }
-
-            if (eventId == null) {
-                eventId = analyticsId;
-            }
-
-            httppost = new HttpPost("http://www.google-analytics.com/collect");
-
-            try {
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
-                nameValuePairs.add(new BasicNameValuePair("v", "1"));
-                nameValuePairs.add(new BasicNameValuePair("tid", eventId));
-                nameValuePairs.add(new BasicNameValuePair("cid", uniqueID));
-                nameValuePairs.add(new BasicNameValuePair("t", "event"));
-                nameValuePairs.add(new BasicNameValuePair("ec", eventCat));
-                nameValuePairs.add(new BasicNameValuePair("ea", eventAct));
-                nameValuePairs.add(new BasicNameValuePair("el", eventLab));
-                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                ResponseHandler<String> responseHandler = new BasicResponseHandler();
-                String response = httpclient.execute(httppost, responseHandler);
-                return response;
-
-            } catch (Exception e) {
-                return "fail";
-            }
-
-        }
-
-        protected void onPostExecute(final String result) {
-
-            // yay
-        }
-
-    }
+  }
 }
