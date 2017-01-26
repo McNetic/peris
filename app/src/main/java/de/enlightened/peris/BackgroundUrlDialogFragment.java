@@ -14,103 +14,111 @@ import android.widget.EditText;
 
 public class BackgroundUrlDialogFragment extends DialogFragment {
 
-    private EditText etUrl;
-    private Button btnSave;
-    private Button btnBackgroundBag;
-    private Button btnClearWallpaper;
-    private String currentURL = "";
-    private PerisApp application;
-    private OnClickListener goToBackgroundBag = new OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.backgroundbag.com"));
-            startActivity(browserIntent);
-        }
-
-    };
-    private OnClickListener saveURL = new OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            if (etUrl.getText().toString().trim().contains("http")) {
-                currentURL = application.getSession().getServer().serverWallpaper = etUrl.getText().toString().trim();
-                application.getSession().updateServer();
-                BackgroundUrlDialogFragment.this.dismiss();
-
-                getActivity().finish();
-                getActivity().startActivity(getActivity().getIntent());
-
-            }
-        }
-
-    };
-    private OnClickListener clearWallpaper = new OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            if (etUrl.getText().toString().trim().contains("http")) {
-                currentURL = application.getSession().getServer().serverWallpaper = "0";
-                application.getSession().updateServer();
-                BackgroundUrlDialogFragment.this.dismiss();
-
-                getActivity().finish();
-                getActivity().startActivity(getActivity().getIntent());
-
-            }
-        }
-
-    };
-
-    static BackgroundUrlDialogFragment newInstance() {
-        return new BackgroundUrlDialogFragment();
-    }
+  private EditText etUrl;
+  private Button btnSave;
+  private Button btnBackgroundBag;
+  private Button btnClearWallpaper;
+  private String currentURL = "";
+  private PerisApp application;
+  private OnClickListener goToBackgroundBag = new OnClickListener() {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        application = (PerisApp) getActivity().getApplication();
-        currentURL = application.getSession().getServer().serverWallpaper;
-
-        this.setStyle(STYLE_NO_TITLE, getTheme());
+    public void onClick(final View v) {
+      final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.backgroundbag.com"));
+      startActivity(browserIntent);
     }
+
+  };
+
+  @SuppressWarnings("checkstyle:requirethis")
+  private OnClickListener saveURL = new OnClickListener() {
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.wallpaper_url_window, container, false);
+    public void onClick(final View v) {
+      if (etUrl.getText().toString().trim().contains("http")) {
+        currentURL = etUrl.getText().toString().trim();
+        application.getSession().getServer().serverWallpaper = currentURL;
+        application.getSession().updateServer();
+        BackgroundUrlDialogFragment.this.dismiss();
 
-        setupDialog(v);
+        getActivity().finish();
+        getActivity().startActivity(getActivity().getIntent());
 
-        return v;
+      }
     }
 
-    private void setupDialog(View v) {
+  };
 
-        etUrl = (EditText) v.findViewById(R.id.etWallpaperURL);
-        btnSave = (Button) v.findViewById(R.id.btnSetWallpaper);
-        btnBackgroundBag = (Button) v.findViewById(R.id.btnFindWallpapers);
-        btnClearWallpaper = (Button) v.findViewById(R.id.btnClearWallpaper);
+  @SuppressWarnings("checkstyle:requirethis")
+  private OnClickListener clearWallpaper = new OnClickListener() {
 
-        etUrl.setOnFocusChangeListener(new OnFocusChangeListener() {
+    @Override
+    public void onClick(final View v) {
+      if (etUrl.getText().toString().trim().contains("http")) {
+        currentURL = "0";
+        application.getSession().getServer().serverWallpaper = currentURL;
+        application.getSession().updateServer();
+        BackgroundUrlDialogFragment.this.dismiss();
 
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    if (etUrl.getText().length() > 0) {
-                        etUrl.selectAll();
-                    }
-                }
-            }
+        getActivity().finish();
+        getActivity().startActivity(getActivity().getIntent());
 
-        });
+      }
+    }
 
-        if (currentURL.contains("http")) {
-            etUrl.setText(currentURL);
+  };
+
+  static BackgroundUrlDialogFragment newInstance() {
+    return new BackgroundUrlDialogFragment();
+  }
+
+  @Override
+  public final void onCreate(final Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    this.application = (PerisApp) getActivity().getApplication();
+    this.currentURL = this.application.getSession().getServer().serverWallpaper;
+
+    this.setStyle(STYLE_NO_TITLE, getTheme());
+  }
+
+  @Override
+  @SuppressWarnings("checkstyle:requirethis")
+  public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    final View v = inflater.inflate(R.layout.wallpaper_url_window, container, false);
+
+    setupDialog(v);
+
+    return v;
+  }
+
+  @SuppressWarnings("checkstyle:requirethis")
+  private void setupDialog(final View v) {
+
+    this.etUrl = (EditText) v.findViewById(R.id.etWallpaperURL);
+    this.btnSave = (Button) v.findViewById(R.id.btnSetWallpaper);
+    this.btnBackgroundBag = (Button) v.findViewById(R.id.btnFindWallpapers);
+    this.btnClearWallpaper = (Button) v.findViewById(R.id.btnClearWallpaper);
+
+    this.etUrl.setOnFocusChangeListener(new OnFocusChangeListener() {
+
+      @Override
+      public void onFocusChange(final View v, final boolean hasFocus) {
+        if (hasFocus) {
+          if (etUrl.getText().length() > 0) {
+            etUrl.selectAll();
+          }
         }
+      }
 
-        btnBackgroundBag.setOnClickListener(goToBackgroundBag);
-        btnClearWallpaper.setOnClickListener(clearWallpaper);
-        btnSave.setOnClickListener(saveURL);
+    });
+
+    if (currentURL.contains("http")) {
+      etUrl.setText(currentURL);
     }
+
+    btnBackgroundBag.setOnClickListener(goToBackgroundBag);
+    btnClearWallpaper.setOnClickListener(clearWallpaper);
+    btnSave.setOnClickListener(saveURL);
+  }
 }
