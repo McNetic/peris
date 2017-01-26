@@ -19,7 +19,7 @@ import java.util.Vector;
 public class ActiveList extends ListFragment {
 
     private PerisApp application;
-    private onProfileSelectedListener profileSelected = null;
+    private OnProfileSelectedListener profileSelected = null;
 
     @Override
     public void onCreate(Bundle bundle) {
@@ -54,12 +54,12 @@ public class ActiveList extends ListFragment {
         }
     }
 
-    public void setOnProfileSelectedListener(onProfileSelectedListener l) {
+    public void setOnProfileSelectedListener(OnProfileSelectedListener l) {
         profileSelected = l;
     }
 
     //Profile selected interface
-    public interface onProfileSelectedListener {
+    public interface OnProfileSelectedListener {
         public abstract void onProfileSelected(String username, String userid);
     }
 

@@ -98,7 +98,7 @@ public class Discussions_Main extends FragmentActivity {
 
         }
     };
-    private ActiveList.onProfileSelectedListener profileActiveSelected = new ActiveList.onProfileSelectedListener() {
+    private ActiveList.OnProfileSelectedListener profileActiveSelected = new ActiveList.OnProfileSelectedListener() {
 
         @Override
         public void onProfileSelected(String username, String userid) {
