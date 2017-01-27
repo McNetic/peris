@@ -128,7 +128,7 @@ public class CategoriesFragment extends ListFragment {
     }
 
     final Bundle bundle = getArguments();
-    this.subforumId = bundle.getString("subforumId");
+    this.subforumId = bundle.getString("subforum_id");
     this.background = bundle.getString("background");
     this.screenTitle = bundle.getString("subforum_name");
     this.passedSubforum = this.subforumId;
@@ -138,8 +138,7 @@ public class CategoriesFragment extends ListFragment {
     }
 
     //Log.i("Peris", "**** New CategoriesFragment Instance ****");
-
-    //Log.d("Peris","Passed subforum " + subforumId);
+    //Log.d("Peris", "Passed subforum " + this.subforumId);
 
     this.totalHash = this.subforumId;
 
@@ -715,7 +714,7 @@ public class CategoriesFragment extends ListFragment {
     bundle.putString("postid", (String) "0");
     bundle.putString("parent", (String) "0");
     bundle.putString("category", (String) this.subforumId);
-    bundle.putString("subforumId", (String) this.subforumId);
+    bundle.putString("subforum_id", (String) this.subforumId);
     bundle.putString("original_text", (String) "");
     bundle.putString("boxTitle", (String) "New Thread");
     bundle.putString("picture", (String) "0");

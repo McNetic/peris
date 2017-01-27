@@ -206,7 +206,7 @@ public class PostsFragment extends Fragment {
     }
 
     final Bundle bundle = getArguments();
-    this.subforumId = bundle.getString("subforumId");
+    this.subforumId = bundle.getString("subforum_id");
     this.categoryId = bundle.getString("categoryId");
     this.threadId = bundle.getString("threadId");
     this.lock = bundle.getString("lock");
@@ -380,7 +380,7 @@ public class PostsFragment extends Fragment {
       bundle.putString("postid", (String) "0");
       bundle.putString("parent", (String) this.threadId);
       bundle.putString("category", (String) this.categoryId);
-      bundle.putString("subforumId", (String) this.subforumId);
+      bundle.putString("subforum_id", (String) this.subforumId);
       bundle.putString("original_text", (String) "");
       bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
       bundle.putString("picture", (String) "0");
@@ -406,7 +406,7 @@ public class PostsFragment extends Fragment {
       bundle.putString("postid", (String) this.selectedPost.post_id);
       bundle.putString("parent", (String) this.threadId);
       bundle.putString("category", (String) this.categoryId);
-      bundle.putString("subforumId", (String) this.subforumId);
+      bundle.putString("subforum_id", (String) this.subforumId);
       bundle.putString("original_text", (String) this.selectedPost.post_body);
       bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
       bundle.putString("picture", (String) this.selectedPost.post_picture);
@@ -432,7 +432,7 @@ public class PostsFragment extends Fragment {
       bundle.putString("postid", (String) "0");
       bundle.putString("parent", (String) this.threadId);
       bundle.putString("category", (String) this.categoryId);
-      bundle.putString("subforumId", (String) this.subforumId);
+      bundle.putString("subforum_id", (String) this.subforumId);
       bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
       bundle.putString("original_text", (String) "[quote=\"" + this.selectedPost.post_author + "\"]" + this.selectedPost.post_body + "[/quote]<br /><br />");
       bundle.putString("picture", (String) "0");
@@ -619,7 +619,7 @@ public class PostsFragment extends Fragment {
     bundle.putString("postid", (String) "0");
     bundle.putString("parent", (String) "0");
     bundle.putString("category", this.selectedPost.post_author);
-    bundle.putString("subforumId", (String) "0");
+    bundle.putString("subforum_id", (String) "0");
     bundle.putString("original_text", (String) "");
     bundle.putString("boxTitle", (String) "New Message");
     bundle.putString("picture", (String) "0");
