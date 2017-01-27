@@ -13,82 +13,82 @@ import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
 public class ConversationParticipant extends ImageView {
 
-    private ImageLoader imageLoader;
+  private ImageLoader imageLoader;
 
-    private String username;
-    private String userid;
-    private String userColor;
-    private String userStatus;
+  private String username;
+  private String userid;
+  private String userColor;
+  private String userStatus;
 
-    @SuppressWarnings("deprecation")
-    public ConversationParticipant(Context context) {
-        super(context);
+  @SuppressWarnings("deprecation")
+  public ConversationParticipant(Context context) {
+    super(context);
 
-        imageLoader = ImageLoader.getInstance();
-        DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder().cacheInMemory().cacheOnDisc().build();
-        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(context).defaultDisplayImageOptions(defaultOptions).build();
-        ImageLoader.getInstance().init(config);
+    imageLoader = ImageLoader.getInstance();
+    DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder().cacheInMemory().cacheOnDisc().build();
+    ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(context).defaultDisplayImageOptions(defaultOptions).build();
+    ImageLoader.getInstance().init(config);
 
-        Resources r = getResources();
+    Resources r = getResources();
 
-        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, r.getDisplayMetrics());
-        int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48, r.getDisplayMetrics());
+    int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 6, r.getDisplayMetrics());
+    int size = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 48, r.getDisplayMetrics());
 
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
-        lp.setMargins(margin, margin, margin, margin);
-        setLayoutParams(lp);
+    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
+    lp.setMargins(margin, margin, margin, margin);
+    setLayoutParams(lp);
 
-        setScaleType(ScaleType.CENTER_CROP);
+    setScaleType(ScaleType.CENTER_CROP);
+  }
+
+  public void setUserid(String userid) {
+    this.userid = userid;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  public String getUserId() {
+    return userid;
+  }
+
+  public String getUserColor() {
+    return userColor;
+  }
+
+  public void setUserColor(String color) {
+    this.userColor = color;
+  }
+
+  public String getUserStatus() {
+    return userStatus;
+  }
+
+  @SuppressWarnings("deprecation")
+  @SuppressLint("NewApi")
+  public void setUserStatus(String status) {
+    this.userStatus = status;
+
+    if (status.contentEquals("O")) {
+      if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
+        this.setAlpha(100);
+      } else {
+        this.setImageAlpha(100);
+      }
     }
+  }
 
-    public void setUserid(String userid) {
-        this.userid = userid;
+  public void setImage(String imageURL) {
+    if (imageURL.contains("http://")) {
+      imageLoader.displayImage(imageURL, this);
+    } else {
+      setImageResource(R.drawable.no_avatar);
     }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getUserId() {
-        return userid;
-    }
-
-    public String getUserColor() {
-        return userColor;
-    }
-
-    public void setUserColor(String color) {
-        this.userColor = color;
-    }
-
-    public String getUserStatus() {
-        return userStatus;
-    }
-
-    @SuppressWarnings("deprecation")
-    @SuppressLint("NewApi")
-    public void setUserStatus(String status) {
-        this.userStatus = status;
-
-        if (status.contentEquals("O")) {
-            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
-                this.setAlpha(100);
-            } else {
-                this.setImageAlpha(100);
-            }
-        }
-    }
-
-    public void setImage(String imageURL) {
-        if (imageURL.contains("http://")) {
-            imageLoader.displayImage(imageURL, this);
-        } else {
-            setImageResource(R.drawable.no_avatar);
-        }
-    }
+  }
 
 }

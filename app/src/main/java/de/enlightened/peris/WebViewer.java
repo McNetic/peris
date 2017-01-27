@@ -21,199 +21,199 @@ import java.net.URL;
 public class WebViewer extends FragmentActivity {
 
 
-    private ActionBar actionBar;
-    private String background;
+  private ActionBar actionBar;
+  private String background;
 
-    private WebView wvMain;
+  private WebView wvMain;
 
-    private PerisApp application;
-    private AnalyticsHelper ah;
+  private PerisApp application;
+  private AnalyticsHelper ah;
 
-    /**
-     * Called when the activity is first created.
-     */
-
-
-    @SuppressLint("NewApi")
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-
-        application = (PerisApp) getApplication();
-
-        String url = application.getSession().getServer().serverAddress;
-
-        background = application.getSession().getServer().serverColor;
-        ThemeSetter.setTheme(this, background);
+  /**
+   * Called when the activity is first created.
+   */
 
 
-        super.onCreate(savedInstanceState);
+  @SuppressLint("NewApi")
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
 
-        ThemeSetter.setActionBar(this, background);
+    application = (PerisApp) getApplication();
 
+    String url = application.getSession().getServer().serverAddress;
 
-        actionBar = getActionBar();
-        //actionBar.setDisplayHomeAsUpEnabled(true);
-        //actionBar.setHomeButtonEnabled(true);
-
-        //actionBar.setTitle(screenTitle);
-        actionBar.setSubtitle(url);
-
-        //Track app analytics
-        ah = application.getAnalyticsHelper();
-        ah.trackScreen(getClass().getName(), false);
-
-        setContentView(R.layout.web_viewer);
+    background = application.getSession().getServer().serverColor;
+    ThemeSetter.setTheme(this, background);
 
 
-        wvMain = (WebView) findViewById(R.id.web_viewer_webview);
+    super.onCreate(savedInstanceState);
 
-        wvMain.setWebViewClient(new HelloWebViewClient());
+    ThemeSetter.setActionBar(this, background);
 
-        wvMain.loadUrl(url);
 
-        new checkForumIcon().execute();
+    actionBar = getActionBar();
+    //actionBar.setDisplayHomeAsUpEnabled(true);
+    //actionBar.setHomeButtonEnabled(true);
+
+    //actionBar.setTitle(screenTitle);
+    actionBar.setSubtitle(url);
+
+    //Track app analytics
+    ah = application.getAnalyticsHelper();
+    ah.trackScreen(getClass().getName(), false);
+
+    setContentView(R.layout.web_viewer);
+
+
+    wvMain = (WebView) findViewById(R.id.web_viewer_webview);
+
+    wvMain.setWebViewClient(new HelloWebViewClient());
+
+    wvMain.loadUrl(url);
+
+    new checkForumIcon().execute();
+  }
+
+  @Override
+  public void onResume() {
+
+    super.onResume();
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+
+  }
+
+  private boolean checkURL(String theURL) {
+    boolean URLValid = false;
+
+    int code = -1;
+
+    URL myFileUrl = null;
+
+    try {
+      myFileUrl = new URL(theURL);
+    } catch (MalformedURLException e) {
+      Log.d("Peris", "Bad URl");
+      return URLValid;
     }
 
-    @Override
-    public void onResume() {
-
-        super.onResume();
+    try {
+      HttpURLConnection huc = (HttpURLConnection) myFileUrl.openConnection();
+      huc.setRequestMethod("GET");
+      huc.setInstanceFollowRedirects(false);
+      huc.connect();
+      code = huc.getResponseCode();
+    } catch (Exception ex) {
+      Log.d("Peris", "Header connection error");
+      return URLValid;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
+    Log.d("Peris", "Return Code: " + code);
+
+    if (code == 200) {
+      URLValid = true;
+    }
+
+    return URLValid;
+  }
+
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    if (event.getAction() == KeyEvent.ACTION_DOWN) {
+      switch (keyCode) {
+        case KeyEvent.KEYCODE_BACK:
+          if (wvMain.canGoBack()) {
+            wvMain.goBack();
+          } else {
+            finish();
+          }
+          return true;
+      }
 
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
+    return super.onKeyDown(keyCode, event);
+  }
 
-    }
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.web_view_menu, menu);
 
-    private boolean checkURL(String theURL) {
-        boolean URLValid = false;
+    return true;
+  }
 
-        int code = -1;
+  public boolean onOptionsItemSelected(MenuItem item) {
 
-        URL myFileUrl = null;
-
-        try {
-            myFileUrl = new URL(theURL);
-        } catch (MalformedURLException e) {
-            Log.d("Peris", "Bad URl");
-            return URLValid;
-        }
-
-        try {
-            HttpURLConnection huc = (HttpURLConnection) myFileUrl.openConnection();
-            huc.setRequestMethod("GET");
-            huc.setInstanceFollowRedirects(false);
-            huc.connect();
-            code = huc.getResponseCode();
-        } catch (Exception ex) {
-            Log.d("Peris", "Header connection error");
-            return URLValid;
-        }
-
-        Log.d("Peris", "Return Code: " + code);
-
-        if (code == 200) {
-            URLValid = true;
-        }
-
-        return URLValid;
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_BACK:
-                    if (wvMain.canGoBack()) {
-                        wvMain.goBack();
-                    } else {
-                        finish();
-                    }
-                    return true;
-            }
-
-        }
-
-        return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.web_view_menu, menu);
-
-        return true;
-    }
-
-    public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-            case R.id.web_view_menu_close:
-                finish();
-                return true;
-            case R.id.web_view_menu_theme:
-                ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
-                newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
-
-                    public void onColorSelected(String color) {
-                        setColor(color);
-                    }
-                });
-                newFragment.show(getSupportFragmentManager(), "dialog");
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void setColor(String color) {
-
-        application.getSession().getServer().serverColor = color;
-        application.getSession().updateServer();
-
+    switch (item.getItemId()) {
+      case R.id.web_view_menu_close:
         finish();
-        startActivity(getIntent());
+        return true;
+      case R.id.web_view_menu_theme:
+        ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
+        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+
+          public void onColorSelected(String color) {
+            setColor(color);
+          }
+        });
+        newFragment.show(getSupportFragmentManager(), "dialog");
+        return true;
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+  }
+
+  private void setColor(String color) {
+
+    application.getSession().getServer().serverColor = color;
+    application.getSession().updateServer();
+
+    finish();
+    startActivity(getIntent());
+  }
+
+  private class checkForumIcon extends AsyncTask<String, Void, String> {
+
+    protected String doInBackground(String... params) {
+
+      if (application.getSession().getServer().serverIcon.contains("http")) {
+        return null;
+      }
+
+      String forumIconUrl = application.getSession().getServer().serverAddress + "/favicon.ico";
+
+      if (checkURL(forumIconUrl)) {
+        return forumIconUrl;
+      }
+
+      return null;
     }
 
-    private class checkForumIcon extends AsyncTask<String, Void, String> {
+    protected void onPostExecute(final String result) {
+      if (result == null) {
+        return;
+      }
 
-        protected String doInBackground(String... params) {
-
-            if (application.getSession().getServer().serverIcon.contains("http")) {
-                return null;
-            }
-
-            String forumIconUrl = application.getSession().getServer().serverAddress + "/favicon.ico";
-
-            if (checkURL(forumIconUrl)) {
-                return forumIconUrl;
-            }
-
-            return null;
-        }
-
-        protected void onPostExecute(final String result) {
-            if (result == null) {
-                return;
-            }
-
-            application.getSession().getServer().serverIcon = result;
-            application.getSession().updateServer();
-        }
+      application.getSession().getServer().serverIcon = result;
+      application.getSession().updateServer();
     }
+  }
 
-    private class HelloWebViewClient extends WebViewClient {
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            view.loadUrl(url);
-            return true;
-        }
+  private class HelloWebViewClient extends WebViewClient {
+    @Override
+    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+      view.loadUrl(url);
+      return true;
     }
+  }
 }

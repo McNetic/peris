@@ -21,39 +21,39 @@ import java.io.InputStreamReader;
 
 public class FileUploader {
 
-    public String uploadBitmap(Context context, String url, Bitmap bitmap, PerisApp application) {
+  public String uploadBitmap(Context context, String url, Bitmap bitmap, PerisApp application) {
 
-        String result = "fail";
+    String result = "fail";
 
-        try {
+    try {
 
-            HttpClient httpClient = new DefaultHttpClient();
-            HttpContext localContext = new BasicHttpContext();
+      HttpClient httpClient = new DefaultHttpClient();
+      HttpContext localContext = new BasicHttpContext();
 
-            HttpPost httpPost = new HttpPost(url);
+      HttpPost httpPost = new HttpPost(url);
 
-            MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+      MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
 
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-            bitmap.compress(CompressFormat.JPEG, 100, bos);
-            byte[] data = bos.toByteArray();
+      bitmap.compress(CompressFormat.JPEG, 100, bos);
+      byte[] data = bos.toByteArray();
 
-            entity.addPart("uploadedfile", new ByteArrayBody(data, "temp.jpg"));
-            entity.addPart("server_address", new StringBody(application.getSession().getServer().serverAddress));
-            entity.addPart("id", new StringBody(application.getSession().getServer().serverUserName));
+      entity.addPart("uploadedfile", new ByteArrayBody(data, "temp.jpg"));
+      entity.addPart("server_address", new StringBody(application.getSession().getServer().serverAddress));
+      entity.addPart("id", new StringBody(application.getSession().getServer().serverUserName));
 
-            httpPost.setEntity(entity);
+      httpPost.setEntity(entity);
 
-            HttpResponse response = httpClient.execute(httpPost, localContext);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-            result = reader.readLine();
+      HttpResponse response = httpClient.execute(httpPost, localContext);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
+      result = reader.readLine();
 
-        } catch (Exception ex) {
-            //fuck it
-        }
-
-        return result;
+    } catch (Exception ex) {
+      //fuck it
     }
+
+    return result;
+  }
 
 }

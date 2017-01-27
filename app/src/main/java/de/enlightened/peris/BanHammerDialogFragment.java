@@ -18,109 +18,109 @@ import java.util.Vector;
 
 public class BanHammerDialogFragment extends DialogFragment {
 
-    private TextView tvIntro;
-    private EditText etReason;
-    private Button submitButton;
-    private ProgressBar banWorking;
+  private TextView tvIntro;
+  private EditText etReason;
+  private Button submitButton;
+  private ProgressBar banWorking;
 
-    private PerisApp application;
+  private PerisApp application;
 
-    private String banId;
-    private String banReason;
-    private OnClickListener submitBan = new OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            banReason = etReason.getText().toString().trim();
-            submitButton.setEnabled(false);
-            banWorking.setVisibility(View.VISIBLE);
-            new banSubmitter().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, banId, banReason);
-        }
-
-    };
-
-    static BanHammerDialogFragment newInstance() {
-        BanHammerDialogFragment f = new BanHammerDialogFragment();
-
-        Bundle args = new Bundle();
-        args.putString("username", "cylon");
-        f.setArguments(args);
-
-        return f;
-    }
+  private String banId;
+  private String banReason;
+  private OnClickListener submitBan = new OnClickListener() {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        this.setStyle(STYLE_NO_TITLE, getTheme());
+    public void onClick(View v) {
+      banReason = etReason.getText().toString().trim();
+      submitButton.setEnabled(false);
+      banWorking.setVisibility(View.VISIBLE);
+      new banSubmitter().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, banId, banReason);
     }
 
+  };
+
+  static BanHammerDialogFragment newInstance() {
+    BanHammerDialogFragment f = new BanHammerDialogFragment();
+
+    Bundle args = new Bundle();
+    args.putString("username", "cylon");
+    f.setArguments(args);
+
+    return f;
+  }
+
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    this.setStyle(STYLE_NO_TITLE, getTheme());
+  }
+
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    View v = inflater.inflate(R.layout.ban_submission, container, false);
+
+    tvIntro = (TextView) v.findViewById(R.id.tvBanIntro);
+    etReason = (EditText) v.findViewById(R.id.etBanReason);
+    submitButton = (Button) v.findViewById(R.id.btnBanSubmit);
+    banWorking = (ProgressBar) v.findViewById(R.id.ban_dialog_working);
+
+    banWorking.setVisibility(View.GONE);
+
+    Bundle args = getArguments();
+    tvIntro.setText("Ban " + args.getString("username") + " for the following reason:");
+
+    banId = args.getString("username");
+
+    submitButton.setOnClickListener(submitBan);
+
+    application = (PerisApp) getActivity().getApplication();
+
+    return v;
+  }
+
+  private class banSubmitter extends AsyncTask<String, Void, String> {
+
+    // parm[0] - (string)topic_id
+
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.ban_submission, container, false);
+    protected String doInBackground(String... params) {
 
-        tvIntro = (TextView) v.findViewById(R.id.tvBanIntro);
-        etReason = (EditText) v.findViewById(R.id.etBanReason);
-        submitButton = (Button) v.findViewById(R.id.btnBanSubmit);
-        banWorking = (ProgressBar) v.findViewById(R.id.ban_dialog_working);
+      if (getActivity() == null) {
+        return null;
+      }
 
-        banWorking.setVisibility(View.GONE);
+      String result = "";
 
-        Bundle args = getArguments();
-        tvIntro.setText("Ban " + args.getString("username") + " for the following reason:");
 
-        banId = args.getString("username");
+      try {
 
-        submitButton.setOnClickListener(submitBan);
+        Vector paramz;
 
-        application = (PerisApp) getActivity().getApplication();
+        paramz = new Vector();
+        paramz.addElement(params[0].getBytes());
+        paramz.addElement(1);
+        paramz.addElement(params[1].getBytes());
 
-        return v;
+        application.getSession().performSynchronousCall("m_ban_user", paramz);
+
+      } catch (Exception ex) {
+        Log.w("Peris", ex.getMessage());
+      }
+
+      return result;
     }
 
-    private class banSubmitter extends AsyncTask<String, Void, String> {
+    protected void onPostExecute(final String result) {
 
-        // parm[0] - (string)topic_id
+      if (getActivity() == null) {
+        return;
+      }
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
-
-            if (getActivity() == null) {
-                return null;
-            }
-
-            String result = "";
-
-
-            try {
-
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0].getBytes());
-                paramz.addElement(1);
-                paramz.addElement(params[1].getBytes());
-
-                application.getSession().performSynchronousCall("m_ban_user", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Peris", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (getActivity() == null) {
-                return;
-            }
-
-            BanHammerDialogFragment.this.dismiss();
-        }
+      BanHammerDialogFragment.this.dismiss();
     }
+  }
 
 }

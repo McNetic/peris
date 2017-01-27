@@ -27,339 +27,339 @@ import java.util.Vector;
 
 public class MailService extends Service {
 
-    int currentServer = 0;
-    private SQLiteDatabase notetasticDB;
-    private String sql;
-    private Session mailSession;
-    private int serviceTimer = 20000000;
-    private ArrayList<Server> serverList;
+  int currentServer = 0;
+  private SQLiteDatabase notetasticDB;
+  private String sql;
+  private Session mailSession;
+  private int serviceTimer = 20000000;
+  private ArrayList<Server> serverList;
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+  @Override
+  public IBinder onBind(Intent intent) {
+    return null;
+  }
+
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    initDatabase();
+    startservice();
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    stopservice();
+
+  }
+
+  private void startservice() {
+    MyCount counter = new MyCount(serviceTimer, 1000);
+    counter.start();
+    Log.d("Peris", "Starting MailService");
+  }
+
+  private void stopservice() {
+
+  }
+
+  private void routineMailCheck() {
+
+    mailSession = new Session(this, ((PerisApp) getApplication()));
+
+    serverList = new ArrayList<Server>();
+
+    notetasticDB = this.openOrCreateDatabase("peris", 0, null);
+
+    sql = "select * from accountlist;";
+
+    Cursor c = notetasticDB.rawQuery(sql, null);
+
+    if (c == null) {
+      notetasticDB.close();
+      return;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        initDatabase();
-        startservice();
-    }
+    while (c.moveToNext()) {
+      Server server = IntroScreen.parseServerData(c);
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopservice();
+      Log.i("Peris", "Checking login data for server " + server.serverAddress);
 
-    }
+      if (!server.serverUserId.contentEquals("0")) {
+        serverList.add(server);
+      }
 
-    private void startservice() {
-        MyCount counter = new MyCount(serviceTimer, 1000);
-        counter.start();
-        Log.d("Peris", "Starting MailService");
-    }
-
-    private void stopservice() {
 
     }
 
-    private void routineMailCheck() {
+    notetasticDB.close();
 
-        mailSession = new Session(this, ((PerisApp) getApplication()));
+    if (serverList.size() == 0) {
+      Log.d("Peris", "No servers found, ending check.");
+    }
 
-        serverList = new ArrayList<Server>();
+    currentServer = 0;
+    nextServer();
+  }
 
-        notetasticDB = this.openOrCreateDatabase("peris", 0, null);
+  private void nextServer() {
+    if ((currentServer + 1) > serverList.size()) {
+      return;
+    }
 
-        sql = "select * from accountlist;";
+    Log.d("Peris", "MailService Tick - Checking " + serverList.get(currentServer).serverAddress);
 
-        Cursor c = notetasticDB.rawQuery(sql, null);
+    mailSession.setSessionListener(new Session.SessionListener() {
 
-        if (c == null) {
-            notetasticDB.close();
-            return;
-        }
+      @Override
+      public void onSessionConnected() {
+        new mailChecker().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mailSession.getServer());
+      }
 
-        while (c.moveToNext()) {
-            Server server = IntroScreen.parseServerData(c);
-
-            Log.i("Peris", "Checking login data for server " + server.serverAddress);
-
-            if (!server.serverUserId.contentEquals("0")) {
-                serverList.add(server);
-            }
-
-
-        }
-
-        notetasticDB.close();
-
-        if (serverList.size() == 0) {
-            Log.d("Peris", "No servers found, ending check.");
-        }
-
-        currentServer = 0;
+      @Override
+      public void onSessionConnectionFailed(String reason) {
         nextServer();
+      }
+
+    });
+    mailSession.setServer(serverList.get(currentServer));
+    currentServer++;
+  }
+
+  //See if notification previously sent.  If not, make a new notification
+  private void processUnreadMessage(InboxItem ii, String server) {
+
+    boolean alreadyNotified = checkIfAlreadyNotified(server, Integer.parseInt(ii.sender_id));
+
+    if (alreadyNotified) {
+      return;
     }
 
-    private void nextServer() {
-        if ((currentServer + 1) > serverList.size()) {
-            return;
-        }
+    String notificationColor = getString(R.string.default_color);
 
-        Log.d("Peris", "MailService Tick - Checking " + serverList.get(currentServer).serverAddress);
+    String customColor = mailSession.getServer().serverColor;
 
-        mailSession.setSessionListener(new Session.SessionListener() {
-
-            @Override
-            public void onSessionConnected() {
-                new mailChecker().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mailSession.getServer());
-            }
-
-            @Override
-            public void onSessionConnectionFailed(String reason) {
-                nextServer();
-            }
-
-        });
-        mailSession.setServer(serverList.get(currentServer));
-        currentServer++;
+    if (customColor.contains("#")) {
+      notificationColor = customColor;
     }
 
-    //See if notification previously sent.  If not, make a new notification
-    private void processUnreadMessage(InboxItem ii, String server) {
+    Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+    long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500};
 
-        boolean alreadyNotified = checkIfAlreadyNotified(server, Integer.parseInt(ii.sender_id));
+    NotificationCompat.Builder mBuilder =
+        new NotificationCompat.Builder(MailService.this)
+            .setSmallIcon(R.drawable.ic_launcher)
+            .setContentTitle("New Message From " + ii.inbox_moderator)
+            .setContentText(ii.inbox_sender)
+            .setSound(alarmSound)
+            .setLights(Color.parseColor(notificationColor), 500, 500)
+            .setVibrate(pattern)
+            .setAutoCancel(true);
 
-        if (alreadyNotified) {
-            return;
-        }
+    Intent resultIntent = new Intent(MailService.this, Conversation.class);
+    Bundle bundle = new Bundle();
+    bundle.putString("id", (String) ii.sender_id);
+    bundle.putString("boxid", (String) "0");
+    bundle.putString("name", (String) ii.inbox_sender);
+    bundle.putString("moderator", (String) ii.moderatorId);
+    bundle.putString("background", (String) notificationColor);
+    bundle.putString("server", mailSession.getServer().serverId);
+    resultIntent.putExtras(bundle);
 
-        String notificationColor = getString(R.string.default_color);
+    TaskStackBuilder stackBuilder = TaskStackBuilder.create(MailService.this);
+    stackBuilder.addParentStack(Conversation.class);
+    stackBuilder.addNextIntent(resultIntent);
 
-        String customColor = mailSession.getServer().serverColor;
-
-        if (customColor.contains("#")) {
-            notificationColor = customColor;
-        }
-
-        Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500};
-
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(MailService.this)
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("New Message From " + ii.inbox_moderator)
-                        .setContentText(ii.inbox_sender)
-                        .setSound(alarmSound)
-                        .setLights(Color.parseColor(notificationColor), 500, 500)
-                        .setVibrate(pattern)
-                        .setAutoCancel(true);
-
-        Intent resultIntent = new Intent(MailService.this, Conversation.class);
-        Bundle bundle = new Bundle();
-        bundle.putString("id", (String) ii.sender_id);
-        bundle.putString("boxid", (String) "0");
-        bundle.putString("name", (String) ii.inbox_sender);
-        bundle.putString("moderator", (String) ii.moderatorId);
-        bundle.putString("background", (String) notificationColor);
-        bundle.putString("server", mailSession.getServer().serverId);
-        resultIntent.putExtras(bundle);
-
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(MailService.this);
-        stackBuilder.addParentStack(Conversation.class);
-        stackBuilder.addNextIntent(resultIntent);
-
-        String flag = ii.sender_id;
-        if (flag.length() > 5) {
-            flag = flag.substring(flag.length() - 5, flag.length());
-        }
-
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(flag), PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(resultPendingIntent);
-
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(Integer.parseInt(ii.sender_id), mBuilder.build());
-
-        insertNotificationIntoDatabase(server, Integer.parseInt(ii.sender_id));
+    String flag = ii.sender_id;
+    if (flag.length() > 5) {
+      flag = flag.substring(flag.length() - 5, flag.length());
     }
 
-    private void initDatabase() {
-        notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-        sql = "create table if not exists notifications(_id integer primary key,server varchar,message integer);";
-        notetasticDB.setVersion(4);
-        notetasticDB.execSQL(sql);
-        notetasticDB.close();
+    PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(flag), PendingIntent.FLAG_UPDATE_CURRENT);
+    mBuilder.setContentIntent(resultPendingIntent);
+
+    NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    mNotificationManager.notify(Integer.parseInt(ii.sender_id), mBuilder.build());
+
+    insertNotificationIntoDatabase(server, Integer.parseInt(ii.sender_id));
+  }
+
+  private void initDatabase() {
+    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
+    sql = "create table if not exists notifications(_id integer primary key,server varchar,message integer);";
+    notetasticDB.setVersion(4);
+    notetasticDB.execSQL(sql);
+    notetasticDB.close();
+  }
+
+  private void insertNotificationIntoDatabase(String server, int notification) {
+    String cleanServer = DatabaseUtils.sqlEscapeString(server);
+
+    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
+
+    sql = "insert into notifications(server,message) values(" + cleanServer + "," + notification + ");";
+    notetasticDB.execSQL(sql);
+
+    notetasticDB.close();
+  }
+
+  private boolean checkIfAlreadyNotified(String server, int notification) {
+    String cleanServer = DatabaseUtils.sqlEscapeString(server);
+
+    notetasticDB = this.openOrCreateDatabase("peris", 0, null);
+
+    sql = "select _id " +
+        "from notifications " +
+        "where server = " + cleanServer + " " +
+        "and message = " + notification + ";";
+
+    Cursor c = notetasticDB.rawQuery(sql, null);
+
+
+    if (c == null) {
+      notetasticDB.close();
+      return false;
     }
 
-    private void insertNotificationIntoDatabase(String server, int notification) {
-        String cleanServer = DatabaseUtils.sqlEscapeString(server);
-
-        notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-        sql = "insert into notifications(server,message) values(" + cleanServer + "," + notification + ");";
-        notetasticDB.execSQL(sql);
-
-        notetasticDB.close();
+    if (c.getCount() == 0) {
+      notetasticDB.close();
+      return false;
     }
 
-    private boolean checkIfAlreadyNotified(String server, int notification) {
-        String cleanServer = DatabaseUtils.sqlEscapeString(server);
+    notetasticDB.close();
 
-        notetasticDB = this.openOrCreateDatabase("peris", 0, null);
+    return true;
+  }
 
-        sql = "select _id " +
-                "from notifications " +
-                "where server = " + cleanServer + " " +
-                "and message = " + notification + ";";
+  public class MyCount extends CountDownTimer {
 
-        Cursor c = notetasticDB.rawQuery(sql, null);
-
-
-        if (c == null) {
-            notetasticDB.close();
-            return false;
-        }
-
-        if (c.getCount() == 0) {
-            notetasticDB.close();
-            return false;
-        }
-
-        notetasticDB.close();
-
-        return true;
+    public MyCount(long millisInFuture, long countDownInterval) {
+      super(millisInFuture, countDownInterval);
     }
 
-    public class MyCount extends CountDownTimer {
+    @Override
+    public void onFinish() {
 
-        public MyCount(long millisInFuture, long countDownInterval) {
-            super(millisInFuture, countDownInterval);
-        }
+      Log.d("Peris", "MailService Tick - Checking Mail");
+      routineMailCheck();
 
-        @Override
-        public void onFinish() {
-
-            Log.d("Peris", "MailService Tick - Checking Mail");
-            routineMailCheck();
-
-            MyCount counter = new MyCount(serviceTimer, 1000);
-            counter.start();
-        }
-
-        @Override
-        public void onTick(long millisUntilFinished) {
-            //whatever
-        }
-
+      MyCount counter = new MyCount(serviceTimer, 1000);
+      counter.start();
     }
 
-    private class mailChecker extends AsyncTask<Server, Void, Object[]> {
+    @Override
+    public void onTick(long millisUntilFinished) {
+      //whatever
+    }
 
-        private String currentServerAddress;
+  }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        @Override
-        protected Object[] doInBackground(Server... params) {
+  private class mailChecker extends AsyncTask<Server, Void, Object[]> {
 
-            currentServerAddress = params[0].serverAddress;
+    private String currentServerAddress;
 
-            Object[] result = new Object[50];
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    protected Object[] doInBackground(Server... params) {
 
-            try {
+      currentServerAddress = params[0].serverAddress;
 
-                Vector paramz = new Vector();
+      Object[] result = new Object[50];
 
-                HashMap map = (HashMap) mailSession.performSynchronousCall("get_box_info", paramz);
+      try {
 
-                Object[] boxes = (Object[]) map.get("list");
+        Vector paramz = new Vector();
 
-                String ourInboxId = "0";
+        HashMap map = (HashMap) mailSession.performSynchronousCall("get_box_info", paramz);
 
-                for (Object o : boxes) {
-                    HashMap boxMap = (HashMap) o;
+        Object[] boxes = (Object[]) map.get("list");
 
-                    String boxType = (String) boxMap.get("box_type");
+        String ourInboxId = "0";
 
-                    if (boxType.contentEquals("INBOX")) {
-                        ourInboxId = (String) boxMap.get("box_id");
+        for (Object o : boxes) {
+          HashMap boxMap = (HashMap) o;
+
+          String boxType = (String) boxMap.get("box_type");
+
+          if (boxType.contentEquals("INBOX")) {
+            ourInboxId = (String) boxMap.get("box_id");
+          }
+        }
+
+        paramz = new Vector();
+        paramz.addElement(ourInboxId);
+
+        result[0] = mailSession.performSynchronousCall("get_box", paramz);
+
+      } catch (Exception e) {
+        //null response
+        return null;
+      }
+      return result;
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected void onPostExecute(final Object[] result) {
+      if (result == null) {
+        //Toast toast = Toast.makeText(getActivity(), "Server connection timeout :-(", Toast.LENGTH_SHORT);
+        //toast.show();
+        return;
+      }
+
+      try {
+
+        try {
+          ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
+
+
+          for (Object o : result) {
+
+            if (o != null) {
+              HashMap map = (HashMap) o;
+
+              if (map.containsKey("list")) {
+                Object[] topics = (Object[]) map.get("list");
+                for (Object t : topics) {
+
+                  HashMap topicMap = (HashMap) t;
+
+                  Date timestamp = (Date) topicMap.get("sent_date");
+
+                  InboxItem ii = new InboxItem();
+
+                  if (topicMap.containsKey("msg_state")) {
+                    int state = (Integer) topicMap.get("msg_state");
+
+                    if (state == 1) {
+                      ii.isUnread = true;
                     }
+                  }
+
+                  ii.inbox_unread = timestamp.toString();
+                  ii.inbox_sender = new String((byte[]) topicMap.get("msg_subject"));
+                  ii.sender_id = (String) topicMap.get("msg_id");
+                  ii.inbox_moderator = new String((byte[]) topicMap.get("msg_from"));
+                  ii.moderatorId = (String) topicMap.get("msg_from_id");
+                  inboxList.add(ii);
+
+                  if (ii.isUnread) {
+                    processUnreadMessage(ii, currentServerAddress);
+                  }
+
                 }
-
-                paramz = new Vector();
-                paramz.addElement(ourInboxId);
-
-                result[0] = mailSession.performSynchronousCall("get_box", paramz);
-
-            } catch (Exception e) {
-                //null response
-                return null;
+              }
             }
-            return result;
+          }
+
+        } catch (Exception ex) {
+          //error
         }
+      } catch (Exception e) {
+        //error
+      }
 
-        @SuppressWarnings("rawtypes")
-        protected void onPostExecute(final Object[] result) {
-            if (result == null) {
-                //Toast toast = Toast.makeText(getActivity(), "Server connection timeout :-(", Toast.LENGTH_SHORT);
-                //toast.show();
-                return;
-            }
-
-            try {
-
-                try {
-                    ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
-
-
-                    for (Object o : result) {
-
-                        if (o != null) {
-                            HashMap map = (HashMap) o;
-
-                            if (map.containsKey("list")) {
-                                Object[] topics = (Object[]) map.get("list");
-                                for (Object t : topics) {
-
-                                    HashMap topicMap = (HashMap) t;
-
-                                    Date timestamp = (Date) topicMap.get("sent_date");
-
-                                    InboxItem ii = new InboxItem();
-
-                                    if (topicMap.containsKey("msg_state")) {
-                                        int state = (Integer) topicMap.get("msg_state");
-
-                                        if (state == 1) {
-                                            ii.isUnread = true;
-                                        }
-                                    }
-
-                                    ii.inbox_unread = timestamp.toString();
-                                    ii.inbox_sender = new String((byte[]) topicMap.get("msg_subject"));
-                                    ii.sender_id = (String) topicMap.get("msg_id");
-                                    ii.inbox_moderator = new String((byte[]) topicMap.get("msg_from"));
-                                    ii.moderatorId = (String) topicMap.get("msg_from_id");
-                                    inboxList.add(ii);
-
-                                    if (ii.isUnread) {
-                                        processUnreadMessage(ii, currentServerAddress);
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-
-                } catch (Exception ex) {
-                    //error
-                }
-            } catch (Exception e) {
-                //error
-            }
-
-            nextServer();
-        }
+      nextServer();
     }
+  }
 
 }
