@@ -94,7 +94,8 @@ public class PerisApp extends Application {
 
   @Override
   public void onLowMemory() {
-    Runtime.getRuntime().gc();
+    super.onLowMemory();
+    //TODO: onTrim
   }
 
   public void sendLoginStat(String address) {
