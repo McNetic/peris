@@ -31,1663 +31,1173 @@ import java.util.Vector;
 
 @SuppressLint("NewApi")
 public class CategoriesFragment extends ListFragment {
-    private String server_address;
-    private String subforum_id = "0";
-    private String background;
-    private String userid;
-    private Category clicked_category;
-    private String username;
+  private static final int CATEGORIES_PER_PAGE = 20;
+  private static final int MAX_ITEM_COUNT = 50;
 
-    //private String hashId = "0";
+  private String serverAddress;
+  private String subforumId = "0";
+  private String background;
+  private String userid;
+  private Category clickedCategory;
+  private String username;
 
-    private String storagePrefix = "";
+  //private String hashId = "0";
 
-    private downloadCategories categoriesDownloader;
-    private PerisApp application;
+  private String storagePrefix = "";
 
+  private DownloadCategoriesTask categoriesDownloader;
+  private PerisApp application;
+  private String searchQuery = "";
+  private String passedSubforum = "";
+  private String screenTitle;
+  private String screenSubtitle;
+  private int startingPos = 0;
+  private int endingPos = CATEGORIES_PER_PAGE;
 
-    private String searchQuery = "";
+  private boolean canScrollMoreThreads = true;
+  private boolean isExtraScrolling = false;
+  private boolean isLoading = false;
+  private boolean initialLoadComplete = false;
 
-    private String passedSubforum = "";
-
-    private String screenTitle;
-    private String screenSubtitle;
-
-    private int startingPos = 0;
-    private int endingPos = 20;
-
-    private boolean canScrollMoreThreads = true;
-    private boolean isExtraScrolling = false;
-    private boolean isLoading = false;
-    private boolean initialLoadComplete = false;
-
-    private String subforumParts[];
-
-    private String shareURL = "0";
-
-    private FragmentActivity activity;
-    private String totalHash;
-    private ArrayList<Category> categoryList;
-    private boolean initialParseDone = false;
-    private onCategorySelectedListener categorySelected = null;
-    private OnScrollListener listScrolled = new OnScrollListener() {
-
-        @Override
-        public void onScroll(AbsListView arg0, int arg1, int arg2, int arg3) {
-            //do nothing
-        }
-
-        @Override
-        public void onScrollStateChanged(AbsListView arg0, int arg1) {
-
-            if (!canScrollMoreThreads || isLoading) {
-                return;
-            }
-
-            if (categoryList == null) {
-                return;
-            }
-
-            if (categoryList.size() < 20) {
-                return;
-            }
-
-            if (!initialLoadComplete) {
-                return;
-            }
-
-            if (arg1 == SCROLL_STATE_IDLE) {
-                if (arg0.getLastVisiblePosition() >= categoryList.size() - 5) {
-                    isExtraScrolling = true;
-
-                    startingPos = endingPos + 1;
-                    endingPos = startingPos + 20;
-
-                    categoriesDownloader = new downloadCategories();
-                    categoriesDownloader.execute();
-                }
-            }
-        }
-
-    };
+  private String[] subforumParts;
+  private String shareURL = "0";
+  private FragmentActivity activity;
+  private String totalHash;
+  private ArrayList<Category> categoryList;
+  private boolean initialParseDone = false;
+  private CategorySelectedListener categorySelected = null;
+  private OnScrollListener listScrolled = new OnScrollListener() {
 
     @Override
-    public void onCreate(Bundle bundle) {
-        super.onCreate(bundle);
-
-
-        activity = (FragmentActivity) getActivity();
-
-        application = (PerisApp) activity.getApplication();
-
-        if (activity != null) {
-            if (activity.getActionBar() != null) {
-                if (activity.getActionBar().getSubtitle() != null) {
-                    screenSubtitle = activity.getActionBar().getSubtitle().toString();
-                }
-            }
-        }
-
-        setHasOptionsMenu(true);
+    public void onScroll(final AbsListView arg0, final int arg1, final int arg2, final int arg3) {
+      //do nothing
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onScrollStateChanged(final AbsListView arg0, final int arg1) {
+      if (canScrollMoreThreads
+          && !isLoading
+          && categoryList != null
+          && categoryList.size() >= CATEGORIES_PER_PAGE
+          && initialLoadComplete
+          && arg1 == SCROLL_STATE_IDLE
+          && arg0.getLastVisiblePosition() >= categoryList.size() - 5) {
+        isExtraScrolling = true;
 
-        return super.onCreateView(inflater, container, savedInstanceState);
+        startingPos = endingPos + 1;
+        endingPos = startingPos + CATEGORIES_PER_PAGE;
+
+        categoriesDownloader = new DownloadCategoriesTask();
+        categoriesDownloader.execute();
+      }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
+  };
 
-        if (!(application.getSession().getServer().serverBackground.contentEquals(application.getSession().getServer().serverBoxColor) && application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
-            getListView().setDivider(null);
+  @Override
+  public final void onCreate(final Bundle bundle) {
+    super.onCreate(bundle);
+
+    this.activity = (FragmentActivity) getActivity();
+    this.application = (PerisApp) this.activity.getApplication();
+
+    if (this.activity != null) {
+      if (this.activity.getActionBar() != null) {
+        if (this.activity.getActionBar().getSubtitle() != null) {
+          this.screenSubtitle = this.activity.getActionBar().getSubtitle().toString();
         }
-
-        Bundle bundle = getArguments();
-        subforum_id = bundle.getString("subforum_id");
-        background = bundle.getString("background");
-        screenTitle = bundle.getString("subforum_name");
-
-
-        passedSubforum = subforum_id;
-
-        if (bundle.containsKey("query")) {
-            searchQuery = bundle.getString("query");
-        }
-
-        //Log.i("Peris", "**** New CategoriesFragment Instance ****");
-
-        //Log.d("Peris","Passed subforum " + subforum_id);
-
-        totalHash = subforum_id;
-
-        if (subforum_id.contains("###")) {
-            subforumParts = subforum_id.split("###");
-            Log.d("Peris", "Subforum has " + subforumParts.length + " parts.");
-            subforum_id = subforumParts[0];
-            //hashId = subforumParts[1];
-        } else {
-            subforumParts = new String[1];
-            subforumParts[0] = subforum_id;
-        }
-
-        Log.d("Peris", "Entering subforum " + subforum_id);
-
-        server_address = application.getSession().getServer().serverAddress;
-
-        if (getString(R.string.server_location).contentEquals("0")) {
-            storagePrefix = server_address + "_";
-        }
-
-        userid = application.getSession().getServer().serverUserId;
-        username = application.getSession().getServer().serverPassword;
-
-        String shareId = subforum_id;
-        //if(hashId != "0") {
-        //	shareId = hashId;
-        //}
-
-        if (shareId.contentEquals("0")) {
-            shareURL = application.getSession().getServer().serverAddress;
-        } else {
-            if (application.getSession().forumSystem == 1) {
-                shareURL = application.getSession().getServer().serverAddress + "/viewforum.php?f=" + shareId;
-            }
-        }
-
-
-        getListView().setOnScrollListener(listScrolled);
-
-        //Log.d("Peris","CF OnStart Completed");
+      }
     }
 
-    @Override
-    public void onPause() {
-        if (!subforum_id.contentEquals("unread") && !subforum_id.contentEquals("participated") && !subforum_id.contentEquals("userrecent") && !subforum_id.contentEquals("favs") && !subforum_id.contentEquals("search") && !subforum_id.contentEquals("forum_favs")) {
-            String scrollY = Integer.toString(getListView().getFirstVisiblePosition());
+    setHasOptionsMenu(true);
+  }
 
-            SharedPreferences app_preferences = activity.getSharedPreferences("prefs", 0);
-            SharedPreferences.Editor editor = app_preferences.edit();
-            editor.putString(storagePrefix + "forumScrollPosition" + passedSubforum, scrollY);
-            editor.commit();
-        }
+  @Override
+  public final View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 
-        endCurrentlyRunning();
+    return super.onCreateView(inflater, container, savedInstanceState);
+  }
 
-        super.onPause();
+  @Override
+  public final void onStart() {
+    super.onStart();
+
+    if (!(this.application.getSession().getServer().serverBackground.contentEquals(this.application.getSession().getServer().serverBoxColor) && this.application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
+      getListView().setDivider(null);
     }
 
-    @Override
-    public void onResume() {
+    final Bundle bundle = getArguments();
+    this.subforumId = bundle.getString("subforumId");
+    this.background = bundle.getString("background");
+    this.screenTitle = bundle.getString("subforum_name");
+    this.passedSubforum = this.subforumId;
 
-        //Log.d("Peris","CF OnResume Began");
-
-        activity.getActionBar().setTitle(screenTitle);
-        activity.getActionBar().setSubtitle(screenSubtitle);
-
-        //activity.getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-
-
-        SharedPreferences app_preferences = activity.getSharedPreferences("prefs", 0);
-        String cachedForum = app_preferences.getString(storagePrefix + "forum" + subforum_id, "n/a");
-
-        if (!(cachedForum.contentEquals("n/a"))) {
-            try {
-                Object[][] forumObject = GsonHelper.customGson.fromJson(cachedForum, Object[][].class);
-                parseCachedForums(forumObject);
-                Log.d("Peris", "Forum cache available, using it");
-            } catch (Exception ex) {
-                if (ex.getMessage() != null) {
-                    Log.e("Peris", ex.getMessage());
-                }
-            }
-        }
-
-        load_categories();
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            activity.invalidateOptionsMenu();
-        }
-
-        //Log.d("Peris","CF OnResume Completed");
-
-        super.onResume();
+    if (bundle.containsKey("query")) {
+      this.searchQuery = bundle.getString("query");
     }
 
-    private void endCurrentlyRunning() {
-        //Stop any running tasks
-        if (categoriesDownloader != null) {
-            if (categoriesDownloader.getStatus() == Status.RUNNING) {
-                categoriesDownloader.cancel(true);
-                Log.i("Peris", "Killed Currently Running");
-            }
+    //Log.i("Peris", "**** New CategoriesFragment Instance ****");
+
+    //Log.d("Peris","Passed subforum " + subforumId);
+
+    this.totalHash = this.subforumId;
+
+    if (this.subforumId.contains("###")) {
+      this.subforumParts = this.subforumId.split("###");
+      Log.d("Peris", "Subforum has " + this.subforumParts.length + " parts.");
+      this.subforumId = this.subforumParts[0];
+      //hashId = subforumParts[1];
+    } else {
+      this.subforumParts = new String[1];
+      this.subforumParts[0] = this.subforumId;
+    }
+
+    Log.d("Peris", "Entering subforum " + this.subforumId);
+
+    this.serverAddress = this.application.getSession().getServer().serverAddress;
+
+    if (getString(R.string.server_location).contentEquals("0")) {
+      this.storagePrefix = this.serverAddress + "_";
+    }
+
+    this.userid = this.application.getSession().getServer().serverUserId;
+    this.username = this.application.getSession().getServer().serverPassword;
+
+    final String shareId = this.subforumId;
+    //if(hashId != "0") {
+    //  shareId = hashId;
+    //}
+
+    if (shareId.contentEquals("0")) {
+      this.shareURL = this.application.getSession().getServer().serverAddress;
+    } else {
+      if (this.application.getSession().forumSystem == 1) {
+        this.shareURL = this.application.getSession().getServer().serverAddress + "/viewforum.php?f=" + shareId;
+      }
+    }
+
+
+    getListView().setOnScrollListener(this.listScrolled);
+
+    //Log.d("Peris","CF OnStart Completed");
+  }
+
+  @Override
+  public final void onPause() {
+    if (!this.subforumId.contentEquals("unread")
+        && !this.subforumId.contentEquals("participated")
+        && !this.subforumId.contentEquals("userrecent")
+        && !this.subforumId.contentEquals("favs")
+        && !this.subforumId.contentEquals("search")
+        && !this.subforumId.contentEquals("forum_favs")) {
+      final String scrollY = Integer.toString(getListView().getFirstVisiblePosition());
+
+      final SharedPreferences appPreferences = this.activity.getSharedPreferences("prefs", 0);
+      final SharedPreferences.Editor editor = appPreferences.edit();
+      editor.putString(this.storagePrefix + "forumScrollPosition" + this.passedSubforum, scrollY);
+      editor.commit();
+    }
+
+    this.endCurrentlyRunning();
+
+    super.onPause();
+  }
+
+  @Override
+  public final void onResume() {
+
+    //Log.d("Peris","CF OnResume Began");
+
+    this.activity.getActionBar().setTitle(this.screenTitle);
+    this.activity.getActionBar().setSubtitle(this.screenSubtitle);
+
+    //activity.getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+
+
+    final SharedPreferences appPreferences = this.activity.getSharedPreferences("prefs", 0);
+    final String cachedForum = appPreferences.getString(this.storagePrefix + "forum" + this.subforumId, "n/a");
+
+    if (!(cachedForum.contentEquals("n/a"))) {
+      try {
+        final Object[][] forumObject = GsonHelper.customGson.fromJson(cachedForum, Object[][].class);
+        this.parseCachedForums(forumObject);
+        Log.d("Peris", "Forum cache available, using it");
+      } catch (Exception ex) {
+        if (ex.getMessage() != null) {
+          Log.e("Peris", ex.getMessage());
         }
+      }
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
+    this.loadCategories();
 
-        endCurrentlyRunning();
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+      this.activity.invalidateOptionsMenu();
     }
 
-    private void load_categories() {
-        Log.d("Peris", "CF Starting load_categories");
-        endCurrentlyRunning();
-        categoriesDownloader = new downloadCategories();
+    //Log.d("Peris","CF OnResume Completed");
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            categoriesDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        } else {
-            categoriesDownloader.execute();
-        }
+    super.onResume();
+  }
+
+  private void endCurrentlyRunning() {
+    //Stop any running tasks
+    if (this.categoriesDownloader != null) {
+      if (this.categoriesDownloader.getStatus() == Status.RUNNING) {
+        this.categoriesDownloader.cancel(true);
+        Log.i("Peris", "Killed Currently Running");
+      }
     }
-	
-	/*
-	private void setChatThread() {
-		
-        application.getSession().getServer().chatThread = clicked_category.category_id;
-        application.getSession().getServer().chatForum = clicked_category.subforum_id;
-        application.getSession().getServer().chatName = clicked_category.category_name;
+  }
+
+  @Override
+  public final void onStop() {
+    super.onStop();
+
+    this.endCurrentlyRunning();
+  }
+
+  private void loadCategories() {
+    Log.d("Peris", "CF Starting loadCategories");
+    this.endCurrentlyRunning();
+    this.categoriesDownloader = new DownloadCategoriesTask();
+
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+      this.categoriesDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    } else {
+      this.categoriesDownloader.execute();
+    }
+  }
+
+  /*
+  private void setChatThread() {
+
+        application.getSession().getServer().chatThread = clickedCategory.category_id;
+        application.getSession().getServer().chatForum = clickedCategory.subforumId;
+        application.getSession().getServer().chatName = clickedCategory.category_name;
         application.getSession().updateServer();
-        
+
         chatChanged.onChatChanged(application.getSession().getServer().chatThread);
-	}
-	*/
+  }
+  */
 
-    @SuppressWarnings("rawtypes")
-    private void parseCachedForums(Object[][] result) {
+  @SuppressWarnings("rawtypes")
+  private void parseCachedForums(final Object[][] result) {
+    if (this.categoryList == null || !this.isExtraScrolling) {
+      this.categoryList = new ArrayList<Category>();
+    }
+    int retainedPosition = getListView().getFirstVisiblePosition();
 
-        if (categoryList == null || !isExtraScrolling) {
-            categoryList = new ArrayList<Category>();
+    if (!this.initialParseDone) {
+      final SharedPreferences appPreferences = this.activity.getSharedPreferences("prefs", 0);
+      final String savedForumPosition = appPreferences.getString(this.storagePrefix + "forumScrollPosition" + this.passedSubforum, "0");
+      retainedPosition = Integer.parseInt(savedForumPosition);
+    }
+    //Announcement Topics
+    for (Object o : result[1]) {
+      if (o != null) {
+        final LinkedTreeMap map = (LinkedTreeMap) o;
+
+        if (map.containsKey("topics")) {
+          final ArrayList topics = (ArrayList) map.get("topics");
+          for (Object t : topics) {
+            this.categoryList.add(this.createCategoryFromTopics((LinkedTreeMap) t, false, true));
+          }
         }
+      }
+    }
+    //Sticky Topics
+    for (Object o : result[2]) {
+      if (o != null) {
+        final LinkedTreeMap map = (LinkedTreeMap) o;
 
-        int retainedPosition = getListView().getFirstVisiblePosition();
-
-        if (!initialParseDone) {
-            SharedPreferences app_preferences = activity.getSharedPreferences("prefs", 0);
-            String savedForumPosition = app_preferences.getString(storagePrefix + "forumScrollPosition" + passedSubforum, "0");
-            retainedPosition = Integer.parseInt(savedForumPosition);
+        if (map.containsKey("topics")) {
+          final ArrayList topics = (ArrayList) map.get("topics");
+          for (Object t : topics) {
+            this.categoryList.add(this.createCategoryFromTopics((LinkedTreeMap) t, false, true));
+          }
         }
-
-        //Announcement Topics
-        for (Object o : result[1]) {
-
-            if (o != null) {
-                LinkedTreeMap map = (LinkedTreeMap) o;
-
-                if (map.containsKey("topics")) {
-                    ArrayList topics = (ArrayList) map.get("topics");
-                    for (Object t : topics) {
-
-                        LinkedTreeMap topicMap = (LinkedTreeMap) t;
-
-
-                        Category ca = new Category();
-                        ca.category_name = (String) topicMap.get("topic_title");
-                        ca.subforum_id = subforum_id;
-
-                        //if(!hashId.contentEquals("0")) {
-                        //	ca.subforum_id = hashId;
-                        //}
-
-                        ca.category_id = (String) topicMap.get("topic_id");
-                        ca.category_lastupdate = (String) topicMap.get("last_reply_time");
-                        ca.category_lastthread = (String) topicMap.get("topic_author_name");
-                        ca.topicSticky = "Y";
-                        ca.categoryType = "C";
-                        ca.categoryColor = background;
-
-                        if (topicMap.get("reply_number") != null) {
-                            ca.thread_count = topicMap.get("reply_number").toString().replace(".0", "");
-                        }
-
-                        if (topicMap.get("view_number") != null) {
-                            ca.view_count = topicMap.get("view_number").toString().replace(".0", "");
-                        }
-
-                        if (topicMap.get("new_post") != null) {
-                            ca.hasNewTopic = (Boolean) topicMap.get("new_post");
-                        }
-
-                        if (topicMap.get("is_closed") != null) {
-                            ca.isLocked = (Boolean) topicMap.get("is_closed");
-                        }
-
-                        if (topicMap.containsKey("icon_url")) {
-                            if (topicMap.get("icon_url") != null) {
-                                ca.categoryIcon = (String) topicMap.get("icon_url");
-                            }
-                        }
-
-                        if (topicMap.get("can_stick") != null) {
-                            ca.canSticky = (Boolean) topicMap.get("can_stick");
-                        }
-
-                        if (topicMap.get("can_delete") != null) {
-                            ca.canDelete = (Boolean) topicMap.get("can_delete");
-                        }
-
-                        if (topicMap.get("can_close") != null) {
-                            ca.canLock = (Boolean) topicMap.get("can_close");
-                        }
-
-                        categoryList.add(ca);
-                    }
-                }
-
-            }
-        }
-
-
-        //Sticky Topics
-        for (Object o : result[2]) {
-
-            if (o != null) {
-                LinkedTreeMap map = (LinkedTreeMap) o;
-
-                if (map.containsKey("topics")) {
-                    ArrayList topics = (ArrayList) map.get("topics");
-                    for (Object t : topics) {
-
-                        LinkedTreeMap topicMap = (LinkedTreeMap) t;
-
-                        Category ca = new Category();
-                        ca.category_name = (String) topicMap.get("topic_title");
-                        ca.subforum_id = subforum_id;
-
-                        //if(!hashId.contentEquals("0")) {
-                        //	ca.subforum_id = hashId;
-                        //}
-
-                        ca.category_id = (String) topicMap.get("topic_id");
-                        ca.category_lastupdate = (String) topicMap.get("last_reply_time");
-                        ca.category_lastthread = (String) topicMap.get("topic_author_name");
-                        ca.topicSticky = "Y";
-                        ca.categoryType = "C";
-                        ca.categoryColor = background;
-
-                        if (topicMap.get("reply_number") != null) {
-                            ca.thread_count = topicMap.get("reply_number").toString().replace(".0", "");
-                        }
-
-                        if (topicMap.get("view_number") != null) {
-                            ca.view_count = topicMap.get("view_number").toString().replace(".0", "");
-                        }
-
-                        if (topicMap.get("new_post") != null) {
-                            ca.hasNewTopic = (Boolean) topicMap.get("new_post");
-                        }
-
-                        if (topicMap.containsKey("icon_url")) {
-                            if (topicMap.get("icon_url") != null) {
-                                ca.categoryIcon = (String) topicMap.get("icon_url");
-                            }
-                        }
-
-                        if (topicMap.get("is_closed") != null) {
-                            ca.isLocked = (Boolean) topicMap.get("is_closed");
-                        }
-
-                        if (topicMap.get("can_stick") != null) {
-                            ca.canSticky = (Boolean) topicMap.get("can_stick");
-                        }
-
-                        if (topicMap.get("can_delete") != null) {
-                            ca.canDelete = (Boolean) topicMap.get("can_delete");
-                        }
-
-                        if (topicMap.get("can_close") != null) {
-                            ca.canLock = (Boolean) topicMap.get("can_close");
-                        }
-
-                        categoryList.add(ca);
-                    }
-                }
-
-            }
-        }
-
-        Log.d("Peris", "Starting category parse!");
-
-        //Forums
-        if (result[0] != null) {
-
-            ArrayList<Category> forumz = CategoryParser.parseCategories(result[0], subforum_id, background);
-
-            Log.d("Peris", "Forums parsed!");
-
-            String currentHash = subforumParts[0];
-
-            Log.d("Peris", "Hash Size: " + subforumParts.length);
-
-            if (subforumParts.length == 1) {
-
-                for (Category c : forumz) {
-                    categoryList.add(c);
-                }
-
-            } else {
-                for (int i = 1; i < subforumParts.length; i++) {
-                    currentHash = currentHash + "###" + subforumParts[i];
-
-                    Log.d("Peris", "Checking hash: " + currentHash + " (total hash is " + totalHash + ")");
-
-                    ArrayList<Category> tempForums = null;
-
-                    for (Category c : forumz) {
-                        if (c.children != null && c.category_id.contentEquals(currentHash)) {
-                            tempForums = c.children;
-                        }
-                    }
-
-                    if (tempForums != null) {
-                        forumz = tempForums;
-
-                        if (currentHash.contentEquals(totalHash)) {
-                            for (Category c : forumz) {
-                                categoryList.add(c);
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
-
-
-        Log.d("Peris", "Finished category parse!");
-
-
-        //sdf
-
-			/*
-
-			for(Object o: result[0]) {
-				if(o != null) {
-
-
-		            LinkedTreeMap map = (LinkedTreeMap) o;
-
-					Category ca = new Category();
-					ca.category_name = (String) map.get("forum_name");
-					ca.subforum_id = subforum_id;
-					ca.category_id = (String) map.get("forum_id");
-					ca.categoryType = "S";
-					ca.categoryColor = background;
-
-					if(map.containsKey("logo_url")) {
-						if(map.get("logo_url") != null) {
-							ca.categoryIcon = (String) map.get("logo_url");
-						}
-					}
-
-					if(map.containsKey("url")) {
-						if(map.get("url") != null) {
-							ca.category_URL = (String) map.get("url");
-						}
-					}
-
-					if(map.get("is_subscribed") != null) {
-						ca.isSubscribed = (Boolean) map.get("is_subscribed");
-					}
-
-					if(map.get("can_subscribe") != null) {
-						ca.canSubscribe = (Boolean) map.get("can_subscribe");
-					}
-
-					if(map.get("new_post") != null) {
-						ca.hasNewTopic = (Boolean) map.get("new_post");
-					}
-
-					Boolean subOnly = false;
-
-					if(map.containsKey("sub_only")) {
-						if(map.get("sub_only") != null) {
-							subOnly = (Boolean) map.get("sub_only");
-							ca.hasChildren = true;
-							Log.e("Peris","aaa sub only on " + ca.category_id);
-						}
-					}
-
-					if(subOnly) {
-
-						if(map.containsKey("child")) {
-							if(map.get("child") != null) {
-
-								ca.category_id = subforum_id + "###" + (String) map.get("forum_id");
-
-								//Fix for forums with custom URL layouts
-								ca.category_URL = "n/a";
-
-								if(!hashId.contentEquals("0")) {
-									//Log.d("Peris","Building Child Array from " + map.get("child").toString());
-									ArrayList childArray = (ArrayList) map.get("child");
-
-									for(Object childForum : childArray) {
-										LinkedTreeMap childMap = (LinkedTreeMap) childForum;
-
-										String parentForum = (String) childMap.get("parent_id");
-
-										if(parentForum.contentEquals(hashId)) {
-											ca = new Category();
-											ca.category_name = (String) childMap.get("forum_name");
-											ca.subforum_id = hashId;
-											//ca.subforum_id = hashId;
-											ca.category_id = (String) childMap.get("forum_id");
-											ca.categoryType = "S";
-											ca.categoryColor = background;
-
-											if(childMap.containsKey("logo_url")) {
-												if(childMap.get("logo_url") != null) {
-													ca.categoryIcon = (String) childMap.get("logo_url");
-												}
-											}
-
-											if(childMap.get("new_post") != null) {
-												ca.hasNewTopic = (Boolean) childMap.get("new_post");
-											}
-
-											if(childMap.containsKey("sub_only")) {
-												if(childMap.get("sub_only") != null) {
-													ca.hasChildren = (Boolean) childMap.get("sub_only");
-													if(ca.hasChildren) {
-														Log.e("Peris","bbb sub only on " + ca.category_id);
-														if(childMap.containsKey("child")) {
-															if(childMap.get("child") != null) {
-																Log.e("Peris","jesus fuck even more children here for " + ca.category_id);
-															}
-														}
-													}
-												}
-											}
-
-											if(childMap.containsKey("url")) {
-												if(childMap.get("url") != null) {
-													ca.category_URL = (String) childMap.get("url");
-												}
-											}
-
-											if(childMap.get("is_subscribed") != null) {
-												ca.isSubscribed = (Boolean) childMap.get("is_subscribed");
-											}
-
-											if(childMap.get("can_subscribe") != null) {
-												ca.canSubscribe = (Boolean) childMap.get("can_subscribe");
-											}
-
-											if(childMap.containsKey("child")) {
-												if(childMap.get("child") != null) {
-
-													Log.e("Peris","children for " + ca.category_id);
-
-													ca.hasChildren = true;
-
-													ArrayList childerArray = (ArrayList) childMap.get("child");
-
-													for(Object childForumr : childerArray) {
-														LinkedTreeMap childMapr = (LinkedTreeMap) childForumr;
-														if(childMapr.get("new_post") != null) {
-															boolean hasNew = (Boolean) childMapr.get("new_post");
-
-															if(hasNew) {
-																ca.hasNewTopic = hasNew;
-															}
-														}
-													}
-
-												}
-											}
-
-
-
-											categoryList.add(ca);
-										}
-									}
-								}
-
-							}
-						}
-					} else {
-
-						//Check for unread posts in children
-						if(map.containsKey("child")) {
-							if(map.get("child") != null) {
-								ca.hasChildren = true;
-
-								ArrayList childArray = (ArrayList) map.get("child");
-
-								for(Object childForum : childArray) {
-									LinkedTreeMap childMap = (LinkedTreeMap) childForum;
-									if(childMap.get("new_post") != null) {
-										boolean hasNew = (Boolean) childMap.get("new_post");
-
-										if(hasNew) {
-											ca.hasNewTopic = hasNew;
-										}
-									}
-								}
-
-							}
-						}
-
-					}
-
-					if(hashId.contentEquals("0")) {
-						categoryList.add(ca);
-					}
-
-
-				}
-	        }
-		}
-		*/
-
-        //Non-Sticky Topics
-
-        if (result[3] == null || result[3].length == 0) {
-            canScrollMoreThreads = false;
-        }
-
-        for (Object o : result[3]) {
-
-            if (o != null) {
-                LinkedTreeMap map = (LinkedTreeMap) o;
-
-                if (map.containsKey("topics")) {
-                    ArrayList topics = (ArrayList) map.get("topics");
-                    for (Object t : topics) {
-
-                        LinkedTreeMap topicMap = (LinkedTreeMap) t;
-
-
-                        Category ca = new Category();
-                        ca.category_name = (String) topicMap.get("topic_title");
-
-                        if (topicMap.get("forum_id") != null) {
-                            ca.subforum_id = (String) topicMap.get("forum_id");
-                        } else {
-                            ca.subforum_id = subforum_id;
-
-                            //if(!hashId.contentEquals("0")) {
-                            //	ca.subforum_id = hashId;
-                            //}
-                        }
-
-                        ca.category_id = (String) topicMap.get("topic_id");
-                        ca.category_lastupdate = (String) topicMap.get("last_reply_time");
-
-                        if (topicMap.get("topic_author_name") != null) {
-                            ca.category_lastthread = (String) topicMap.get("topic_author_name");
-                        } else {
-                            ca.category_lastthread = (String) topicMap.get("forum_name");
-                        }
-
-
-                        ca.categoryType = "C";
-                        ca.categoryColor = background;
-
-
-                        if (topicMap.get("reply_number") != null) {
-                            ca.thread_count = topicMap.get("reply_number").toString().replace(".0", "");
-                        }
-
-                        if (topicMap.get("view_number") != null) {
-                            ca.view_count = topicMap.get("view_number").toString().replace(".0", "");
-                        }
-
-                        //Log.d("Peris",(String) topicMap.get("reply_number"));
-
-                        if (topicMap.get("new_post") != null) {
-                            ca.hasNewTopic = (Boolean) topicMap.get("new_post");
-                        }
-
-                        if (topicMap.containsKey("icon_url")) {
-                            if (topicMap.get("icon_url") != null) {
-                                ca.categoryIcon = (String) topicMap.get("icon_url");
-                            }
-                        }
-
-                        if (topicMap.get("can_stick") != null) {
-                            ca.canSticky = (Boolean) topicMap.get("can_stick");
-                        }
-
-                        if (topicMap.get("can_delete") != null) {
-                            ca.canDelete = (Boolean) topicMap.get("can_delete");
-                        }
-
-                        if (topicMap.get("can_close") != null) {
-                            ca.canLock = (Boolean) topicMap.get("can_close");
-                        }
-
-                        if (topicMap.get("is_closed") != null) {
-                            ca.isLocked = (Boolean) topicMap.get("is_closed");
-                        }
-
-                        categoryList.add(ca);
-                    }
-                }
-            }
-        }
-
-
-        for (Object o : result[4]) {
-
-
-            if (o != null) {
-
-                Log.i("Peris", "We have some favs!");
-
-                LinkedTreeMap map = (LinkedTreeMap) o;
-
-                if (map.containsKey("forums")) {
-                    ArrayList forums = (ArrayList) map.get("forums");
-                    for (Object f : forums) {
-
-                        LinkedTreeMap forumMap = (LinkedTreeMap) f;
-
-                        Category ca = new Category();
-                        ca.category_name = (String) forumMap.get("forum_name");
-                        ca.subforum_id = subforum_id;
-                        ca.category_id = (String) forumMap.get("forum_id");
-                        ca.categoryType = "S";
-                        ca.categoryColor = background;
-
-                        if (forumMap.containsKey("icon_url")) {
-                            if (forumMap.get("icon_url") != null) {
-                                ca.categoryIcon = (String) forumMap.get("icon_url");
-                            }
-                        }
-
-                        ca.isSubscribed = true;
-
-                        if (forumMap.get("new_post") != null) {
-                            ca.hasNewTopic = (Boolean) forumMap.get("new_post");
-                        }
-
-                        categoryList.add(ca);
-                    }
-                } else {
-                    Log.e("Peris", "Favs has no forums!");
-                }
-            } else {
-
-            }
-        }
-
-
-        setListAdapter(new CategoryAdapter(categoryList, activity, application));
-        registerForContextMenu(getListView());
-        getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-                Category sender = (Category) arg0.getItemAtPosition(arg2);
-
-                if (sender == null) {
-                    return;
-                }
-
-                if (categorySelected == null) {
-                    return;
-                }
-
-                categorySelected.onCategorySelected(sender);
-            }
-        });
-
-
-        getListView().setSelection(retainedPosition);
-
-        initialParseDone = true;
+      }
     }
 
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-
-        String the_userid = application.getSession().getServer().serverUserId;
-
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-
-
-        clicked_category = (Category) CategoriesFragment.this.getListView().getItemAtPosition(info.position);
-
-        if (the_userid.contentEquals("0"))
-            return;
-
-        super.onCreateContextMenu(menu, v, menuInfo);
-        menu.setHeaderTitle(clicked_category.category_name);
-        MenuInflater inflater = activity.getMenuInflater();
-
-        inflater.inflate(R.menu.categories_context, menu);
-
-        MenuItem ubsubItem = menu.findItem(R.id.categories_unsubscribe);
-        MenuItem subItem = menu.findItem(R.id.categories_subscribe);
-        MenuItem stickyItem = menu.findItem(R.id.categories_context_sticky);
-        MenuItem lockItem = menu.findItem(R.id.categories_context_lock);
-        MenuItem deleteItem = menu.findItem(R.id.categories_context_delete);
-
-        MenuItem subscribeItem = menu.findItem(R.id.categories_add_favorite);
-        MenuItem unsubscribeItem = menu.findItem(R.id.categories_remove_favorite);
-
-        if (clicked_category.categoryType.contentEquals("S")) {
-            ubsubItem.setVisible(false);
-            subItem.setVisible(false);
-            stickyItem.setVisible(false);
-            lockItem.setVisible(false);
-            deleteItem.setVisible(false);
-
-            if (clicked_category.canSubscribe) {
-                subscribeItem.setVisible(true);
-            } else {
-                subscribeItem.setVisible(false);
+    Log.d("Peris", "Starting category parse!");
+    //Forums
+    if (result[0] != null) {
+      ArrayList<Category> forumz = CategoryParser.parseCategories(result[0], this.subforumId, this.background);
+      Log.d("Peris", "Forums parsed!");
+      String currentHash = this.subforumParts[0];
+      Log.d("Peris", "Hash Size: " + this.subforumParts.length);
+      if (this.subforumParts.length == 1) {
+        for (Category c : forumz) {
+          this.categoryList.add(c);
+        }
+      } else {
+        for (int i = 1; i < this.subforumParts.length; i++) {
+          currentHash = currentHash + "###" + this.subforumParts[i];
+          Log.d("Peris", "Checking hash: " + currentHash + " (total hash is " + this.totalHash + ")");
+          ArrayList<Category> tempForums = null;
+          for (Category c : forumz) {
+            if (c.children != null && c.category_id.contentEquals(currentHash)) {
+              tempForums = c.children;
             }
+          }
 
-            if (clicked_category.isSubscribed) {
-                unsubscribeItem.setVisible(true);
-                subscribeItem.setVisible(false);
-            } else {
-                unsubscribeItem.setVisible(false);
+          if (tempForums != null) {
+            forumz = tempForums;
+
+            if (currentHash.contentEquals(this.totalHash)) {
+              for (Category c : forumz) {
+                this.categoryList.add(c);
+              }
             }
+          }
+        }
+      }
+    }
+    Log.d("Peris", "Finished category parse!");
+    //Non-Sticky Topics
+    if (result[3] == null || result[3].length == 0) {
+      this.canScrollMoreThreads = false;
+    }
+    for (Object o : result[3]) {
+      if (o != null) {
+        final LinkedTreeMap map = (LinkedTreeMap) o;
+
+        if (map.containsKey("topics")) {
+          final ArrayList topics = (ArrayList) map.get("topics");
+          for (Object t : topics) {
+            this.categoryList.add(this.createCategoryFromTopics((LinkedTreeMap) t, true, false));
+          }
+        }
+      }
+    }
+
+    for (Object o : result[4]) {
+      if (o != null) {
+        Log.i("Peris", "We have some favs!");
+
+        final LinkedTreeMap map = (LinkedTreeMap) o;
+        if (map.containsKey("forums")) {
+          final ArrayList forums = (ArrayList) map.get("forums");
+          for (Object f : forums) {
+            final LinkedTreeMap forumMap = (LinkedTreeMap) f;
+
+            final Category ca = new Category();
+            ca.category_name = (String) forumMap.get("forum_name");
+            ca.subforum_id = this.subforumId;
+            ca.category_id = (String) forumMap.get("forum_id");
+            ca.categoryType = "S";
+            ca.categoryColor = this.background;
+
+            if (forumMap.containsKey("icon_url")) {
+              if (forumMap.get("icon_url") != null) {
+                ca.categoryIcon = (String) forumMap.get("icon_url");
+              }
+            }
+            ca.isSubscribed = true;
+            if (forumMap.get("new_post") != null) {
+              ca.hasNewTopic = (Boolean) forumMap.get("new_post");
+            }
+            this.categoryList.add(ca);
+          }
         } else {
-
-            unsubscribeItem.setVisible(false);
-            subscribeItem.setVisible(false);
-
-
-            if (clicked_category.canSticky) {
-                stickyItem.setVisible(true);
-
-                if (clicked_category.topicSticky.contentEquals("N")) {
-                    stickyItem.setTitle("Stick Topic");
-                } else {
-                    stickyItem.setTitle("Unstick Topic");
-                }
-            } else {
-                stickyItem.setVisible(false);
-            }
-
-            if (clicked_category.canDelete) {
-                deleteItem.setVisible(true);
-            } else {
-                deleteItem.setVisible(false);
-            }
-
-            if (clicked_category.canLock) {
-                lockItem.setVisible(true);
-
-                if (clicked_category.isLocked) {
-                    lockItem.setTitle("Unlock Topic");
-                } else {
-                    lockItem.setTitle("Lock Topic");
-                }
-            } else {
-                lockItem.setVisible(false);
-            }
-
-            if (subforum_id.contentEquals("favs")) {
-                ubsubItem.setVisible(true);
-                subItem.setVisible(false);
-            } else {
-                ubsubItem.setVisible(false);
-                subItem.setVisible(true);
-            }
-
+          Log.e("Peris", "Favs has no forums!");
         }
-
-
+      }
     }
 
-    public boolean onContextItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.categories_unsubscribe:
-                new unsubscribeTopic().execute(clicked_category.category_id);
-                return true;
-            case R.id.categories_subscribe:
-                new subscribeTopic().execute(clicked_category.category_id);
-                return true;
-            case R.id.categories_context_sticky:
-                if (clicked_category.topicSticky.contentEquals("N")) {
-                    new stickyTopic().execute(clicked_category.category_id, "1");
-                } else {
-                    new stickyTopic().execute(clicked_category.category_id, "2");
-                }
-                return true;
-            case R.id.categories_context_lock:
-                if (clicked_category.isLocked) {
-                    new lockTopic().execute(clicked_category.category_id, "1");
-                } else {
-                    new lockTopic().execute(clicked_category.category_id, "2");
-                }
-                return true;
-            case R.id.categories_context_delete_yes:
-                new deleteTopic().execute(clicked_category.category_id);
-                return true;
-            case R.id.categories_add_favorite:
-                new addToFavorites().execute(clicked_category.category_id);
-                return true;
-            case R.id.categories_remove_favorite:
-                new removeFromFavorites().execute(clicked_category.category_id);
-                return true;
-            default:
-                return super.onContextItemSelected(item);
+    setListAdapter(new CategoryAdapter(this.categoryList, this.activity, this.application));
+    registerForContextMenu(getListView());
+    getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
+        final Category sender = (Category) arg0.getItemAtPosition(arg2);
+
+        if (sender == null) {
+          return;
         }
+        if (categorySelected == null) {
+          return;
+        }
+
+        categorySelected.onCategorySelected(sender);
+      }
+    });
+
+    getListView().setSelection(retainedPosition);
+    this.initialParseDone = true;
+  }
+
+  private Category createCategoryFromTopics(final LinkedTreeMap topicMap, final boolean subforum, final boolean sticky) {
+    final Category ca = new Category();
+    ca.category_name = (String) topicMap.get("topic_title");
+
+    if (subforum && topicMap.get("forum_id") != null) {
+      ca.subforum_id = (String) topicMap.get("forum_id");
+    } else {
+      ca.subforum_id = this.subforumId;
+
+      //if(!hashId.contentEquals("0")) {
+      //  ca.subforumId = hashId;
+      //}
+    }
+    ca.category_id = (String) topicMap.get("topic_id");
+    ca.category_lastupdate = (String) topicMap.get("last_reply_time");
+    if (!subforum || topicMap.get("topic_author_name") != null) {
+      ca.category_lastthread = (String) topicMap.get("topic_author_name");
+    } else {
+      ca.category_lastthread = (String) topicMap.get("forum_name");
+    }
+    if (sticky) {
+      ca.topicSticky = "Y";
+    }
+    ca.categoryType = "C";
+    ca.categoryColor = this.background;
+
+    if (topicMap.get("reply_number") != null) {
+      ca.thread_count = topicMap.get("reply_number").toString().replace(".0", "");
     }
 
-    @SuppressLint("NewApi")
+    if (topicMap.get("view_number") != null) {
+      ca.view_count = topicMap.get("view_number").toString().replace(".0", "");
+    }
+
+    if (topicMap.get("new_post") != null) {
+      ca.hasNewTopic = (Boolean) topicMap.get("new_post");
+    }
+
+    if (topicMap.get("is_closed") != null) {
+      ca.isLocked = (Boolean) topicMap.get("is_closed");
+    }
+
+    if (topicMap.containsKey("icon_url")) {
+      if (topicMap.get("icon_url") != null) {
+        ca.categoryIcon = (String) topicMap.get("icon_url");
+      }
+    }
+
+    if (topicMap.get("can_stick") != null) {
+      ca.canSticky = (Boolean) topicMap.get("can_stick");
+    }
+
+    if (topicMap.get("can_delete") != null) {
+      ca.canDelete = (Boolean) topicMap.get("can_delete");
+    }
+
+    if (topicMap.get("can_close") != null) {
+      ca.canLock = (Boolean) topicMap.get("can_close");
+    }
+    return ca;
+  }
+
+  public final void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+    final String serverUserId = this.application.getSession().getServer().serverUserId;
+    final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+
+    this.clickedCategory = (Category) CategoriesFragment.this.getListView().getItemAtPosition(info.position);
+
+    if (serverUserId.contentEquals("0")) {
+      return;
+    }
+    super.onCreateContextMenu(menu, v, menuInfo);
+    menu.setHeaderTitle(this.clickedCategory.category_name);
+    final MenuInflater inflater = this.activity.getMenuInflater();
+
+    inflater.inflate(R.menu.categories_context, menu);
+
+    final MenuItem ubsubItem = menu.findItem(R.id.categories_unsubscribe);
+    final MenuItem subItem = menu.findItem(R.id.categories_subscribe);
+    final MenuItem stickyItem = menu.findItem(R.id.categories_context_sticky);
+    final MenuItem lockItem = menu.findItem(R.id.categories_context_lock);
+    final MenuItem deleteItem = menu.findItem(R.id.categories_context_delete);
+
+    final MenuItem subscribeItem = menu.findItem(R.id.categories_add_favorite);
+    final MenuItem unsubscribeItem = menu.findItem(R.id.categories_remove_favorite);
+
+    if (this.clickedCategory.categoryType.contentEquals("S")) {
+      ubsubItem.setVisible(false);
+      subItem.setVisible(false);
+      stickyItem.setVisible(false);
+      lockItem.setVisible(false);
+      deleteItem.setVisible(false);
+
+      if (this.clickedCategory.canSubscribe) {
+        subscribeItem.setVisible(true);
+      } else {
+        subscribeItem.setVisible(false);
+      }
+
+      if (this.clickedCategory.isSubscribed) {
+        unsubscribeItem.setVisible(true);
+        subscribeItem.setVisible(false);
+      } else {
+        unsubscribeItem.setVisible(false);
+      }
+    } else {
+
+      unsubscribeItem.setVisible(false);
+      subscribeItem.setVisible(false);
+
+
+      if (this.clickedCategory.canSticky) {
+        stickyItem.setVisible(true);
+
+        if (this.clickedCategory.topicSticky.contentEquals("N")) {
+          stickyItem.setTitle("Stick Topic");
+        } else {
+          stickyItem.setTitle("Unstick Topic");
+        }
+      } else {
+        stickyItem.setVisible(false);
+      }
+
+      if (this.clickedCategory.canDelete) {
+        deleteItem.setVisible(true);
+      } else {
+        deleteItem.setVisible(false);
+      }
+
+      if (this.clickedCategory.canLock) {
+        lockItem.setVisible(true);
+
+        if (this.clickedCategory.isLocked) {
+          lockItem.setTitle("Unlock Topic");
+        } else {
+          lockItem.setTitle("Lock Topic");
+        }
+      } else {
+        lockItem.setVisible(false);
+      }
+
+      if (this.subforumId.contentEquals("favs")) {
+        ubsubItem.setVisible(true);
+        subItem.setVisible(false);
+      } else {
+        ubsubItem.setVisible(false);
+        subItem.setVisible(true);
+      }
+    }
+  }
+
+  public final  boolean onContextItemSelected(final MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.categories_unsubscribe:
+        new UnsubscribeTopicTask().execute(this.clickedCategory.category_id);
+        break;
+      case R.id.categories_subscribe:
+        new SubscribeTopicTask().execute(this.clickedCategory.category_id);
+        break;
+      case R.id.categories_context_sticky:
+        if (this.clickedCategory.topicSticky.contentEquals("N")) {
+          new StickyTopicTask().execute(this.clickedCategory.category_id, "1");
+        } else {
+          new StickyTopicTask().execute(this.clickedCategory.category_id, "2");
+        }
+        break;
+      case R.id.categories_context_lock:
+        if (this.clickedCategory.isLocked) {
+          new LockTopicTask().execute(this.clickedCategory.category_id, "1");
+        } else {
+          new LockTopicTask().execute(this.clickedCategory.category_id, "2");
+        }
+        break;
+      case R.id.categories_context_delete_yes:
+        new DeleteTopicTask().execute(this.clickedCategory.category_id);
+        break;
+      case R.id.categories_add_favorite:
+        new AddToFavoritesTask().execute(this.clickedCategory.category_id);
+        break;
+      case R.id.categories_remove_favorite:
+        new RemoveFromFavoritesTask().execute(this.clickedCategory.category_id);
+        break;
+      default:
+        return super.onContextItemSelected(item);
+    }
+    return true;
+  }
+
+  @SuppressLint("NewApi")
+  @Override
+  public final void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
+
+    if (this.userid != null) {
+      if (!this.userid.contentEquals("0")) {
+        inflater.inflate(R.menu.categories_menu, menu);
+      }
+    }
+
+    super.onCreateOptionsMenu(menu, inflater);
+
+  }
+
+  @Override
+  public final void onPrepareOptionsMenu(final Menu menu) {
+    super.onPrepareOptionsMenu(menu);
+
+    if ((this.userid != null) && !this.userid.contentEquals("0") && (menu != null)) {
+      if (this.subforumId.contentEquals("0")
+          || this.subforumId.contentEquals("participated")
+          || this.subforumId.contentEquals("favs")
+          || this.subforumId.contentEquals("search")) {
+        final MenuItem item = menu.findItem(R.id.cat_mark_read);
+        if (item != null) {
+          item.setVisible(false);
+        }
+      } else {
+        final MenuItem item = menu.findItem(R.id.cat_mark_read);
+        if (item != null) {
+          if (ForegroundColorSetter.getForegroundDark(this.background)) {
+            item.setIcon(R.drawable.ic_action_read_dark);
+          }
+        }
+      }
+
+      if (this.subforumId.contentEquals("0")
+          || this.subforumId.contentEquals("participated")
+          || this.subforumId.contentEquals("favs")
+          || this.subforumId.contentEquals("userrecent")
+          || this.subforumId.contentEquals("search")) {
+        final MenuItem item2 = menu.findItem(R.id.cat_new_thread);
+        if (item2 != null) {
+          item2.setVisible(false);
+        }
+      } else {
+        final MenuItem item2 = menu.findItem(R.id.cat_new_thread);
+        if (item2 != null) {
+          if (ForegroundColorSetter.getForegroundDark(this.background)) {
+            item2.setIcon(R.drawable.ic_action_new_dark);
+          }
+        }
+      }
+
+      final MenuItem browserItem = menu.findItem(R.id.cat_open_browser);
+
+      if (this.shareURL.contentEquals("0")) {
+        browserItem.setVisible(false);
+      } else {
+        browserItem.setVisible(true);
+      }
+    }
+  }
+
+  @Override
+  public final boolean onOptionsItemSelected(final MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.cat_new_thread:
+        this.startPost();
+        break;
+      case R.id.cat_mark_read:
+        this.markAsRead();
+        break;
+      case R.id.cat_open_browser:
+        final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(this.shareURL));
+        this.startActivity(browserIntent);
+        break;
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+    return true;
+  }
+
+  private void startPost() {
+
+    if (this.subforumId.contentEquals("0") || this.userid.contentEquals("0")) {
+      final Toast toast = Toast.makeText(this.activity, "You are not allowed to post here!", Toast.LENGTH_LONG);
+      toast.show();
+      return;
+    }
+
+    final Intent myIntent = new Intent(this.activity, New_Post.class);
+
+    final Bundle bundle = new Bundle();
+    bundle.putString("postid", (String) "0");
+    bundle.putString("parent", (String) "0");
+    bundle.putString("category", (String) this.subforumId);
+    bundle.putString("subforumId", (String) this.subforumId);
+    bundle.putString("original_text", (String) "");
+    bundle.putString("boxTitle", (String) "New Thread");
+    bundle.putString("picture", (String) "0");
+    bundle.putString("subject", (String) "");
+    bundle.putInt("post_type", (Integer) 1);
+    bundle.putString("color", (String) this.background);
+    myIntent.putExtras(bundle);
+
+    startActivity(myIntent);
+
+  }
+
+  public final void setOnCategorySelectedListener(final CategorySelectedListener l) {
+    this.categorySelected = l;
+  }
+
+  private void markAsRead() {
+    new ReadMarkerTask().execute(this.subforumId);
+  }
+
+  //Category Selected Interface
+  public interface CategorySelectedListener {
+    void onCategorySelected(Category ca);
+  }
+
+  private class DownloadCategoriesTask extends AsyncTask<String, Void, Object[][]> {
+
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-
-        if (userid != null) {
-            if (!userid.contentEquals("0")) {
-                inflater.inflate(R.menu.categories_menu, menu);
-            }
-        }
-
-        super.onCreateOptionsMenu(menu, inflater);
-
+    protected void onPreExecute() {
+      Log.i("Peris", "DownloadCategoriesTask onPreExecute");
+      super.onPreExecute();
     }
 
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    public void onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
-
-        if (userid != null) {
-            if (!userid.contentEquals("0") && menu != null) {
-
-                if (subforum_id.contentEquals("0") || subforum_id.contentEquals("participated") || subforum_id.contentEquals("favs") || subforum_id.contentEquals("search")) {
-                    MenuItem item = menu.findItem(R.id.cat_mark_read);
-                    if (item != null) {
-                        item.setVisible(false);
-                    }
-                } else {
-                    MenuItem item = menu.findItem(R.id.cat_mark_read);
-                    if (item != null) {
-                        if (ForegroundColorSetter.getForegroundDark(background)) {
-                            item.setIcon(R.drawable.ic_action_read_dark);
-                        }
-                    }
-                }
-
-                if (subforum_id.contentEquals("0") || subforum_id.contentEquals("participated") || subforum_id.contentEquals("favs") || subforum_id.contentEquals("userrecent") || subforum_id.contentEquals("search")) {
-                    MenuItem item2 = menu.findItem(R.id.cat_new_thread);
-                    if (item2 != null) {
-                        item2.setVisible(false);
-                    }
-                } else {
-                    MenuItem item2 = menu.findItem(R.id.cat_new_thread);
-                    if (item2 != null) {
-                        if (ForegroundColorSetter.getForegroundDark(background)) {
-                            item2.setIcon(R.drawable.ic_action_new_dark);
-                        }
-                    }
-                }
-
-                MenuItem browserItem = menu.findItem(R.id.cat_open_browser);
-
-                if (shareURL.contentEquals("0")) {
-                    browserItem.setVisible(false);
-                } else {
-                    browserItem.setVisible(true);
-                }
-
-            }
+    protected Object[][] doInBackground(final String... params) {
+      Log.i("Peris", "DownloadCategoriesTask doInBackground");
+      if (activity == null) {
+        Log.e("Peris", "Category activity is null!");
+        return null;
+      }
+      isLoading = true;
+      final Object[][] result = new Object[5][MAX_ITEM_COUNT];
+      if (subforumId.contentEquals("favs")) {
+        //Handle subscription category
+        try {
+          final Vector paramz = new Vector();
+          paramz.addElement(startingPos);
+          paramz.addElement(endingPos);
+          result[3][0] = application.getSession().performNewSynchronousCall("get_subscribed_topic", paramz);
+        } catch (Exception ex) {
+          if (ex.getMessage() != null) {
+            Log.w("Peris", ex.getMessage());
+          }
         }
-
-
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.cat_new_thread:
-                start_post();
-                return true;
-            case R.id.cat_mark_read:
-                markAsRead();
-                return true;
-            case R.id.cat_open_browser:
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(shareURL));
-                startActivity(browserIntent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+      } else if (subforumId.contentEquals("forum_favs")) {
+        //Handle favorites category
+        try {
+          final Vector paramz = new Vector();
+          //result[0] = (Object[]) client.execute("get_subscribed_forum", paramz);
+          result[4][0] = application.getSession().performNewSynchronousCall("get_subscribed_forum", paramz);
+        } catch (Exception ex) {
+          if (ex.getMessage() != null) {
+            Log.w("Peris", "Favorites Error: " + ex.getMessage());
+          }
         }
-    }
-
-    private void start_post() {
-
-        if (subforum_id.contentEquals("0") || userid.contentEquals("0")) {
-            Toast toast = Toast.makeText(activity, "You are not allowed to post here!", Toast.LENGTH_LONG);
-            toast.show();
-            return;
+      } else if (subforumId.contentEquals("participated")) {
+        //Handle participated topics category
+        try {
+          final Vector paramz = new Vector();
+          paramz.addElement(username.getBytes());
+          paramz.addElement(startingPos);
+          paramz.addElement(endingPos);
+          paramz.addElement("");
+          paramz.addElement(userid);
+          result[3][0] = application.getSession().performNewSynchronousCall("get_participated_topic", paramz);
+        } catch (Exception ex) {
+          if (ex.getMessage() != null) {
+            Log.w("Peris", ex.getMessage());
+          }
         }
-
-        Intent myIntent = new Intent(activity, New_Post.class);
-
-        Bundle bundle = new Bundle();
-        bundle.putString("postid", (String) "0");
-        bundle.putString("parent", (String) "0");
-        bundle.putString("category", (String) subforum_id);
-        bundle.putString("subforum_id", (String) subforum_id);
-        bundle.putString("original_text", (String) "");
-        bundle.putString("boxTitle", (String) "New Thread");
-        bundle.putString("picture", (String) "0");
-        bundle.putString("subject", (String) "");
-        bundle.putInt("post_type", (Integer) 1);
-        bundle.putString("color", (String) background);
-        myIntent.putExtras(bundle);
-
-        startActivity(myIntent);
-
-    }
-
-    public void setOnCategorySelectedListener(onCategorySelectedListener l) {
-        categorySelected = l;
-    }
-
-    private void markAsRead() {
-        new readMarker().execute(subforum_id);
-    }
-
-    //Category Selected Interface
-    public interface onCategorySelectedListener {
-        public abstract void onCategorySelected(Category ca);
-    }
-
-    private class downloadCategories extends AsyncTask<String, Void, Object[][]> {
-
-        @Override
-        protected void onPreExecute() {
-            Log.i("Peris", "downloadCategories onPreExecute");
-            super.onPreExecute();
+      } else if (subforumId.contentEquals("search")) {
+        //Handle topic listing for the Search function
+        try {
+          final Vector paramz = new Vector();
+          paramz.addElement(searchQuery.getBytes());
+          paramz.addElement(startingPos);
+          paramz.addElement(endingPos);
+          result[3][0] = application.getSession().performNewSynchronousCall("search_topic", paramz);
+        } catch (Exception ex) {
+          if (ex.getMessage() != null) {
+            Log.w("Peris", ex.getMessage());
+          }
         }
-
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected Object[][] doInBackground(String... params) {
-
-            Log.i("Peris", "downloadCategories doInBackground");
-
-            if (activity == null) {
-                Log.e("Peris", "Category activity is null!");
-                return null;
+      } else if (subforumId.contentEquals("timeline")) {
+          //Handle timeline get_latest_topic
+          try {
+            final Vector paramz = new Vector();
+            //paramz.addElement(username.getBytes());
+            paramz.addElement(startingPos);
+            paramz.addElement(endingPos);
+            //paramz.addElement(userid);
+            result[3][0] = application.getSession().performNewSynchronousCall("get_latest_topic", paramz);
+          } catch (Exception ex) {
+            if (ex.getMessage() != null) {
+              Log.w("Peris", ex.getMessage());
             }
-
-            isLoading = true;
-
-
-            Object[][] result = new Object[5][50];
-
-
-            Vector paramz;
-
-            //Do not get a forum listing if we are inside one of the special sections
-            if (!subforum_id.contentEquals("timeline") && !subforum_id.contentEquals("unread") && !subforum_id.contentEquals("participated") && !subforum_id.contentEquals("userrecent") && !subforum_id.contentEquals("favs") && !subforum_id.contentEquals("search") && !subforum_id.contentEquals("forum_favs")) {
-
-                if (!isExtraScrolling) {
-
-                    try {
-                        paramz = new Vector();
-
-                        if (!subforum_id.contentEquals("0")) {
-                            paramz.addElement(new Boolean(true));
-                            paramz.addElement(subforum_id);
-                        }
-
-
-                        //result[0] = (Object[]) application.getSession().performSynchronousCall("get_forum", paramz);
-                        result[0] = (Object[]) application.getSession().performNewSynchronousCall("get_forum", paramz);
-
-                        if (result[0] == null) {
-                            Log.e("Peris", "shits null on " + subforum_id);
-                        }
-
-                    } catch (Exception ex) {
-                        if (ex.getMessage() != null) {
-                            Log.w("Peris", ex.getMessage());
-                        }
-                    }
-
-                    try {
-                        //First grab any announcement topics
-                        paramz = new Vector();
-                        paramz.addElement(subforum_id);
-                        paramz.addElement(0);
-                        paramz.addElement(20);
-                        paramz.addElement("ANN");
-                        //result[1][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-                        result[1][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
-                    } catch (Exception ex) {
-                        if (ex.getMessage() != null) {
-
-                            Log.w("Peris", ex.getMessage());
-                        }
-                    }
-
-                    try {
-                        //Then grab any sticky topics
-                        paramz = new Vector();
-                        paramz.addElement(subforum_id);
-                        paramz.addElement(0);
-                        paramz.addElement(20);
-                        paramz.addElement("TOP");
-                        //result[2][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-                        result[2][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
-                    } catch (Exception ex) {
-                        if (ex.getMessage() != null) {
-                            Log.w("Peris", ex.getMessage());
-                        }
-                    }
-
-                }
-
-                try {
-                    //Grab the non-sticky topics
-
-                    Log.d("Peris", "Getting topics " + startingPos + " through " + endingPos);
-
-                    paramz = new Vector();
-                    paramz.addElement(subforum_id);
-                    paramz.addElement(startingPos);
-                    paramz.addElement(endingPos);
-                    //result[3][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-                    result[3][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
-
-                } catch (Exception ex) {
-                    if (ex.getMessage() != null) {
-                        Log.w("Peris", ex.getMessage());
-                    }
-                }
+          }
+      } else if (subforumId.contentEquals("unread")) {
+        //Handle topic listing for the Unread category
+        if (!isExtraScrolling) {
+          try {
+            final Vector paramz = new Vector();
+            result[3][0] = application.getSession().performNewSynchronousCall("get_unread_topic", paramz);
+          } catch (Exception ex) {
+            if (ex.getMessage() != null) {
+              Log.w("Peris", ex.getMessage());
             }
+          }
+        }
+      } else if (!subforumId.contentEquals("userrecent")) {
+          //Do not get a forum listing if we are inside one of the special sections
+        if (!isExtraScrolling) {
+          try {
+            final Vector paramz = new Vector();
 
-            //Handle topic listing for the Search function
-            if (subforum_id.contentEquals("search")) {
-                try {
-                    paramz = new Vector();
-                    paramz.addElement(searchQuery.getBytes());
-                    paramz.addElement(startingPos);
-                    paramz.addElement(endingPos);
-                    //result[3][0] = application.getSession().performSynchronousCall("search_topic", paramz);
-                    result[3][0] = application.getSession().performNewSynchronousCall("search_topic", paramz);
-                } catch (Exception ex) {
-                    if (ex.getMessage() != null) {
-                        Log.w("Peris", ex.getMessage());
-                    }
-                }
+            if (!subforumId.contentEquals("0")) {
+              paramz.addElement(new Boolean(true));
+              paramz.addElement(subforumId);
             }
+            result[0] = (Object[]) application.getSession().performNewSynchronousCall("get_forum", paramz);
+            if (result[0] == null) {
+              Log.e("Peris", "shits null on " + subforumId);
+            }
+          } catch (Exception ex) {
+            if (ex.getMessage() != null) {
+              Log.w("Peris", ex.getMessage());
+            }
+          }
+          try {
+            //First grab any announcement topics
+            final Vector paramz = new Vector();
+            paramz.addElement(subforumId);
+            paramz.addElement(0);
+            paramz.addElement(CATEGORIES_PER_PAGE);
+            paramz.addElement("ANN");
+            //result[1][0] = application.getSession().performSynchronousCall("get_topic", paramz);
+            result[1][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
+          } catch (Exception ex) {
+            if (ex.getMessage() != null) {
+              Log.w("Peris", ex.getMessage());
+            }
+          }
+          try {
+            //Then grab any sticky topics
+            final Vector paramz = new Vector();
+            paramz.addElement(subforumId);
+            paramz.addElement(0);
+            paramz.addElement(CATEGORIES_PER_PAGE);
+            paramz.addElement("TOP");
+            //result[2][0] = application.getSession().performSynchronousCall("get_topic", paramz);
+            result[2][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
+          } catch (Exception ex) {
+            if (ex.getMessage() != null) {
+              Log.w("Peris", ex.getMessage());
+            }
+          }
+        }
+        try {
+          //Grab the non-sticky topics
+          Log.d("Peris", "Getting topics " + startingPos + " through " + endingPos);
 
+          final Vector paramz = new Vector();
+          paramz.addElement(subforumId);
+          paramz.addElement(startingPos);
+          paramz.addElement(endingPos);
+          result[3][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
+        } catch (Exception ex) {
+          if (ex.getMessage() != null) {
+            Log.w("Peris", ex.getMessage());
+          }
+        }
+      }
+      return result;
+    }
+
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final Object[][] result) {
+      Log.i("Peris", "DownloadCategoriesTask onPostExecute");
+
+      if (activity != null) {
+        if (result == null) {
+          final Toast toast = Toast.makeText(activity, "Error pulling data from the server, ecCFDL", Toast.LENGTH_SHORT);
+          toast.show();
+        } else {
+          Log.i("Peris", "Recieved category data!");
+
+          initialLoadComplete = true;
+          isLoading = false;
+
+          final String objectString = GsonHelper.customGson.toJson(result);
+          final SharedPreferences appPreferences = activity.getSharedPreferences("prefs", 0);
+          final String cachedForum = appPreferences.getString(storagePrefix + "forum" + subforumId, "n/a");
+
+          if (!objectString.contentEquals(cachedForum)) {
             if (!isExtraScrolling) {
-
-                //Handle topic listing for the Unread category
-                if (subforum_id.contentEquals("unread")) {
-                    try {
-                        paramz = new Vector();
-                        //result[3][0] = application.getSession().performSynchronousCall("get_unread_topic", paramz);
-                        result[3][0] = application.getSession().performNewSynchronousCall("get_unread_topic", paramz);
-                    } catch (Exception ex) {
-                        if (ex.getMessage() != null) {
-                            Log.w("Peris", ex.getMessage());
-                        }
-                    }
-                }
-
+              final SharedPreferences.Editor editor = appPreferences.edit();
+              editor.putString(storagePrefix + "forum" + subforumId, objectString);
+              editor.commit();
             }
 
-            //Handle timeline get_latest_topic
-            if (subforum_id.contentEquals("timeline")) {
-                try {
-                    paramz = new Vector();
-                    //paramz.addElement(username.getBytes());
-                    paramz.addElement(startingPos);
-                    paramz.addElement(endingPos);
-                    //paramz.addElement("");
-                    //paramz.addElement(userid);
-                    //result[3][0] = application.getSession().performSynchronousCall("get_participated_topic", paramz);
-                    result[3][0] = application.getSession().performNewSynchronousCall("get_latest_topic", paramz);
-                } catch (Exception ex) {
-                    if (ex.getMessage() != null) {
-                        Log.w("Peris", ex.getMessage());
-                    }
-                }
-            }
-
-            //Handle participated topics category
-            if (subforum_id.contentEquals("participated")) {
-                try {
-                    paramz = new Vector();
-                    paramz.addElement(username.getBytes());
-                    paramz.addElement(startingPos);
-                    paramz.addElement(endingPos);
-                    paramz.addElement("");
-                    paramz.addElement(userid);
-                    //result[3][0] = application.getSession().performSynchronousCall("get_participated_topic", paramz);
-                    result[3][0] = application.getSession().performNewSynchronousCall("get_participated_topic", paramz);
-                } catch (Exception ex) {
-                    if (ex.getMessage() != null) {
-                        Log.w("Peris", ex.getMessage());
-                    }
-                }
-            }
-
-            //Handle subscription category
-            if (subforum_id.contentEquals("favs")) {
-                try {
-                    paramz = new Vector();
-                    paramz.addElement(startingPos);
-                    paramz.addElement(endingPos);
-                    //result[3][0] = application.getSession().performSynchronousCall("get_subscribed_topic", paramz);
-                    result[3][0] = application.getSession().performNewSynchronousCall("get_subscribed_topic", paramz);
-                } catch (Exception ex) {
-                    if (ex.getMessage() != null) {
-                        Log.w("Peris", ex.getMessage());
-                    }
-                }
-            }
-
-            //Handle favorites category
-            if (subforum_id.contentEquals("forum_favs")) {
-                try {
-                    paramz = new Vector();
-                    //result[0] = (Object[]) client.execute("get_subscribed_forum", paramz);
-                    //result[4][0] = application.getSession().performSynchronousCall("get_subscribed_forum", paramz);
-                    result[4][0] = application.getSession().performNewSynchronousCall("get_subscribed_forum", paramz);
-                } catch (Exception ex) {
-                    if (ex.getMessage() != null) {
-                        Log.w("Peris", "Favorites Error: " + ex.getMessage());
-                    }
-                }
-            }
-
-            return result;
+            final Object[][] forumObject = GsonHelper.customGson.fromJson(objectString, Object[][].class);
+            parseCachedForums(forumObject);
+          }
         }
+      }
+    }
+  }
 
-        protected void onPostExecute(final Object[][] result) {
+  private class ReadMarkerTask extends AsyncTask<String, Void, String> {
 
-            Log.i("Peris", "downloadCategories onPostExecute");
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
 
-            if (activity == null) {
-                return;
-            }
-
-            if (result == null) {
-                Toast toast = Toast.makeText(activity, "Error pulling data from the server, ecCFDL", Toast.LENGTH_SHORT);
-                toast.show();
-                return;
-            }
-
-            Log.i("Peris", "Recieved category data!");
-
-            initialLoadComplete = true;
-            isLoading = false;
-
-            String objectString = GsonHelper.customGson.toJson(result);
-
-            //Log.i("Peris",objectString);
-
-            SharedPreferences app_preferences = activity.getSharedPreferences("prefs", 0);
-            String cachedForum = app_preferences.getString(storagePrefix + "forum" + subforum_id, "n/a");
-
-            if (objectString.contentEquals(cachedForum)) {
-                return;
-            } else {
-                if (!isExtraScrolling) {
-                    SharedPreferences.Editor editor = app_preferences.edit();
-                    editor.putString(storagePrefix + "forum" + subforum_id, objectString);
-                    editor.commit();
-                }
-            }
-
-            if (activity != null) {
-                Object[][] forumObject = GsonHelper.customGson.fromJson(objectString, Object[][].class);
-                parseCachedForums(forumObject);
-            }
-
-
+      if (activity == null) {
+        return null;
+      }
+      final String result = "";
+      try {
+        final Vector paramz = new Vector();
+        if (!params[0].contentEquals("0") && !params[0].contentEquals("unread")) {
+          paramz.addElement(params[0]);
         }
+        //application.getSession().performSynchronousCall("mark_all_as_read", paramz);
+        application.getSession().performNewSynchronousCall("mark_all_as_read", paramz);
+
+      } catch (Exception ex) {
+        Log.w("Discussions", ex.getMessage());
+      }
+
+      return result;
     }
 
-    private class readMarker extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
-
-            if (activity == null) {
-                return null;
-            }
-
-            String result = "";
-
-
-            try {
-                Vector paramz;
-
-                paramz = new Vector();
-                if (!params[0].contentEquals("0") && !params[0].contentEquals("unread")) {
-                    paramz.addElement(params[0]);
-                }
-                //application.getSession().performSynchronousCall("mark_all_as_read", paramz);
-                application.getSession().performNewSynchronousCall("mark_all_as_read", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Discussions", ex.getMessage());
-            }
-
-            return result;
+      if (activity != null) {
+        if (subforumId.contentEquals("unread")) {
+          activity.finish();
+        } else {
+          loadCategories();
+          final Toast toast = Toast.makeText(activity, "Posts marked read!", Toast.LENGTH_LONG);
+          toast.show();
         }
+      }
+    }
+  }
 
-        protected void onPostExecute(final String result) {
+  private class SubscribeTopicTask extends AsyncTask<String, Void, String> {
 
-            if (activity == null) {
-                return;
-            }
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
 
-            if (subforum_id.contentEquals("unread")) {
-                activity.finish();
-            } else {
-                load_categories();
-                Toast toast = Toast.makeText(activity, "Posts marked read!", Toast.LENGTH_LONG);
-                toast.show();
-            }
-        }
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        //application.getSession().performSynchronousCall("subscribe_topic", paramz);
+        application.getSession().performNewSynchronousCall("subscribe_topic", paramz);
+
+      } catch (Exception ex) {
+        Log.w("Discussions", ex.getMessage());
+      }
+
+      return "";
     }
 
-    private class subscribeTopic extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity != null) {
+        final Toast toast = Toast.makeText(activity, "Subscribed!", Toast.LENGTH_SHORT);
+        toast.show();
+      }
+    }
+  }
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
+  private class UnsubscribeTopicTask extends AsyncTask<String, Void, String> {
 
-            if (activity == null) {
-                return null;
-            }
-
-            String result = "";
-
-
-            try {
-
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                //application.getSession().performSynchronousCall("subscribe_topic", paramz);
-                application.getSession().performNewSynchronousCall("subscribe_topic", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Discussions", ex.getMessage());
-            }
-
-            return result;
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
+      if (activity != null) {
+        try {
+          final Vector paramz = new Vector();
+          paramz.addElement(params[0]);
+          //application.getSession().performSynchronousCall("unsubscribe_topic", paramz);
+          application.getSession().performNewSynchronousCall("unsubscribe_topic", paramz);
+          return "";
+        } catch (Exception ex) {
+          Log.w("Discussions", ex.getMessage());
         }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            Toast toast = Toast.makeText(activity, "Subscribed!", Toast.LENGTH_SHORT);
-            toast.show();
-        }
+      }
+      return null;
     }
 
-    private class unsubscribeTopic extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity != null) {
+        loadCategories();
+      }
+    }
+  }
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
+  private class StickyTopicTask extends AsyncTask<String, Void, String> {
+    // parm[0] - (string)topic_id
+    // parm[1] - (int)mode (1 - stick; 2 - unstick)
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
 
-            if (activity == null) {
-                return null;
-            }
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        paramz.addElement(Integer.parseInt(params[1]));
+        //application.getSession().performSynchronousCall("m_stick_topic", paramz);
+        application.getSession().performNewSynchronousCall("m_stick_topic", paramz);
+      } catch (Exception ex) {
+        Log.w("Peris", ex.getMessage());
+      }
 
-            String result = "";
-
-
-            try {
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                //application.getSession().performSynchronousCall("unsubscribe_topic", paramz);
-                application.getSession().performNewSynchronousCall("unsubscribe_topic", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Discussions", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            load_categories();
-        }
+      return "";
     }
 
-    private class stickyTopic extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity != null) {
+        loadCategories();
+      }
+    }
+  }
 
-        // parm[0] - (string)topic_id
-        // parm[1] - (int)mode (1 - stick; 2 - unstick)
+  private class LockTopicTask extends AsyncTask<String, Void, String> {
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
+    // parm[0] - (string)topic_id
+    // parm[1] - (int)mode (1 - unlock; 2 - lock)
 
-            if (activity == null) {
-                return null;
-            }
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
 
-            String result = "";
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        paramz.addElement(Integer.parseInt(params[1]));
+        //application.getSession().performSynchronousCall("m_close_topic", paramz);
+        application.getSession().performNewSynchronousCall("m_close_topic", paramz);
 
+      } catch (Exception ex) {
+        Log.w("Peris", ex.getMessage());
+      }
 
-            try {
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                paramz.addElement(Integer.parseInt(params[1]));
-                //application.getSession().performSynchronousCall("m_stick_topic", paramz);
-                application.getSession().performNewSynchronousCall("m_stick_topic", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Peris", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            load_categories();
-        }
+      return "";
     }
 
-    private class lockTopic extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity != null) {
+        loadCategories();
+      }
+    }
+  }
 
-        // parm[0] - (string)topic_id
-        // parm[1] - (int)mode (1 - unlock; 2 - lock)
+  private class DeleteTopicTask extends AsyncTask<String, Void, String> {
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
+    // parm[0] - (string)topic_id
 
-            if (activity == null) {
-                return null;
-            }
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
 
-            String result = "";
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        paramz.addElement(2);
+        //application.getSession().performSynchronousCall("m_delete_topic", paramz);
+        application.getSession().performNewSynchronousCall("m_delete_topic", paramz);
+      } catch (Exception ex) {
+        Log.w("Peris", ex.getMessage());
+      }
 
-
-            try {
-
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                paramz.addElement(Integer.parseInt(params[1]));
-                //application.getSession().performSynchronousCall("m_close_topic", paramz);
-                application.getSession().performNewSynchronousCall("m_close_topic", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Peris", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            load_categories();
-        }
+      return "";
     }
 
-    private class deleteTopic extends AsyncTask<String, Void, String> {
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity != null) {
+        loadCategories();
+      }
+    }
+  }
 
-        // parm[0] - (string)topic_id
+  private class AddToFavoritesTask extends AsyncTask<String, Void, String> {
 
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
 
-            if (activity == null) {
-                return null;
-            }
-
-            String result = "";
-
-
-            try {
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                paramz.addElement(2);
-                //application.getSession().performSynchronousCall("m_delete_topic", paramz);
-                application.getSession().performNewSynchronousCall("m_delete_topic", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Peris", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            load_categories();
-        }
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        //application.getSession().performSynchronousCall("subscribe_forum", paramz);
+        application.getSession().performNewSynchronousCall("subscribe_forum", paramz);
+      } catch (Exception ex) {
+        Log.w("Discussions", ex.getMessage());
+      }
+      return "";
     }
 
-    private class addToFavorites extends AsyncTask<String, Void, String> {
-
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
-
-            if (activity == null) {
-                return null;
-            }
-
-            String result = "";
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity != null) {
+        final Toast toast = Toast.makeText(activity, "Forum added to favorites!", Toast.LENGTH_SHORT);
+        toast.show();
+        loadCategories();
+      }
+    }
+  }
 
 
-            try {
-                Vector paramz;
+  private class RemoveFromFavoritesTask extends AsyncTask<String, Void, String> {
 
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                //application.getSession().performSynchronousCall("subscribe_forum", paramz);
-                application.getSession().performNewSynchronousCall("subscribe_forum", paramz);
+    @SuppressLint("UseValueOf")
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @Override
+    protected String doInBackground(final String... params) {
 
-            } catch (Exception ex) {
-                Log.w("Discussions", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            Toast toast = Toast.makeText(activity, "Forum added to favorites!", Toast.LENGTH_SHORT);
-            toast.show();
-
-            load_categories();
-        }
+      if (activity == null) {
+        return null;
+      }
+      try {
+        final Vector paramz = new Vector();
+        paramz.addElement(params[0]);
+        //application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
+        application.getSession().performNewSynchronousCall("unsubscribe_forum", paramz);
+      } catch (Exception ex) {
+        Log.w("Discussions", ex.getMessage());
+      }
+      return "";
     }
 
+    @SuppressWarnings("checkstyle:requirethis")
+    protected void onPostExecute(final String result) {
+      if (activity != null) {
+        final Toast toast = Toast.makeText(activity, "Forum removed from favorites!", Toast.LENGTH_SHORT);
+        toast.show();
 
-    private class removeFromFavorites extends AsyncTask<String, Void, String> {
-
-        @SuppressLint("UseValueOf")
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        protected String doInBackground(String... params) {
-
-            if (activity == null) {
-                return null;
-            }
-
-            String result = "";
-
-
-            try {
-                Vector paramz;
-
-                paramz = new Vector();
-                paramz.addElement(params[0]);
-                //application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
-                application.getSession().performNewSynchronousCall("unsubscribe_forum", paramz);
-
-            } catch (Exception ex) {
-                Log.w("Discussions", ex.getMessage());
-            }
-
-            return result;
-        }
-
-        protected void onPostExecute(final String result) {
-
-            if (activity == null) {
-                return;
-            }
-
-            Toast toast = Toast.makeText(activity, "Forum removed from favorites!", Toast.LENGTH_SHORT);
-            toast.show();
-
-            load_categories();
-        }
+        loadCategories();
+      }
     }
-
-
+  }
 }
