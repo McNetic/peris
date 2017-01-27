@@ -797,7 +797,7 @@ public class IntroScreen extends FragmentActivity {
       for (ForumManifestCheckerTask cfm : runningManifestChecks) {
         if (cfm.getStatus() == Status.RUNNING) {
           cfm.cancel(true);
-          killedManifests += 1;
+          killedManifests++;
 
         }
       }
@@ -1149,22 +1149,22 @@ public class IntroScreen extends FragmentActivity {
 
         if (manifestAnalytics.length() > 0) {
           passedServer.analyticsId = manifestAnalytics;
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestMobfox.length() > 0) {
           passedServer.mobfoxId = manifestMobfox;
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestFFChatId.length() > 0) {
           passedServer.ffChatId = manifestFFChatId;
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestName.length() > 0) {
           passedServer.serverName = manifestName;
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestColor.length() > 0 && (passedServer.serverColor.contentEquals("0") || passedServer.serverColor.contentEquals(getString(R.string.default_color)))) {
@@ -1173,27 +1173,27 @@ public class IntroScreen extends FragmentActivity {
               passedServer.serverColor = manifestColor;
             }
           }
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestIcon.length() > 0) {
           passedServer.serverIcon = manifestIcon;
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestChatName.length() > 0 && !manifestChatName.contentEquals("0")) {
           passedServer.chatName = manifestChatName;
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestChatForum.length() > 0 && !manifestChatForum.contentEquals("0")) {
           passedServer.chatForum = manifestChatForum;
-          validFields += 1;
+          validFields++;
         }
 
         if (manifestChatTopic.length() > 0 && !manifestChatTopic.contentEquals("0")) {
           passedServer.chatThread = manifestChatTopic;
-          validFields += 1;
+          validFields++;
         }
 
         final PerisApp app = (PerisApp) getApplication();

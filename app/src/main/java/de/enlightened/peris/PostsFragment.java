@@ -338,7 +338,7 @@ public class PostsFragment extends Fragment {
     if (this.pageNumber < this.totalPages) {
       this.curMinPost = this.curMinPost + POSTS_PER_PAGE;
       this.curMaxPost = this.curMaxPost + POSTS_PER_PAGE;
-      this.pageNumber += 1;
+      this.pageNumber++;
       this.loadPosts();
     }
   }
@@ -347,7 +347,7 @@ public class PostsFragment extends Fragment {
     if (this.pageNumber > 1) {
       this.curMinPost = this.curMinPost - POSTS_PER_PAGE;
       this.curMaxPost = this.curMaxPost - POSTS_PER_PAGE;
-      this.pageNumber -= 1;
+      this.pageNumber--;
       this.loadPosts();
     }
   }
