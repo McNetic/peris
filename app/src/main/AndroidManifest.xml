@@ -48,7 +48,7 @@
         </activity>
 
         <activity
-            android:name=".Discussions_Main"
+            android:name=".PerisMain"
             android:label="@string/app_title"
             android:uiOptions="splitActionBarWhenNarrow"></activity>
 

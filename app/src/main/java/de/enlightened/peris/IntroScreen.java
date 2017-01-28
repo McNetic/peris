@@ -867,7 +867,7 @@ public class IntroScreen extends FragmentActivity {
 
     stealingLink = false;
 
-    final Intent myIntent = new Intent(IntroScreen.this, Discussions_Main.class);
+    final Intent myIntent = new Intent(IntroScreen.this, PerisMain.class);
     myIntent.putExtras(bundle);
     startActivity(myIntent);
 
@@ -1093,7 +1093,7 @@ public class IntroScreen extends FragmentActivity {
         editor.putString(url + "_forumScrollPosition0", "0");
         editor.commit();
 
-        final Intent myIntent = new Intent(IntroScreen.this, Discussions_Main.class);
+        final Intent myIntent = new Intent(IntroScreen.this, PerisMain.class);
         startActivity(myIntent);
       }
     }
