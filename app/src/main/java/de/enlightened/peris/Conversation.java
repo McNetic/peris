@@ -223,7 +223,7 @@ public class Conversation extends FragmentActivity {
   }
 
   private void launchComposer() {
-    Intent myIntent = new Intent(Conversation.this, New_Post.class);
+    Intent myIntent = new Intent(Conversation.this, NewPost.class);
 
     Bundle bundle = new Bundle();
     bundle.putString("postid", (String) partner);

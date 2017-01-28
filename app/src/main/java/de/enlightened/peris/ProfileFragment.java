@@ -195,7 +195,7 @@ public class ProfileFragment extends Fragment {
   }
 
   private void sendMessage() {
-    Intent myIntent = new Intent(activity, New_Post.class);
+    Intent myIntent = new Intent(activity, NewPost.class);
 
     Bundle bundle = new Bundle();
     bundle.putString("postid", (String) "0");

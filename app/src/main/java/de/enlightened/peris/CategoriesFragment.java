@@ -708,7 +708,7 @@ public class CategoriesFragment extends ListFragment {
       return;
     }
 
-    final Intent myIntent = new Intent(this.activity, New_Post.class);
+    final Intent myIntent = new Intent(this.activity, NewPost.class);
 
     final Bundle bundle = new Bundle();
     bundle.putString("postid", (String) "0");

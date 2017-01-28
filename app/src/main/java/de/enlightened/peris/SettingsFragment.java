@@ -169,7 +169,7 @@ public class SettingsFragment extends Fragment {
 
   private void taglineEditor() {
 
-    Intent myIntent = new Intent(getActivity(), New_Post.class);
+    Intent myIntent = new Intent(getActivity(), NewPost.class);
 
     Bundle bundle = new Bundle();
     bundle.putString("postid", "0");

@@ -374,7 +374,7 @@ public class PostsFragment extends Fragment {
       final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
       toast.show();
     } else {
-      final Intent myIntent = new Intent(this.activity, New_Post.class);
+      final Intent myIntent = new Intent(this.activity, NewPost.class);
 
       final Bundle bundle = new Bundle();
       bundle.putString("postid", (String) "0");
@@ -401,7 +401,7 @@ public class PostsFragment extends Fragment {
       final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
       toast.show();
     } else {
-      final Intent myIntent = new Intent(this.activity, New_Post.class);
+      final Intent myIntent = new Intent(this.activity, NewPost.class);
       final Bundle bundle = new Bundle();
       bundle.putString("postid", (String) this.selectedPost.post_id);
       bundle.putString("parent", (String) this.threadId);
@@ -427,7 +427,7 @@ public class PostsFragment extends Fragment {
       final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
       toast.show();
     } else {
-      final Intent myIntent = new Intent(this.activity, New_Post.class);
+      final Intent myIntent = new Intent(this.activity, NewPost.class);
       final Bundle bundle = new Bundle();
       bundle.putString("postid", (String) "0");
       bundle.putString("parent", (String) this.threadId);
@@ -614,7 +614,7 @@ public class PostsFragment extends Fragment {
   }
 
   private void startConvo() {
-    final Intent myIntent = new Intent(this.activity, New_Post.class);
+    final Intent myIntent = new Intent(this.activity, NewPost.class);
     final Bundle bundle = new Bundle();
     bundle.putString("postid", (String) "0");
     bundle.putString("parent", (String) "0");
