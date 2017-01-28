@@ -28,39 +28,38 @@ import de.timroes.axmlrpc.XMLRPCServerException;
 @SuppressLint({"NewApi", "TrulyRandom"})
 public class Session {
 
+  private static final int MAX_ITEM_COUNT = 50;
   /*
-   *  Forum System Reference
-   *  ----------------------
-   *  0 - Unknown
-   *  1 - phpBB
-   *  2 - MyBB
-   *  3 - vBulletin
-   */
-  public int forumSystem = 0;
-  public long sessionId;
+     *  Forum System Reference
+     *  ----------------------
+     *  0 - Unknown
+     *  1 - phpBB
+     *  2 - MyBB
+     *  3 - vBulletin
+     */
+  private int forumSystem = 0;
+  private long sessionId;
   // Install the all-trusting trust manager
-  SSLContext sc;
+  private SSLContext sc;
   // Create empty HostnameVerifier
-  HostnameVerifier hv = new HostnameVerifier() {
-    public boolean verify(String arg0, SSLSession arg1) {
+  private HostnameVerifier hv = new HostnameVerifier() {
+    public boolean verify(final String hostname, final SSLSession session) {
       return true;
     }
   };
-  TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-    public X509Certificate[] getAcceptedIssuers() {
-      return null;
-    }
-
-    public void checkClientTrusted(X509Certificate[] certs,
-                                   String authType) {
-      // Trust always
-    }
-
-    public void checkServerTrusted(X509Certificate[] certs,
-                                   String authType) {
-      // Trust always
-    }
-  }};
+  private TrustManager[] trustAllCerts = new TrustManager[] {
+      new X509TrustManager() {
+        public X509Certificate[] getAcceptedIssuers() {
+          return null;
+        }
+        public void checkClientTrusted(final X509Certificate[] certs, final String authType) {
+          // Trust always
+        }
+        public void checkServerTrusted(final X509Certificate[] certs, final String authType) {
+          // Trust always
+        }
+      },
+  };
   private Context context;
   private Server currentServer;
   private SQLiteDatabase notetasticDB;
@@ -71,199 +70,192 @@ public class Session {
   private PerisApp application;
   private SessionListener sessionListener = null;
 
-  public Session(Context c, PerisApp app) {
-    context = c;
-    application = app;
-    sessionId = new Date().getTime();
+  public Session(final Context c, final PerisApp app) {
+    this.context = c;
+    this.application = app;
+    this.sessionId = new Date().getTime();
 
-    Log.i("Peris", "*** NEW SESSION (" + sessionId + ") ***");
+    Log.i("Peris", "*** NEW SESSION (" + this.sessionId + ") ***");
   }
 
-  public String getAvatarName() {
-    return avatarSubmissionName;
+  public final String getAvatarName() {
+    return this.avatarSubmissionName;
   }
 
-  public Server getServer() {
+  public final Server getServer() {
 
-    if (currentServer == null) {
-      currentServer = new Server();
-      currentServer.serverColor = context.getString(R.string.default_color);
-      currentServer.serverTheme = context.getString(R.string.default_theme);
+    if (this.currentServer == null) {
+      this.currentServer = new Server();
+      this.currentServer.serverColor = this.context.getString(R.string.default_color);
+      this.currentServer.serverTheme = this.context.getString(R.string.default_theme);
     }
-
-    return currentServer;
+    return this.currentServer;
   }
 
-  public void setServer(Server server) {
-    currentServer = server;
+  public final void setServer(final Server server) {
+    this.currentServer = server;
 
     if (server.serverTagline.contentEquals("[*WEBVIEW*]")) {
       return;
     }
 
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      new fetchForumConfiguration().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      new FetchForumConfigurationTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     } else {
-      new fetchForumConfiguration().execute();
+      new FetchForumConfigurationTask().execute();
     }
   }
 
-  public Map<String, String> getCookies() {
+  public final Map<String, String> getCookies() {
 
-    if (newClient == null) {
+    if (this.newClient == null) {
       return null;
     }
-
-    Map<String, String> cookies = newClient.getCookies();
-
-    return cookies;
+    return this.newClient.getCookies();
   }
 
-  public void loginSession(String username, String password) {
-    currentServer.serverUserName = username;
-    currentServer.serverPassword = password;
+  public final void loginSession(final String username, final String password) {
+    this.currentServer.serverUserName = username;
+    this.currentServer.serverPassword = password;
 
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      new connectSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      new ConnectSessionTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     } else {
-      new connectSession().execute();
+      new ConnectSessionTask().execute();
     }
   }
 
-  public void logOutSession() {
-    if (currentServer == null) {
+  public final void logOutSession() {
+    if (this.currentServer == null) {
       return;
     }
 
-    currentServer.serverUserId = "0";
-    currentServer.serverUserName = "0";
-    currentServer.serverPassword = "0";
-    currentServer.serverPostcount = "0";
-    currentServer.serverTab = "0";
-    currentServer.serverAvatar = "0";
+    this.currentServer.serverUserId = "0";
+    this.currentServer.serverUserName = "0";
+    this.currentServer.serverPassword = "0";
+    this.currentServer.serverPostcount = "0";
+    this.currentServer.serverTab = "0";
+    this.currentServer.serverAvatar = "0";
 
-    updateServer();
+    this.updateServer();
   }
 
-  public void refreshLogin() {
-    if (currentServer != null) {
-      if (!currentServer.serverUserId.contentEquals("0")) {
+  public final void refreshLogin() {
+    if (this.currentServer != null) {
+      if (!this.currentServer.serverUserId.contentEquals("0")) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-          new connectSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+          new ConnectSessionTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
-          new connectSession().execute();
+          new ConnectSessionTask().execute();
         }
       }
     }
   }
 
-  public void updateSpecificServer(Server server) {
+  public final void updateSpecificServer(final Server server) {
 
-    notetasticDB = context.openOrCreateDatabase("peris", Context.MODE_PRIVATE, null);
+    this.notetasticDB = this.context.openOrCreateDatabase("peris", Context.MODE_PRIVATE, null);
 
-    String cleanId = DatabaseUtils.sqlEscapeString(server.serverId);
-    String cleanUserid = DatabaseUtils.sqlEscapeString(server.serverUserId);
-    String cleanUsername = DatabaseUtils.sqlEscapeString(server.serverUserName);
-    String cleanPassword = DatabaseUtils.sqlEscapeString(server.serverPassword);
-    String cleanTagline = DatabaseUtils.sqlEscapeString(server.serverTagline);
-    String cleanAvatar = DatabaseUtils.sqlEscapeString(server.serverAvatar);
-    String cleanPostcount = DatabaseUtils.sqlEscapeString(server.serverPostcount);
-    String cleanColor = DatabaseUtils.sqlEscapeString(server.serverColor);
-    String cleanCookies = DatabaseUtils.sqlEscapeString(server.serverCookies);
-    String cleanTheme = DatabaseUtils.sqlEscapeString(server.serverTheme);
-    String cleanTab = DatabaseUtils.sqlEscapeString(server.serverTab);
-    String cleanChatThread = DatabaseUtils.sqlEscapeString(server.chatThread);
-    String cleanChatForum = DatabaseUtils.sqlEscapeString(server.chatForum);
-    String cleanChatName = DatabaseUtils.sqlEscapeString(server.chatName);
-    String cleanIcon = DatabaseUtils.sqlEscapeString(server.serverIcon);
-    String cleanname = DatabaseUtils.sqlEscapeString(server.serverName);
-    String cleanBackground = DatabaseUtils.sqlEscapeString(server.serverBackground);
+    final String cleanId = DatabaseUtils.sqlEscapeString(server.serverId);
+    final String cleanUserid = DatabaseUtils.sqlEscapeString(server.serverUserId);
+    final String cleanUsername = DatabaseUtils.sqlEscapeString(server.serverUserName);
+    final String cleanPassword = DatabaseUtils.sqlEscapeString(server.serverPassword);
+    final String cleanTagline = DatabaseUtils.sqlEscapeString(server.serverTagline);
+    final String cleanAvatar = DatabaseUtils.sqlEscapeString(server.serverAvatar);
+    final String cleanPostcount = DatabaseUtils.sqlEscapeString(server.serverPostcount);
+    final String cleanColor = DatabaseUtils.sqlEscapeString(server.serverColor);
+    final String cleanCookies = DatabaseUtils.sqlEscapeString(server.serverCookies);
+    final String cleanTheme = DatabaseUtils.sqlEscapeString(server.serverTheme);
+    final String cleanTab = DatabaseUtils.sqlEscapeString(server.serverTab);
+    final String cleanChatThread = DatabaseUtils.sqlEscapeString(server.chatThread);
+    final String cleanChatForum = DatabaseUtils.sqlEscapeString(server.chatForum);
+    final String cleanChatName = DatabaseUtils.sqlEscapeString(server.chatName);
+    final String cleanIcon = DatabaseUtils.sqlEscapeString(server.serverIcon);
+    final String cleanname = DatabaseUtils.sqlEscapeString(server.serverName);
+    final String cleanBackground = DatabaseUtils.sqlEscapeString(server.serverBackground);
 
-    String cleanBoxColor = DatabaseUtils.sqlEscapeString(server.serverBoxColor);
-    String cleanBoxBorder = DatabaseUtils.sqlEscapeString(server.serverBoxBorder);
-    String cleanTextColor = DatabaseUtils.sqlEscapeString(server.serverTextColor);
-    String cleanDividerColor = DatabaseUtils.sqlEscapeString(server.serverDividerColor);
-    String cleanWallpaper = DatabaseUtils.sqlEscapeString(server.serverWallpaper);
+    final String cleanBoxColor = DatabaseUtils.sqlEscapeString(server.serverBoxColor);
+    final String cleanBoxBorder = DatabaseUtils.sqlEscapeString(server.serverBoxBorder);
+    final String cleanTextColor = DatabaseUtils.sqlEscapeString(server.serverTextColor);
+    final String cleanDividerColor = DatabaseUtils.sqlEscapeString(server.serverDividerColor);
+    final String cleanWallpaper = DatabaseUtils.sqlEscapeString(server.serverWallpaper);
 
-    String cleanFFChat = DatabaseUtils.sqlEscapeString(server.ffChatId);
+    final String cleanFFChat = DatabaseUtils.sqlEscapeString(server.ffChatId);
 
-    String cleanAnalytics = DatabaseUtils.sqlEscapeString(server.analyticsId);
-    String cleanMobfox = DatabaseUtils.sqlEscapeString(server.mobfoxId);
+    final String cleanAnalytics = DatabaseUtils.sqlEscapeString(server.analyticsId);
+    final String cleanMobfox = DatabaseUtils.sqlEscapeString(server.mobfoxId);
 
-    sql = "update accountlist set color = " + cleanColor + ", username = " + cleanUsername + ", password = " + cleanPassword + ", userid = " + cleanUserid + ", avatar = " + cleanAvatar + ", postcount = " + cleanPostcount + ", themeInt = " + cleanTheme + ", cookieCount = " + cleanCookies + ", lastTab = " + cleanTab + ", tagline = " + cleanTagline + ", chatThread = " + cleanChatThread + ", chatForum = " + cleanChatForum + ", chatName = " + cleanChatName + ", icon = " + cleanIcon + ", servername = " + cleanname + ", background = " + cleanBackground + ", boxcolor = " + cleanBoxColor + ", boxborder = " + cleanBoxBorder + ", textcolor = " + cleanTextColor + ", dividercolor = " + cleanDividerColor + ", wallpaper = " + cleanWallpaper + ", ffchat = " + cleanFFChat + ", analytics = " + cleanAnalytics + ", mobfox = " + cleanMobfox + " where _id = " + cleanId + ";";
+    this.sql = "update accountlist set color = " + cleanColor + ", username = " + cleanUsername + ", password = " + cleanPassword + ", userid = " + cleanUserid + ", avatar = " + cleanAvatar + ", postcount = " + cleanPostcount + ", themeInt = " + cleanTheme + ", cookieCount = " + cleanCookies + ", lastTab = " + cleanTab + ", tagline = " + cleanTagline + ", chatThread = " + cleanChatThread + ", chatForum = " + cleanChatForum + ", chatName = " + cleanChatName + ", icon = " + cleanIcon + ", servername = " + cleanname + ", background = " + cleanBackground + ", boxcolor = " + cleanBoxColor + ", boxborder = " + cleanBoxBorder + ", textcolor = " + cleanTextColor + ", dividercolor = " + cleanDividerColor + ", wallpaper = " + cleanWallpaper + ", ffchat = " + cleanFFChat + ", analytics = " + cleanAnalytics + ", mobfox = " + cleanMobfox + " where _id = " + cleanId + ";";
 
     try {
-      notetasticDB.execSQL(sql);
+      this.notetasticDB.execSQL(this.sql);
     } catch (Exception ex) {
+      Log.d("Peris", ex.getMessage());
       //fuck it for now
     }
-    notetasticDB.close();
+    this.notetasticDB.close();
   }
 
-  public void updateServer() {
-
-    if (currentServer == null) {
+  public final void updateServer() {
+    if (this.currentServer == null) {
       return;
     }
-
-    updateSpecificServer(currentServer);
+    this.updateSpecificServer(this.currentServer);
   }
 
-  public void setSessionListener(SessionListener l) {
-    sessionListener = l;
+  public final void setSessionListener(final SessionListener l) {
+    this.sessionListener = l;
   }
 
   @SuppressWarnings("rawtypes")
-  public Object performSynchronousCall(String method, Vector parms) {
-
-    return performNewSynchronousCall(method, parms);
-
+  public final Object performSynchronousCall(final String method, final Vector parms) {
+    return this.performNewSynchronousCall(method, parms);
   }
 
   @SuppressLint("TrulyRandom")
   @SuppressWarnings("rawtypes")
-  public Object performNewSynchronousCall(String method, Vector parms) {
+  public final Object performNewSynchronousCall(final String method, final Vector parms) {
 
     Log.d("Peris", "Performing New Server Call: Method = " + method);
     try {
-      Object[] parmsobject = new Object[parms.size()];
+      final Object[] parmsobject = new Object[parms.size()];
       for (int i = 0; i < parms.size(); i++) {
         parmsobject[i] = parms.get(i);
       }
 
-      if (newClient == null) {
+      if (this.newClient == null) {
 
-        if (currentServer.serverAddress.contains("https")) {
-          sc = SSLContext.getInstance("SSL");
-          sc.init(null, trustAllCerts, new java.security.SecureRandom());
-          HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-          HttpsURLConnection.setDefaultHostnameVerifier(hv);
+        if (this.currentServer.serverAddress.contains("https")) {
+          this.sc = SSLContext.getInstance("SSL");
+          this.sc.init(null, this.trustAllCerts, new java.security.SecureRandom());
+          HttpsURLConnection.setDefaultSSLSocketFactory(this.sc.getSocketFactory());
+          HttpsURLConnection.setDefaultHostnameVerifier(this.hv);
         }
-        newClient = new XMLRPCClient(new URL(currentServer.serverAddress + "/mobiquo/mobiquo.php"), XMLRPCClient.FLAGS_ENABLE_COOKIES);
+        this.newClient = new XMLRPCClient(new URL(this.currentServer.serverAddress + "/mobiquo/mobiquo.php"), XMLRPCClient.FLAGS_ENABLE_COOKIES);
       }
 
-      return newClient.call(method, parmsobject);
+      return this.newClient.call(method, parmsobject);
 
     } catch (XMLRPCServerException ex) {
-      Log.e(context.getString(R.string.app_name), "Error with tapatalk call er1: " + method);
+      Log.e(this.context.getString(R.string.app_name), "Error with tapatalk call er1: " + method);
       if (ex.getMessage() != null) {
-        Log.e(context.getString(R.string.app_name), ex.getMessage());
+        Log.e(this.context.getString(R.string.app_name), ex.getMessage());
       } else {
-        Log.e(context.getString(R.string.app_name), "(no message available)");
+        Log.e(this.context.getString(R.string.app_name), "(no message available)");
       }
     } catch (XMLRPCException ex) {
-      Log.e(context.getString(R.string.app_name), "Error with tapatalk call er2: " + method);
+      Log.e(this.context.getString(R.string.app_name), "Error with tapatalk call er2: " + method);
       if (ex.getMessage() != null) {
-        Log.e(context.getString(R.string.app_name), ex.getMessage());
+        Log.e(this.context.getString(R.string.app_name), ex.getMessage());
       } else {
-        Log.e(context.getString(R.string.app_name), "(no message available)");
+        Log.e(this.context.getString(R.string.app_name), "(no message available)");
       }
     } catch (Exception ex) {
-      Log.e(context.getString(R.string.app_name), "Error with tapatalk call er3: " + method);
+      Log.e(this.context.getString(R.string.app_name), "Error with tapatalk call er3: " + method);
       if (ex.getMessage() != null) {
-        Log.e(context.getString(R.string.app_name), ex.getMessage());
+        Log.e(this.context.getString(R.string.app_name), ex.getMessage());
       } else {
-        Log.e(context.getString(R.string.app_name), "(no message available)");
+        Log.e(this.context.getString(R.string.app_name), "(no message available)");
       }
     }
 
@@ -337,64 +329,61 @@ public class Session {
     */
   }
 
-  public boolean getAllowRegistration() {
-    return allowRegistration;
+  public final boolean getAllowRegistration() {
+    return this.allowRegistration;
+  }
+
+  public final int getForumSystem() {
+    return this.forumSystem;
   }
 
   public interface SessionListener {
-    public abstract void onSessionConnected();
-
-    public abstract void onSessionConnectionFailed(String reason);
+    void onSessionConnected();
+    void onSessionConnectionFailed(final String reason);
   }
 
-  private class connectSession extends AsyncTask<String, Void, Object[]> {
+  private class ConnectSessionTask extends AsyncTask<String, Void, Object[]> {
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(String... params) {
+    protected Object[] doInBackground(final String... params) {
 
-      Object[] result = new Object[50];
+      final Object[] result = new Object[MAX_ITEM_COUNT];
 
       Log.i("Peris", "Attempting u:" + currentServer.serverUserName + "    " + "p:" + currentServer.serverPassword);
 
       try {
-        Vector paramz = new Vector();
+        final Vector paramz = new Vector();
         paramz.addElement(currentServer.serverUserName.getBytes());
         paramz.addElement(currentServer.serverPassword.getBytes());
 
         result[0] = performSynchronousCall("login", paramz);
 
       } catch (Exception ex) {
-        //what evs
+        Log.d("Peris", ex.getMessage());
       }
 
       return result;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "checkstyle:requirethis", "checkstyle:nestedifdepth"})
     protected void onPostExecute(final Object[] result) {
 
       if (result == null) {
         sessionListener.onSessionConnectionFailed("Login Failed.");
-        return;
-      }
-
-      if (result[0] != null) {
-        HashMap map = (HashMap) result[0];
+      } else if (result[0] != null) {
+        final HashMap map = (HashMap) result[0];
 
         if (map.containsKey("result")) {
-
-          Boolean loginSuccess = (Boolean) map.get("result");
-
+          final Boolean loginSuccess = (Boolean) map.get("result");
           if (loginSuccess) {
-
             // Submit server login stat to forum owners' analytics account
             if (currentServer.analyticsId != null && !currentServer.analyticsId.contentEquals("0")) {
               application.getAnalyticsHelper().trackCustomEvent(currentServer.analyticsId, "ff_user", "connected", currentServer.serverUserName);
             }
 
             if (map.containsKey("login_name")) {
-              String loginName = new String((byte[]) map.get("login_name"));
+              final String loginName = new String((byte[]) map.get("login_name"));
               Log.i(context.getString(R.string.app_name), "User login_name is " + loginName);
             } else {
               Log.e(context.getString(R.string.app_name), "Server provides no login_name information!");
@@ -417,7 +406,7 @@ public class Session {
             }
 
             if (map.containsKey("can_profile")) {
-              boolean canProfile = (Boolean) map.get("can_profile");
+              final boolean canProfile = (Boolean) map.get("can_profile");
 
               if (canProfile) {
                 Log.i(context.getString(R.string.app_name), "Use can view and edit profiles!");
@@ -431,61 +420,50 @@ public class Session {
             if (sessionListener != null) {
               sessionListener.onSessionConnected();
             }
-
+            if (currentServer.serverUserId == null) {
+              currentServer.serverUserId = "0";
+            }
+            updateServer();
           } else {
             if (map.containsKey("result_text")) {
-              String failReason = new String((byte[]) map.get("result_text"));
+              final String failReason = new String((byte[]) map.get("result_text"));
               sessionListener.onSessionConnectionFailed(failReason);
-              return;
             } else {
               if (sessionListener != null) {
                 sessionListener.onSessionConnectionFailed("Wrong username or password.");
               }
-              return;
             }
-
-
           }
         } else {
           sessionListener.onSessionConnectionFailed("No result key.");
-          return;
         }
       } else {
         if (sessionListener != null) {
           sessionListener.onSessionConnectionFailed("Login attempt failed.");
         }
-        return;
       }
-
-      if (currentServer.serverUserId == null) {
-        currentServer.serverUserId = "0";
-      }
-
-      updateServer();
     }
   }
 
-  private class fetchForumConfiguration extends AsyncTask<String, Void, Object[]> {
+  private class FetchForumConfigurationTask extends AsyncTask<String, Void, Object[]> {
 
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(String... params) {
+    protected Object[] doInBackground(final String... params) {
 
-      Object[] result = new Object[50];
+      final Object[] result = new Object[MAX_ITEM_COUNT];
 
       try {
-        Vector paramz = new Vector();
+        final Vector paramz = new Vector();
         result[0] = performSynchronousCall("get_config", paramz);
 
       } catch (Exception ex) {
-        //what evs
+        Log.d("Peris", ex.getMessage());
       }
-
-
       return result;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
     protected void onPostExecute(final Object[] result) {
             /*
        *
@@ -498,9 +476,9 @@ public class Session {
         sessionListener.onSessionConnected();
       } else {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-          new connectSession().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+          new ConnectSessionTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
-          new connectSession().execute();
+          new ConnectSessionTask().execute();
         }
       }
 
@@ -511,16 +489,16 @@ public class Session {
 
       //Parse tapatalk api data
       if (result[0] != null) {
-        HashMap map = (HashMap) result[0];
+        final HashMap map = (HashMap) result[0];
 
-              /*
-              if(map.containsKey("api_level")) {
-                String api = (String) map.get("api_level");
-              }
-              */
+        /*
+        if(map.containsKey("api_level")) {
+          String api = (String) map.get("api_level");
+        }
+        */
 
         if (map.containsKey("version")) {
-          String system = (String) map.get("version");
+          final String system = (String) map.get("version");
 
           Log.i(context.getString(R.string.app_name), "Forum system code is: " + system);
 
@@ -549,7 +527,7 @@ public class Session {
 
         // see if in-app registration is allowed
         if (map.containsKey("inappreg")) {
-          String regKey = (String) map.get("inappreg");
+          final String regKey = (String) map.get("inappreg");
           Log.i(context.getString(R.string.app_name), "Forum inappreg code is: " + regKey);
 
           if (regKey.contentEquals("1")) {
@@ -560,8 +538,6 @@ public class Session {
         Log.e(context.getString(R.string.app_name), "Unable to fetch configuration data!");
         return;
       }
-
-
     }
   }
 

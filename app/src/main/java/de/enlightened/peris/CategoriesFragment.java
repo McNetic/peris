@@ -171,7 +171,7 @@ public class CategoriesFragment extends ListFragment {
     if (shareId.contentEquals("0")) {
       this.shareURL = this.application.getSession().getServer().serverAddress;
     } else {
-      if (this.application.getSession().forumSystem == 1) {
+      if (this.application.getSession().getForumSystem() == 1) {
         this.shareURL = this.application.getSession().getServer().serverAddress + "/viewforum.php?f=" + shareId;
       }
     }
