@@ -955,7 +955,7 @@ public class CategoriesFragment extends ListFragment {
         application.getSession().performNewSynchronousCall("mark_all_as_read", paramz);
 
       } catch (Exception ex) {
-        Log.w("Discussions", ex.getMessage());
+        Log.w("Peris", ex.getMessage());
       }
 
       return result;
@@ -993,7 +993,7 @@ public class CategoriesFragment extends ListFragment {
         application.getSession().performNewSynchronousCall("subscribe_topic", paramz);
 
       } catch (Exception ex) {
-        Log.w("Discussions", ex.getMessage());
+        Log.w("Peris", ex.getMessage());
       }
 
       return "";
@@ -1022,7 +1022,7 @@ public class CategoriesFragment extends ListFragment {
           application.getSession().performNewSynchronousCall("unsubscribe_topic", paramz);
           return "";
         } catch (Exception ex) {
-          Log.w("Discussions", ex.getMessage());
+          Log.w("Peris", ex.getMessage());
         }
       }
       return null;
@@ -1152,7 +1152,7 @@ public class CategoriesFragment extends ListFragment {
         //application.getSession().performSynchronousCall("subscribe_forum", paramz);
         application.getSession().performNewSynchronousCall("subscribe_forum", paramz);
       } catch (Exception ex) {
-        Log.w("Discussions", ex.getMessage());
+        Log.w("Peris", ex.getMessage());
       }
       return "";
     }
@@ -1184,7 +1184,7 @@ public class CategoriesFragment extends ListFragment {
         //application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
         application.getSession().performNewSynchronousCall("unsubscribe_forum", paramz);
       } catch (Exception ex) {
-        Log.w("Discussions", ex.getMessage());
+        Log.w("Peris", ex.getMessage());
       }
       return "";
     }

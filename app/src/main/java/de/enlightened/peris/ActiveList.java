@@ -83,7 +83,7 @@ public class ActiveList extends ListFragment {
 
         result[0] = (HashMap) application.getSession().performSynchronousCall("get_online_users", paramz);
       } catch (Exception e) {
-        Log.w("Discussions", e.getMessage());
+        Log.w("Peris", e.getMessage());
         return null;
       }
       return result;
@@ -92,7 +92,7 @@ public class ActiveList extends ListFragment {
     @SuppressWarnings("rawtypes")
     protected void onPostExecute(final Object[] result) {
       if (result == null) {
-        Log.d("Discussions", "Null active list");
+        Log.d("Peris", "Null active list");
         return;
       }
 
@@ -168,10 +168,10 @@ public class ActiveList extends ListFragment {
           }.initialize(this.profileSelected));
 
         } catch (Exception ex) {
-          Log.d("Discussions", "ex1 - " + ex.getMessage());
+          Log.d("Peris", "ex1 - " + ex.getMessage());
         }
       } catch (Exception e) {
-        Log.d("Discussions", "ex2 - " + e.getMessage());
+        Log.d("Peris", "ex2 - " + e.getMessage());
       }
     }
   }

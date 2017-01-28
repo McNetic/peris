@@ -343,7 +343,7 @@ public class SocialFragment extends Fragment {
         result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
 
       } catch (Exception e) {
-        Log.w("Discussions", e.getMessage());
+        Log.w("Peris", e.getMessage());
         return null;
       }
 

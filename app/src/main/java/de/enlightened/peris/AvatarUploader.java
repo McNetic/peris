@@ -112,14 +112,14 @@ public class AvatarUploader {
 
       while ((line = reader.readLine()) != null) {
         xml = xml + line;
-        Log.d("Discussions", line);
+        Log.d("Peris", line);
       }
 
       result = reader.readLine();
 
     } catch (Exception ex) {
       //fuck it
-      Log.d("Discussions", ex.getMessage());
+      Log.d("Peris", ex.getMessage());
     }
     return result;
   }

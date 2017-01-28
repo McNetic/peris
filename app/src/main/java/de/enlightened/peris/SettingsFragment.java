@@ -149,7 +149,7 @@ public class SettingsFragment extends Fragment {
       application.getSession().performSynchronousCall("logout_user", paramz);
 
     } catch (Exception e) {
-      //Log.w("Discussions",e.getMessage());
+      //Log.w("Peris",e.getMessage());
     }
 
     SharedPreferences.Editor editor = preferences.edit();

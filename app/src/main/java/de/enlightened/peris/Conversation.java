@@ -279,7 +279,7 @@ public class Conversation extends FragmentActivity {
         result[0] = application.getSession().performSynchronousCall("get_message", paramz);
 
       } catch (Exception e) {
-        Log.w("Discussions", e.getMessage());
+        Log.w("Peris", e.getMessage());
         return null;
       }
       return result;
@@ -350,7 +350,7 @@ public class Conversation extends FragmentActivity {
 
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
       } catch (Exception e) {
-        Log.w("Discussions", e.getMessage());
+        Log.w("Peris", e.getMessage());
         return null;
       }
       return result;

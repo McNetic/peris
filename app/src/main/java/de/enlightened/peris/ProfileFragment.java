@@ -284,7 +284,7 @@ public class ProfileFragment extends Fragment {
         //thumbnail2 = Bitmap.createScaledBitmap(thumbnail2, 70, 70, false);
         uploadPic = thumbnail2;
 
-        Log.d("Discussions", "Avatar Size: " + uploadPic.getWidth() + "x" + uploadPic.getHeight());
+        Log.d("Peris", "Avatar Size: " + uploadPic.getWidth() + "x" + uploadPic.getHeight());
 
         submitpic();
 
@@ -341,7 +341,7 @@ public class ProfileFragment extends Fragment {
           //thumbnail2 = Bitmap.createScaledBitmap(thumbnail2, 70, 70, false);
           uploadPic = thumbnail2;
 
-          Log.d("Discussions", "Avatar Size: " + uploadPic.getWidth() + "x" + uploadPic.getHeight());
+          Log.d("Peris", "Avatar Size: " + uploadPic.getWidth() + "x" + uploadPic.getHeight());
 
           submitpic();
 
@@ -384,7 +384,7 @@ public class ProfileFragment extends Fragment {
 
       try {
 
-        Log.d("Discussions", "Viewing profile of " + userName);
+        Log.d("Peris", "Viewing profile of " + userName);
 
         Vector paramz = new Vector();
         paramz.addElement(userName.getBytes());
