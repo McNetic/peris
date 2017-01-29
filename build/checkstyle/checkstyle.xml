@@ -153,7 +153,7 @@
         <!--<module name="IllegalToken"/>-->
         <module name="IllegalTokenText"/>
         <module name="MagicNumber">
-            <property name="ignoreNumbers" value="-1,0,1,2,3,4,5,6,7"/>
+            <property name="ignoreNumbers" value="-1,0,1,2,3,4,5,6,7,8,9"/>
         </module>
         <module name="ModifiedControlVariable"/>
         <module name="MultipleVariableDeclarations"/>
