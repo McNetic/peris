@@ -28,6 +28,14 @@ import java.util.ArrayList;
 import java.util.WeakHashMap;
 
 public class MagicTextView extends TextView {
+  private static final int DEFAULT_FOREGROUND_COLOR = 0xff000000;
+  private static final int DEFAULT_BACKGROUND_COLOR = 0xff000000;
+  private static final int DEFAULT_INNERSHADOW_COLOR = 0xff000000;
+  private static final int DEFAULT_OUTERSHADOW_COLOR = 0xff000000;
+  private static final int DEFAULT_STROKE_COLOR = 0xff000000;
+  private static final float DEFAULT_STROKE_MITER = 10.0F;
+  private static final float DEFAULT_SHADOW_RADIUS = 0.0001F;
+  private static final int DEFAULT_TEXT_COLOR = 0xff000000;
   private ArrayList<Shadow> outerShadows;
   private ArrayList<Shadow> innerShadows;
 
@@ -46,54 +54,54 @@ public class MagicTextView extends TextView {
   private int[] lockedCompoundPadding;
   private boolean frozen = false;
 
-  public MagicTextView(Context context) {
+  public MagicTextView(final Context context) {
     super(context);
-    init(null);
+    this.init(null);
   }
 
-  public MagicTextView(Context context, AttributeSet attrs) {
+  public MagicTextView(final Context context, final AttributeSet attrs) {
     super(context, attrs);
-    init(attrs);
+    this.init(attrs);
   }
 
-  public MagicTextView(Context context, AttributeSet attrs, int defStyle) {
+  public MagicTextView(final Context context, final AttributeSet attrs, final int defStyle) {
     super(context, attrs, defStyle);
-    init(attrs);
+    this.init(attrs);
   }
 
   @SuppressLint("Recycle")
   @SuppressWarnings("deprecation")
-  public void init(AttributeSet attrs) {
-    outerShadows = new ArrayList<Shadow>();
-    innerShadows = new ArrayList<Shadow>();
-    if (canvasStore == null) {
-      canvasStore = new WeakHashMap<String, Pair<Canvas, Bitmap>>();
+  public final void init(final AttributeSet attrs) {
+    this.outerShadows = new ArrayList<Shadow>();
+    this.innerShadows = new ArrayList<Shadow>();
+    if (this.canvasStore == null) {
+      this.canvasStore = new WeakHashMap<String, Pair<Canvas, Bitmap>>();
     }
 
     if (attrs != null) {
-      TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.MagicTextView);
+      final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.MagicTextView);
 
-      String typefaceName = a.getString(R.styleable.MagicTextView_typeface);
+      final String typefaceName = a.getString(R.styleable.MagicTextView_typeface);
       if (typefaceName != null) {
-        Typeface tf = Typeface.createFromAsset(getContext().getAssets(), String.format("fonts/%s.ttf", typefaceName));
+        final Typeface tf = Typeface.createFromAsset(getContext().getAssets(), String.format("fonts/%s.ttf", typefaceName));
         setTypeface(tf);
       }
 
       if (a.hasValue(R.styleable.MagicTextView_foreground)) {
-        Drawable foreground = a.getDrawable(R.styleable.MagicTextView_foreground);
+        final Drawable foreground = a.getDrawable(R.styleable.MagicTextView_foreground);
         if (foreground != null) {
           this.setForegroundDrawable(foreground);
         } else {
-          this.setTextColor(a.getColor(R.styleable.MagicTextView_foreground, 0xff000000));
+          this.setTextColor(a.getColor(R.styleable.MagicTextView_foreground, DEFAULT_FOREGROUND_COLOR));
         }
       }
 
       if (a.hasValue(R.styleable.MagicTextView_bgc)) {
-        Drawable background = a.getDrawable(R.styleable.MagicTextView_bgc);
+        final Drawable background = a.getDrawable(R.styleable.MagicTextView_bgc);
         if (background != null) {
           this.setBackgroundDrawable(background);
         } else {
-          this.setBackgroundColor(a.getColor(R.styleable.MagicTextView_bgc, 0xff000000));
+          this.setBackgroundColor(a.getColor(R.styleable.MagicTextView_bgc, DEFAULT_BACKGROUND_COLOR));
         }
       }
 
@@ -101,100 +109,95 @@ public class MagicTextView extends TextView {
         this.addInnerShadow(a.getDimensionPixelSize(R.styleable.MagicTextView_innerShadowRadius, 0),
             a.getDimensionPixelOffset(R.styleable.MagicTextView_innerShadowDx, 0),
             a.getDimensionPixelOffset(R.styleable.MagicTextView_innerShadowDy, 0),
-            a.getColor(R.styleable.MagicTextView_innerShadowColor, 0xff000000));
+            a.getColor(R.styleable.MagicTextView_innerShadowColor, DEFAULT_INNERSHADOW_COLOR));
       }
 
       if (a.hasValue(R.styleable.MagicTextView_outerShadowColor)) {
         this.addOuterShadow(a.getDimensionPixelSize(R.styleable.MagicTextView_outerShadowRadius, 0),
             a.getDimensionPixelOffset(R.styleable.MagicTextView_outerShadowDx, 0),
             a.getDimensionPixelOffset(R.styleable.MagicTextView_outerShadowDy, 0),
-            a.getColor(R.styleable.MagicTextView_outerShadowColor, 0xff000000));
+            a.getColor(R.styleable.MagicTextView_outerShadowColor, DEFAULT_OUTERSHADOW_COLOR));
       }
 
       if (a.hasValue(R.styleable.MagicTextView_strokeColor)) {
-        float strokeWidth = a.getDimensionPixelSize(R.styleable.MagicTextView_strokeWidth, 1);
-        int strokeColor = a.getColor(R.styleable.MagicTextView_strokeColor, 0xff000000);
-        float strokeMiter = a.getDimensionPixelSize(R.styleable.MagicTextView_strokeMiter, 10);
-        Join strokeJoin = null;
+        final float setStrokeWidth = a.getDimensionPixelSize(R.styleable.MagicTextView_strokeWidth, 1);
+        final int setStrokeColor = a.getColor(R.styleable.MagicTextView_strokeColor, DEFAULT_STROKE_COLOR);
+        final float setStrokeMiter = a.getDimensionPixelSize(R.styleable.MagicTextView_strokeMiter, 10);
+        final Join setStrokeJoin;
         switch (a.getInt(R.styleable.MagicTextView_strokeJoinStyle, 0)) {
-          case (0):
-            strokeJoin = Join.MITER;
+          case 0:
+            setStrokeJoin = Join.MITER;
             break;
-          case (1):
-            strokeJoin = Join.BEVEL;
+          case 1:
+            setStrokeJoin = Join.BEVEL;
             break;
-          case (2):
-            strokeJoin = Join.ROUND;
+          case 2:
+            setStrokeJoin = Join.ROUND;
             break;
+          default:
+            setStrokeJoin = null;
         }
-        this.setStroke(strokeWidth, strokeColor, strokeJoin, strokeMiter);
+        this.setStroke(setStrokeWidth, setStrokeColor, setStrokeJoin, setStrokeMiter);
       }
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB
-        && (innerShadows.size() > 0
-        || foregroundDrawable != null
+        && (this.innerShadows.size() > 0
+        || this.foregroundDrawable != null
     )
         ) {
-      setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+      this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
     }
   }
 
-  public void setStroke(float width, int color, Join join, float miter) {
-    strokeWidth = width;
-    strokeColor = color;
-    strokeJoin = join;
-    strokeMiter = miter;
+  public final void setStroke(final float width, final int color, final Join join, final float miter) {
+    this.strokeWidth = width;
+    this.strokeColor = color;
+    this.strokeJoin = join;
+    this.strokeMiter = miter;
   }
 
-  public void setStroke(float width, int color) {
-    setStroke(width, color, Join.MITER, 10);
+  public final void setStroke(final float width, final int color) {
+    this.setStroke(width, color, Join.MITER, DEFAULT_STROKE_MITER);
   }
 
-  public void addOuterShadow(float r, float dx, float dy, int color) {
-    if (r == 0) {
-      r = 0.0001f;
-    }
-    outerShadows.add(new Shadow(r, dx, dy, color));
+  public final void addOuterShadow(final float r, final float dx, final float dy, final int color) {
+   this.outerShadows.add(new Shadow(r == 0 ? DEFAULT_SHADOW_RADIUS : r, dx, dy, color));
   }
 
-  public void addInnerShadow(float r, float dx, float dy, int color) {
-    if (r == 0) {
-      r = 0.0001f;
-    }
-    innerShadows.add(new Shadow(r, dx, dy, color));
+  public final void addInnerShadow(final float r, final float dx, final float dy, final int color) {
+    this.innerShadows.add(new Shadow(r == 0 ? DEFAULT_SHADOW_RADIUS : r, dx, dy, color));
   }
 
-  public void clearInnerShadows() {
-    innerShadows.clear();
+  public final void clearInnerShadows() {
+    this.innerShadows.clear();
   }
 
-  public void clearOuterShadows() {
-    outerShadows.clear();
+  public final void clearOuterShadows() {
+    this.outerShadows.clear();
   }
 
-  public void setForegroundDrawable(Drawable d) {
+  public final void setForegroundDrawable(final Drawable d) {
     this.foregroundDrawable = d;
   }
 
-  public Drawable getForeground() {
+  public final Drawable getForeground() {
     return this.foregroundDrawable == null ? this.foregroundDrawable : new ColorDrawable(this.getCurrentTextColor());
   }
-
 
   @SuppressLint("DrawAllocation")
   @SuppressWarnings("deprecation")
   @Override
-  public void onDraw(Canvas canvas) {
+  public final void onDraw(final Canvas canvas) {
     super.onDraw(canvas);
 
-    freeze();
-    Drawable restoreBackground = this.getBackground();
-    Drawable[] restoreDrawables = this.getCompoundDrawables();
-    int restoreColor = this.getCurrentTextColor();
+    this.freeze();
+    final Drawable restoreBackground = this.getBackground();
+    final Drawable[] restoreDrawables = this.getCompoundDrawables();
+    final int restoreColor = this.getCurrentTextColor();
 
     this.setCompoundDrawables(null, null, null, null);
 
-    for (Shadow shadow : outerShadows) {
+    for (Shadow shadow : this.outerShadows) {
       this.setShadowLayer(shadow.r, shadow.dx, shadow.dy, shadow.color);
       super.onDraw(canvas);
     }
@@ -202,43 +205,43 @@ public class MagicTextView extends TextView {
     this.setTextColor(restoreColor);
 
     if (this.foregroundDrawable != null && this.foregroundDrawable instanceof BitmapDrawable) {
-      generateTempCanvas();
-      super.onDraw(tempCanvas);
-      Paint paint = ((BitmapDrawable) this.foregroundDrawable).getPaint();
+      this.generateTempCanvas();
+      super.onDraw(this.tempCanvas);
+      final Paint paint = ((BitmapDrawable) this.foregroundDrawable).getPaint();
       paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));
       this.foregroundDrawable.setBounds(canvas.getClipBounds());
-      this.foregroundDrawable.draw(tempCanvas);
-      canvas.drawBitmap(tempBitmap, 0, 0, null);
-      tempCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+      this.foregroundDrawable.draw(this.tempCanvas);
+      canvas.drawBitmap(this.tempBitmap, 0, 0, null);
+      this.tempCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
     }
 
-    if (strokeColor != null) {
-      TextPaint paint = this.getPaint();
+    if (this.strokeColor != null) {
+      final TextPaint paint = this.getPaint();
       paint.setStyle(Style.STROKE);
-      paint.setStrokeJoin(strokeJoin);
-      paint.setStrokeMiter(strokeMiter);
-      this.setTextColor(strokeColor);
-      paint.setStrokeWidth(strokeWidth);
+      paint.setStrokeJoin(this.strokeJoin);
+      paint.setStrokeMiter(this.strokeMiter);
+      this.setTextColor(this.strokeColor);
+      paint.setStrokeWidth(this.strokeWidth);
       super.onDraw(canvas);
       paint.setStyle(Style.FILL);
       this.setTextColor(restoreColor);
     }
-    if (innerShadows.size() > 0) {
-      generateTempCanvas();
-      TextPaint paint = this.getPaint();
-      for (Shadow shadow : innerShadows) {
+    if (this.innerShadows.size() > 0) {
+      this.generateTempCanvas();
+      final TextPaint paint = this.getPaint();
+      for (Shadow shadow : this.innerShadows) {
         this.setTextColor(shadow.color);
-        super.onDraw(tempCanvas);
-        this.setTextColor(0xFF000000);
+        super.onDraw(this.tempCanvas);
+        this.setTextColor(DEFAULT_TEXT_COLOR);
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
         paint.setMaskFilter(new BlurMaskFilter(shadow.r, BlurMaskFilter.Blur.NORMAL));
 
-        tempCanvas.save();
-        tempCanvas.translate(shadow.dx, shadow.dy);
-        super.onDraw(tempCanvas);
-        tempCanvas.restore();
-        canvas.drawBitmap(tempBitmap, 0, 0, null);
-        tempCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+        this.tempCanvas.save();
+        this.tempCanvas.translate(shadow.dx, shadow.dy);
+        super.onDraw(this.tempCanvas);
+        this.tempCanvas.restore();
+        canvas.drawBitmap(this.tempBitmap, 0, 0, null);
+        this.tempCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
         paint.setXfermode(null);
         paint.setMaskFilter(null);
@@ -254,98 +257,109 @@ public class MagicTextView extends TextView {
     this.setBackgroundDrawable(restoreBackground);
     this.setTextColor(restoreColor);
 
-    unfreeze();
+    this.unfreeze();
   }
 
   @SuppressLint("DefaultLocale")
   private void generateTempCanvas() {
-    String key = String.format("%dx%d", getWidth(), getHeight());
-    Pair<Canvas, Bitmap> stored = canvasStore.get(key);
+    final String key = String.format("%dx%d", getWidth(), getHeight());
+    final Pair<Canvas, Bitmap> stored = this.canvasStore.get(key);
     if (stored != null) {
-      tempCanvas = stored.first;
-      tempBitmap = stored.second;
+      this.tempCanvas = stored.first;
+      this.tempBitmap = stored.second;
     } else {
-      tempCanvas = new Canvas();
-      tempBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
-      tempCanvas.setBitmap(tempBitmap);
-      canvasStore.put(key, new Pair<Canvas, Bitmap>(tempCanvas, tempBitmap));
+      this.tempCanvas = new Canvas();
+      this.tempBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+      this.tempCanvas.setBitmap(this.tempBitmap);
+      this.canvasStore.put(key, new Pair<Canvas, Bitmap>(this.tempCanvas, this.tempBitmap));
     }
   }
 
 
   // Keep these things locked while onDraw in processing
-  public void freeze() {
-    lockedCompoundPadding = new int[]{
-        getCompoundPaddingLeft(),
-        getCompoundPaddingRight(),
-        getCompoundPaddingTop(),
-        getCompoundPaddingBottom()
+  public final void freeze() {
+    this.lockedCompoundPadding = new int[]{
+        this.getCompoundPaddingLeft(),
+        this.getCompoundPaddingRight(),
+        this.getCompoundPaddingTop(),
+        this.getCompoundPaddingBottom(),
     };
-    frozen = true;
+    this.frozen = true;
   }
 
-  public void unfreeze() {
-    frozen = false;
+  public final void unfreeze() {
+    this.frozen = false;
   }
-
 
   @Override
   public void requestLayout() {
-    if (!frozen) super.requestLayout();
+    if (!this.frozen) {
+      super.requestLayout();
+    }
   }
 
   @Override
   public void postInvalidate() {
-    if (!frozen) super.postInvalidate();
+    if (!this.frozen) {
+      super.postInvalidate();
+    }
   }
 
   @Override
-  public void postInvalidate(int left, int top, int right, int bottom) {
-    if (!frozen) super.postInvalidate(left, top, right, bottom);
+  public void postInvalidate(final int left, final int top, final int right, final int bottom) {
+    if (!this.frozen) {
+      super.postInvalidate(left, top, right, bottom);
+    }
   }
 
   @Override
   public void invalidate() {
-    if (!frozen) super.invalidate();
+    if (!this.frozen) {
+      super.invalidate();
+    }
   }
 
   @Override
-  public void invalidate(Rect rect) {
-    if (!frozen) super.invalidate(rect);
+  public void invalidate(final Rect rect) {
+    if (!this.frozen) {
+      super.invalidate(rect);
+    }
   }
 
   @Override
-  public void invalidate(int l, int t, int r, int b) {
-    if (!frozen) super.invalidate(l, t, r, b);
+  public void invalidate(final int l, final int t, final int r, final int b) {
+    if (!this.frozen) {
+      super.invalidate(l, t, r, b);
+    }
   }
 
   @Override
   public int getCompoundPaddingLeft() {
-    return !frozen ? super.getCompoundPaddingLeft() : lockedCompoundPadding[0];
+    return !this.frozen ? super.getCompoundPaddingLeft() : this.lockedCompoundPadding[0];
   }
 
   @Override
   public int getCompoundPaddingRight() {
-    return !frozen ? super.getCompoundPaddingRight() : lockedCompoundPadding[1];
+    return !this.frozen ? super.getCompoundPaddingRight() : this.lockedCompoundPadding[1];
   }
 
   @Override
   public int getCompoundPaddingTop() {
-    return !frozen ? super.getCompoundPaddingTop() : lockedCompoundPadding[2];
+    return !this.frozen ? super.getCompoundPaddingTop() : this.lockedCompoundPadding[2];
   }
 
   @Override
   public int getCompoundPaddingBottom() {
-    return !frozen ? super.getCompoundPaddingBottom() : lockedCompoundPadding[3];
+    return !this.frozen ? super.getCompoundPaddingBottom() : this.lockedCompoundPadding[3];
   }
 
   public static class Shadow {
-    float r;
-    float dx;
-    float dy;
-    int color;
+    private float r;
+    private float dx;
+    private float dy;
+    private int color;
 
-    public Shadow(float r, float dx, float dy, int color) {
+    public Shadow(final float r, final float dx, final float dy, final int color) {
       this.r = r;
       this.dx = dx;
       this.dy = dy;
