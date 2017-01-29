@@ -117,7 +117,7 @@ public class PerisMain extends FragmentActivity {
 
     }
   };
-  private SettingsFragment.onProfileSelectedListener myProfileSelected = new SettingsFragment.onProfileSelectedListener() {
+  private SettingsFragment.ProfileSelectedListener myProfileSelected = new SettingsFragment.ProfileSelectedListener() {
 
     @Override
     @SuppressWarnings("checkstyle:requirethis")
@@ -160,7 +160,7 @@ public class PerisMain extends FragmentActivity {
 
     }
   };
-  private SettingsFragment.onIndexRequestedListener goToIndex = new SettingsFragment.onIndexRequestedListener() {
+  private SettingsFragment.IndexRequestedListener goToIndex = new SettingsFragment.IndexRequestedListener() {
 
     @Override
     @SuppressWarnings("checkstyle:requirethis")
@@ -210,7 +210,7 @@ public class PerisMain extends FragmentActivity {
     }
 
   };
-  private SettingsFragment.onSettingsRequestedListener settingsRequested = new SettingsFragment.onSettingsRequestedListener() {
+  private SettingsFragment.SettingsRequestedListener settingsRequested = new SettingsFragment.SettingsRequestedListener() {
 
     @Override
     @SuppressWarnings("checkstyle:requirethis")
@@ -218,7 +218,7 @@ public class PerisMain extends FragmentActivity {
       loadSettings();
     }
   };
-  private SettingsFragment.onCategorySelectedListener settingsCategorySelected = new SettingsFragment.onCategorySelectedListener() {
+  private SettingsFragment.CategorySelectedListener settingsCategorySelected = new SettingsFragment.CategorySelectedListener() {
 
     @SuppressWarnings("checkstyle:requirethis")
     public void onCategorySelected(final Category ca) {
