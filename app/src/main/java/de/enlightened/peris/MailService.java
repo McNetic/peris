@@ -27,34 +27,38 @@ import java.util.Vector;
 
 public class MailService extends Service {
 
-  int currentServer = 0;
+  private static final int SERVICE_TIMER = 20000000;
+  private static final int MAX_ITEM_COUNT = 50;
+  private static final int LED_ON_MS = 500;
+  private static final int LED_OFF_MS = 500;
+
+  private int currentServer = 0;
   private SQLiteDatabase notetasticDB;
   private String sql;
   private Session mailSession;
-  private int serviceTimer = 20000000;
   private ArrayList<Server> serverList;
 
   @Override
-  public IBinder onBind(Intent intent) {
+  public IBinder onBind(final Intent intent) {
     return null;
   }
 
   @Override
   public void onCreate() {
     super.onCreate();
-    initDatabase();
-    startservice();
+    this.initDatabase();
+    this.startservice();
   }
 
   @Override
   public void onDestroy() {
     super.onDestroy();
-    stopservice();
+    this.stopservice();
 
   }
 
   private void startservice() {
-    MyCount counter = new MyCount(serviceTimer, 1000);
+    final MyCount counter = new MyCount(SERVICE_TIMER, 1000);
     counter.start();
     Log.d("Peris", "Starting MailService");
   }
@@ -64,109 +68,98 @@ public class MailService extends Service {
   }
 
   private void routineMailCheck() {
+    this.mailSession = new Session(this, (PerisApp) this.getApplication());
+    this.serverList = new ArrayList<Server>();
+    this.notetasticDB = this.openOrCreateDatabase("peris", 0, null);
+    this.sql = "select * from accountlist;";
 
-    mailSession = new Session(this, ((PerisApp) getApplication()));
-
-    serverList = new ArrayList<Server>();
-
-    notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-
-    sql = "select * from accountlist;";
-
-    Cursor c = notetasticDB.rawQuery(sql, null);
+    final Cursor c = this.notetasticDB.rawQuery(this.sql, null);
 
     if (c == null) {
-      notetasticDB.close();
+      this.notetasticDB.close();
       return;
     }
 
     while (c.moveToNext()) {
-      Server server = IntroScreen.parseServerData(c);
-
+      final Server server = IntroScreen.parseServerData(c);
       Log.i("Peris", "Checking login data for server " + server.serverAddress);
 
       if (!server.serverUserId.contentEquals("0")) {
-        serverList.add(server);
+        this.serverList.add(server);
       }
-
-
     }
+    this.notetasticDB.close();
 
-    notetasticDB.close();
-
-    if (serverList.size() == 0) {
+    if (this.serverList.size() == 0) {
       Log.d("Peris", "No servers found, ending check.");
     }
 
-    currentServer = 0;
-    nextServer();
+    this.currentServer = 0;
+    this.nextServer();
   }
 
   private void nextServer() {
-    if ((currentServer + 1) > serverList.size()) {
+    if ((this.currentServer + 1) > this.serverList.size()) {
       return;
     }
 
-    Log.d("Peris", "MailService Tick - Checking " + serverList.get(currentServer).serverAddress);
+    Log.d("Peris", "MailService Tick - Checking " + this.serverList.get(this.currentServer).serverAddress);
 
-    mailSession.setSessionListener(new Session.SessionListener() {
+    this.mailSession.setSessionListener(new Session.SessionListener() {
 
       @Override
+      @SuppressWarnings("checkstyle:requirethis")
       public void onSessionConnected() {
-        new mailChecker().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mailSession.getServer());
+        new CheckMailTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, mailSession.getServer());
       }
 
       @Override
-      public void onSessionConnectionFailed(String reason) {
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onSessionConnectionFailed(final String reason) {
         nextServer();
       }
 
     });
-    mailSession.setServer(serverList.get(currentServer));
-    currentServer++;
+    this.mailSession.setServer(this.serverList.get(this.currentServer));
+    this.currentServer++;
   }
 
   //See if notification previously sent.  If not, make a new notification
-  private void processUnreadMessage(InboxItem ii, String server) {
-
-    boolean alreadyNotified = checkIfAlreadyNotified(server, Integer.parseInt(ii.sender_id));
-
-    if (alreadyNotified) {
+  private void processUnreadMessage(final InboxItem ii, final String server) {
+    if (this.checkIfAlreadyNotified(server, Integer.parseInt(ii.sender_id))) {
       return;
     }
-
     String notificationColor = getString(R.string.default_color);
-
-    String customColor = mailSession.getServer().serverColor;
+    final String customColor = this.mailSession.getServer().serverColor;
 
     if (customColor.contains("#")) {
       notificationColor = customColor;
     }
 
-    Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-    long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500};
+    final Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+    final long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500};
 
-    NotificationCompat.Builder mBuilder =
+    final NotificationCompat.Builder mBuilder =
         new NotificationCompat.Builder(MailService.this)
             .setSmallIcon(R.drawable.ic_launcher)
             .setContentTitle("New Message From " + ii.inbox_moderator)
             .setContentText(ii.inbox_sender)
             .setSound(alarmSound)
-            .setLights(Color.parseColor(notificationColor), 500, 500)
+            .setLights(Color.parseColor(notificationColor), LED_ON_MS, LED_OFF_MS)
             .setVibrate(pattern)
             .setAutoCancel(true);
 
-    Intent resultIntent = new Intent(MailService.this, Conversation.class);
-    Bundle bundle = new Bundle();
+    final Intent resultIntent = new Intent(MailService.this, Conversation.class);
+    final Bundle bundle = new Bundle();
     bundle.putString("id", (String) ii.sender_id);
     bundle.putString("boxid", (String) "0");
     bundle.putString("name", (String) ii.inbox_sender);
     bundle.putString("moderator", (String) ii.moderatorId);
     bundle.putString("background", (String) notificationColor);
-    bundle.putString("server", mailSession.getServer().serverId);
+    bundle.putString("server", this.mailSession.getServer().serverId);
     resultIntent.putExtras(bundle);
 
-    TaskStackBuilder stackBuilder = TaskStackBuilder.create(MailService.this);
+    final TaskStackBuilder stackBuilder = TaskStackBuilder.create(MailService.this);
     stackBuilder.addParentStack(Conversation.class);
     stackBuilder.addNextIntent(resultIntent);
 
@@ -175,111 +168,96 @@ public class MailService extends Service {
       flag = flag.substring(flag.length() - 5, flag.length());
     }
 
-    PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(flag), PendingIntent.FLAG_UPDATE_CURRENT);
+    final PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(flag), PendingIntent.FLAG_UPDATE_CURRENT);
     mBuilder.setContentIntent(resultPendingIntent);
 
-    NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    final NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     mNotificationManager.notify(Integer.parseInt(ii.sender_id), mBuilder.build());
 
-    insertNotificationIntoDatabase(server, Integer.parseInt(ii.sender_id));
+    this.insertNotificationIntoDatabase(server, Integer.parseInt(ii.sender_id));
   }
 
   private void initDatabase() {
-    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-    sql = "create table if not exists notifications(_id integer primary key,server varchar,message integer);";
-    notetasticDB.setVersion(4);
-    notetasticDB.execSQL(sql);
-    notetasticDB.close();
+    this.notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
+    this.sql = "create table if not exists notifications(_id integer primary key,server varchar,message integer);";
+    this.notetasticDB.setVersion(4);
+    this.notetasticDB.execSQL(this.sql);
+    this.notetasticDB.close();
   }
 
-  private void insertNotificationIntoDatabase(String server, int notification) {
-    String cleanServer = DatabaseUtils.sqlEscapeString(server);
+  private void insertNotificationIntoDatabase(final String server, final int notification) {
+    final String cleanServer = DatabaseUtils.sqlEscapeString(server);
 
-    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-    sql = "insert into notifications(server,message) values(" + cleanServer + "," + notification + ");";
-    notetasticDB.execSQL(sql);
-
-    notetasticDB.close();
+    this.notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
+    this.sql = "insert into notifications(server,message) values(" + cleanServer + "," + notification + ");";
+    this.notetasticDB.execSQL(this.sql);
+    this.notetasticDB.close();
   }
 
-  private boolean checkIfAlreadyNotified(String server, int notification) {
-    String cleanServer = DatabaseUtils.sqlEscapeString(server);
+  private boolean checkIfAlreadyNotified(final String server, final int notification) {
+    final String cleanServer = DatabaseUtils.sqlEscapeString(server);
 
-    notetasticDB = this.openOrCreateDatabase("peris", 0, null);
+    this.notetasticDB = this.openOrCreateDatabase("peris", 0, null);
+    this.sql = "select _id "
+        + "from notifications "
+        + "where server = " + cleanServer + " "
+        + "and message = " + notification + ";";
 
-    sql = "select _id " +
-        "from notifications " +
-        "where server = " + cleanServer + " " +
-        "and message = " + notification + ";";
-
-    Cursor c = notetasticDB.rawQuery(sql, null);
-
+    final Cursor c = this.notetasticDB.rawQuery(this.sql, null);
 
     if (c == null) {
-      notetasticDB.close();
-      return false;
+      this.notetasticDB.close();
+    } else if (c.getCount() == 0) {
+      this.notetasticDB.close();
+    } else {
+      this.notetasticDB.close();
+      return true;
     }
-
-    if (c.getCount() == 0) {
-      notetasticDB.close();
-      return false;
-    }
-
-    notetasticDB.close();
-
-    return true;
+    return false;
   }
 
   public class MyCount extends CountDownTimer {
 
-    public MyCount(long millisInFuture, long countDownInterval) {
+    public MyCount(final long millisInFuture, final long countDownInterval) {
       super(millisInFuture, countDownInterval);
     }
 
     @Override
+    @SuppressWarnings("checkstyle:requirethis")
     public void onFinish() {
-
       Log.d("Peris", "MailService Tick - Checking Mail");
       routineMailCheck();
 
-      MyCount counter = new MyCount(serviceTimer, 1000);
+      final MyCount counter = new MyCount(SERVICE_TIMER, 1000);
       counter.start();
     }
 
     @Override
-    public void onTick(long millisUntilFinished) {
+    public void onTick(final long millisUntilFinished) {
       //whatever
     }
 
   }
 
-  private class mailChecker extends AsyncTask<Server, Void, Object[]> {
-
+  private class CheckMailTask extends AsyncTask<Server, Void, Object[]> {
     private String currentServerAddress;
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(Server... params) {
-
+    protected Object[] doInBackground(final Server... params) {
       currentServerAddress = params[0].serverAddress;
-
-      Object[] result = new Object[50];
+      final Object[] result = new Object[MAX_ITEM_COUNT];
 
       try {
-
         Vector paramz = new Vector();
-
-        HashMap map = (HashMap) mailSession.performSynchronousCall("get_box_info", paramz);
-
-        Object[] boxes = (Object[]) map.get("list");
+        final HashMap map = (HashMap) mailSession.performSynchronousCall("get_box_info", paramz);
+        final Object[] boxes = (Object[]) map.get("list");
 
         String ourInboxId = "0";
 
         for (Object o : boxes) {
-          HashMap boxMap = (HashMap) o;
-
-          String boxType = (String) boxMap.get("box_type");
+          final HashMap boxMap = (HashMap) o;
+          final String boxType = (String) boxMap.get("box_type");
 
           if (boxType.contentEquals("INBOX")) {
             ourInboxId = (String) boxMap.get("box_id");
@@ -298,7 +276,7 @@ public class MailService extends Service {
       return result;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
     protected void onPostExecute(final Object[] result) {
       if (result == null) {
         //Toast toast = Toast.makeText(getActivity(), "Server connection timeout :-(", Toast.LENGTH_SHORT);
@@ -309,26 +287,20 @@ public class MailService extends Service {
       try {
 
         try {
-          ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
-
-
+          final ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
           for (Object o : result) {
-
             if (o != null) {
-              HashMap map = (HashMap) o;
+              final HashMap map = (HashMap) o;
 
               if (map.containsKey("list")) {
-                Object[] topics = (Object[]) map.get("list");
+                final Object[] topics = (Object[]) map.get("list");
                 for (Object t : topics) {
-
-                  HashMap topicMap = (HashMap) t;
-
-                  Date timestamp = (Date) topicMap.get("sent_date");
-
-                  InboxItem ii = new InboxItem();
+                  final HashMap topicMap = (HashMap) t;
+                  final Date timestamp = (Date) topicMap.get("sent_date");
+                  final InboxItem ii = new InboxItem();
 
                   if (topicMap.containsKey("msg_state")) {
-                    int state = (Integer) topicMap.get("msg_state");
+                    final int state = (Integer) topicMap.get("msg_state");
 
                     if (state == 1) {
                       ii.isUnread = true;
@@ -350,16 +322,13 @@ public class MailService extends Service {
               }
             }
           }
-
         } catch (Exception ex) {
-          //error
+          Log.d("Peris", ex.getMessage());
         }
       } catch (Exception e) {
-        //error
+        Log.d("Peris", e.getMessage());
       }
-
       nextServer();
     }
   }
-
 }
