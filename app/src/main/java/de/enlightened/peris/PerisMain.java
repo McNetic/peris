@@ -139,7 +139,7 @@ public class PerisMain extends FragmentActivity {
 
     }
   };
-  private SocialFragment.onProfileSelectedListener profileSocialSelected = new SocialFragment.onProfileSelectedListener() {
+  private SocialFragment.ProfileSelectedListener profileSocialSelected = new SocialFragment.ProfileSelectedListener() {
 
     @Override
     @SuppressWarnings("checkstyle:requirethis")

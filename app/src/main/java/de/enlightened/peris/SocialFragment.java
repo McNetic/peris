@@ -36,106 +36,90 @@ import java.util.Vector;
 @SuppressLint("NewApi")
 public class SocialFragment extends Fragment {
 
+  private static final int MAX_ITEM_COUNT = 50;
+  private static final int POSTS_PER_PAGE = 20;
+  private static final int SOCIAL_RATE = 30_000;
+  private static final long COUNTDOWN_INTERVAL = 1000;
+
   private ListView socialList;
-  private EditText new_status;
-
-  private Post selected_post;
-
+  private EditText newStatus;
+  private Post selectedPost;
   private String chatForum = "0";
   private String chatThread = "0";
-
-  private int socialRate = 30000;
-
-
-  private Button update_status_button;
-
-  private download_statuses socialLoader;
-
+  private Button updateStatusButton;
+  private DownloadStatusesTask socialLoader;
   private PerisApp application;
-
   private SocialTimer socialTimer;
-
   private String newChatId = "0";
-  private OnClickListener update_status = new OnClickListener() {
-
-    public void onClick(View v) {
+  private OnClickListener clickListener = new OnClickListener() {
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onClick(final View v) {
       submitPost();
     }
-
   };
-  private onProfileSelectedListener profileSelected = null;
+  private ProfileSelectedListener profileSelectedListener = null;
   private AdapterView.OnItemClickListener socailItemTapped = new AdapterView.OnItemClickListener() {
-
-    public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-
-      Post sender = (Post) arg0.getItemAtPosition(arg2);
-
-      if (profileSelected != null) {
-        profileSelected.onProfileSelected(sender.post_author, sender.post_author_id);
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
+      final Post sender = (Post) arg0.getItemAtPosition(arg2);
+      if (profileSelectedListener != null) {
+        profileSelectedListener.onProfileSelected(sender.post_author, sender.post_author_id);
       }
-
-
     }
-
   };
 
   @Override
-  public void onCreate(Bundle bundle) {
+  public void onCreate(final Bundle bundle) {
     super.onCreate(bundle);
 
-    application = (PerisApp) getActivity().getApplication();
+    this.application = (PerisApp) getActivity().getApplication();
 
-    newChatId = application.getSession().getServer().ffChatId;
+    this.newChatId = this.application.getSession().getServer().ffChatId;
 
-    Log.d("Peris", "newChatId is " + newChatId);
+    Log.d("Peris", "newChatId is " + this.newChatId);
 
     setHasOptionsMenu(true);
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-    View v = inflater.inflate(R.layout.social, container, false);
-    return v;
-  }
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.social, container, false);
+    }
 
   @Override
   public void onStart() {
 
     super.onStart();
 
-    chatForum = application.getSession().getServer().chatForum;
-    chatThread = application.getSession().getServer().chatThread;
+    this.chatForum = this.application.getSession().getServer().chatForum;
+    this.chatThread = this.application.getSession().getServer().chatThread;
+    this.socialList = (ListView) getActivity().findViewById(R.id.social_list_view);
+    this.socialList.setDivider(null);
+    this.updateStatusButton = (Button) getActivity().findViewById(R.id.social_submit_status);
+    this.newStatus = (EditText) getActivity().findViewById(R.id.social_status);
 
-    socialList = (ListView) getActivity().findViewById(R.id.social_list_view);
-    socialList.setDivider(null);
-
-    update_status_button = (Button) getActivity().findViewById(R.id.social_submit_status);
-    new_status = (EditText) getActivity().findViewById(R.id.social_status);
-
-    if (application.getSession().getServer().serverColor.contains("#")) {
-      update_status_button.setTextColor(Color.parseColor(application.getSession().getServer().serverColor));
+    if (this.application.getSession().getServer().serverColor.contains("#")) {
+      this.updateStatusButton.setTextColor(Color.parseColor(this.application.getSession().getServer().serverColor));
     }
 
-    if (application.getSession().getServer().serverTextColor.contains("#")) {
-      new_status.setTextColor(Color.parseColor(application.getSession().getServer().serverTextColor));
+    if (this.application.getSession().getServer().serverTextColor.contains("#")) {
+      this.newStatus.setTextColor(Color.parseColor(this.application.getSession().getServer().serverTextColor));
 
-      if (application.getSession().getServer().serverColor.contentEquals(application.getSession().getServer().serverBoxColor)) {
-        update_status_button.setTextColor(Color.parseColor(application.getSession().getServer().serverTextColor));
+      if (this.application.getSession().getServer().serverColor.contentEquals(this.application.getSession().getServer().serverBoxColor)) {
+        this.updateStatusButton.setTextColor(Color.parseColor(this.application.getSession().getServer().serverTextColor));
       }
-
     }
 
-    Bundle bundle = getArguments();
-    String shared_text = bundle.getString("shared_text");
-    if (shared_text.length() > 1) {
-      new_status.setText(shared_text);
+    final Bundle bundle = getArguments();
+    final String sharedText = bundle.getString("shared_text");
+    if (sharedText.length() > 1) {
+      this.newStatus.setText(sharedText);
     }
-
-    new_status.setOnEditorActionListener(new OnEditorActionListener() {
+    this.newStatus.setOnEditorActionListener(new OnEditorActionListener() {
 
       @Override
-      public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+      @SuppressWarnings("checkstyle:requirethis")
+      public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_DONE) {
           submitPost();
           return true;
@@ -145,17 +129,17 @@ public class SocialFragment extends Fragment {
 
     });
 
-    update_status_button.setOnClickListener(update_status);
+    this.updateStatusButton.setOnClickListener(this.clickListener);
 
     String boxColor = getString(R.string.default_element_background);
 
-    if (application.getSession().getServer().serverBoxColor != null) {
-      boxColor = application.getSession().getServer().serverBoxColor;
+    if (this.application.getSession().getServer().serverBoxColor != null) {
+      boxColor = this.application.getSession().getServer().serverBoxColor;
     }
 
     if (boxColor.contains("#")) {
-      LinearLayout chat_input_area = (LinearLayout) getActivity().findViewById(R.id.chat_input_area);
-      chat_input_area.setBackgroundColor(Color.parseColor(boxColor));
+      final LinearLayout chatInputArea = (LinearLayout) getActivity().findViewById(R.id.chat_input_area);
+      chatInputArea.setBackgroundColor(Color.parseColor(boxColor));
     }
 
   }
@@ -163,9 +147,9 @@ public class SocialFragment extends Fragment {
   @Override
   public void onDestroy() {
 
-    if (socialTimer != null) {
-      socialTimer.cancel();
-      socialTimer = null;
+    if (this.socialTimer != null) {
+      this.socialTimer.cancel();
+      this.socialTimer = null;
     }
 
     super.onDestroy();
@@ -173,8 +157,8 @@ public class SocialFragment extends Fragment {
 
   @Override
   public void onPause() {
-    if (socialTimer != null) {
-      socialTimer.cancel();
+    if (this.socialTimer != null) {
+      this.socialTimer.cancel();
     }
 
     super.onPause();
@@ -182,32 +166,27 @@ public class SocialFragment extends Fragment {
 
   @Override
   public void onResume() {
-
-		/*
-        SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-		String cached_social = app_preferences.getString("social_list", "n/a");
+    /*
+    SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
+    String cached_social = app_preferences.getString("social_list", "n/a");
 
         if(!(cached_social.contentEquals("n/a"))) {
-        	try {
-	    		Object[] forumObject = GsonHelper.customGson.fromJson(cached_social, Object[].class);
-        		parseCachedSocial(forumObject);
-        	} catch(Exception ex) {
-        		//don't do anything
-        	}
+          try {
+          Object[] forumObject = GsonHelper.customGson.fromJson(cached_social, Object[].class);
+            parseCachedSocial(forumObject);
+          } catch(Exception ex) {
+            //don't do anything
+          }
         }
-		*/
-
-
-    load_statuses();
-
+    */
+    this.loadStatuses();
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      getActivity().invalidateOptionsMenu();
+      this.getActivity().invalidateOptionsMenu();
     }
-
     super.onResume();
 
-    socialTimer = new SocialTimer(socialRate, 1000);
-    socialTimer.start();
+    this.socialTimer = new SocialTimer(this.SOCIAL_RATE, COUNTDOWN_INTERVAL);
+    this.socialTimer.start();
   }
 
   @Override
@@ -215,32 +194,32 @@ public class SocialFragment extends Fragment {
     super.onStop();
 
     //Stop any running tasks
-    if (socialLoader != null) {
-      if (socialLoader.getStatus() == Status.RUNNING) {
-        socialLoader.cancel(true);
+    if (this.socialLoader != null) {
+      if (this.socialLoader.getStatus() == Status.RUNNING) {
+        this.socialLoader.cancel(true);
       }
     }
   }
 
-  private void load_statuses() {
-    socialLoader = new download_statuses();
+  private void loadStatuses() {
+    this.socialLoader = new DownloadStatusesTask();
 
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      socialLoader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      this.socialLoader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     } else {
-      socialLoader.execute();
+      this.socialLoader.execute();
     }
 
   }
 
   private void submitPost() {
-    new_status.setEnabled(false);
-    update_status_button.setEnabled(false);
+    this.newStatus.setEnabled(false);
+    this.updateStatusButton.setEnabled(false);
 
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      new socialPoster().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      new SocialPostTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     } else {
-      new socialPoster().execute();
+      new SocialPostTask().execute();
     }
   }
 
@@ -250,146 +229,127 @@ public class SocialFragment extends Fragment {
 
     //Copy text support for all Android versions
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-      ClipData cd = ClipData.newHtmlText(selected_post.post_author + "'s Social Post", selected_post.post_body, selected_post.post_body);
+      final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+      final ClipData cd = ClipData.newHtmlText(this.selectedPost.post_author + "'s Social Post", this.selectedPost.post_body, this.selectedPost.post_body);
       clipboard.setPrimaryClip(cd);
     } else {
-      android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-      clipboard.setText(selected_post.post_body);
+      final android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+      clipboard.setText(this.selectedPost.post_body);
     }
 
-    Toast toast = Toast.makeText(getActivity(), "Text copied!", Toast.LENGTH_SHORT);
+    final Toast toast = Toast.makeText(this.getActivity(), "Text copied!", Toast.LENGTH_SHORT);
     toast.show();
   }
 
-  public void setOnProfileSelectedListener(onProfileSelectedListener l) {
-    profileSelected = l;
+  public void setOnProfileSelectedListener(final ProfileSelectedListener l) {
+    this.profileSelectedListener = l;
   }
-    
     /*
     @SuppressLint("NewApi")
-	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-    	
-    	if(getString(R.string.chat_forum).contentEquals("0")) {
-    		inflater.inflate(R.menu.chat_menu, menu);
-    		
-    		if(ForegroundColorSetter.getForegroundDark(background)) {
-    			MenuItem removeItem = menu.findItem(R.id.menu_chat_remove);
-    			removeItem.setIcon(R.drawable.ic_action_remove_dark);
-    		}
-    	}
+  @Override
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 
-	    super.onCreateOptionsMenu(menu, inflater);
+      if(getString(R.string.chat_forum).contentEquals("0")) {
+        inflater.inflate(R.menu.chat_menu, menu);
 
-	}
-    
+        if(ForegroundColorSetter.getForegroundDark(background)) {
+          MenuItem removeItem = menu.findItem(R.id.menu_chat_remove);
+          removeItem.setIcon(R.drawable.ic_action_remove_dark);
+        }
+      }
+
+      super.onCreateOptionsMenu(menu, inflater);
+
+  }
+
     @Override
-	public boolean onOptionsItemSelected (MenuItem item) {
-		switch (item.getItemId()) {
+  public boolean onOptionsItemSelected (MenuItem item) {
+    switch (item.getItemId()) {
         case R.id.menu_chat_remove:
-        	removeChat();
+          removeChat();
             return true;
         default:
             return super.onOptionsItemSelected(item);
         }
-	}
-    
+  }
+
     private void removeChat() {
-    	application.getSession().getServer().chatForum = "0";
-    	application.getSession().getServer().chatThread = "0";
-    	application.getSession().getServer().chatName = "0";
-    	application.getSession().updateServer();
-        
+      application.getSession().getServer().chatForum = "0";
+      application.getSession().getServer().chatThread = "0";
+      application.getSession().getServer().chatName = "0";
+      application.getSession().updateServer();
+
         getActivity().finish();
-    	getActivity().startActivity(getActivity().getIntent());
+      getActivity().startActivity(getActivity().getIntent());
     }
     */
 
   //Profile selected interface
-  public interface onProfileSelectedListener {
-    public abstract void onProfileSelected(String username, String userid);
+  public interface ProfileSelectedListener {
+    void onProfileSelected(String username, String userid);
   }
 
-  private class socialPoster extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"rawtypes", "unchecked"})
+  private class SocialPostTask extends AsyncTask<String, Void, Object[]> {
+    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
-
-    protected Object[] doInBackground(String... params) {
-
+    protected Object[] doInBackground(final String... params) {
       //String tagline = application.getSession().getServer().serverTagline;
+      final String comment = newStatus.getText().toString().trim();
+      final String subject = "RE: Social";
 
-
-      String comment = new_status.getText().toString().trim();
-      String subject = "RE: Social";
-
-			/*
+      /*
       if(tagline.length() > 0) {
-        		comment = comment + "\n\n" + tagline;
-        	}
-        	*/
-
-      Object[] result = new Object[50];
-
+        comment = comment + "\n\n" + tagline;
+      }
+      */
+      final Object[] result = new Object[MAX_ITEM_COUNT];
       try {
-
-        Vector paramz = new Vector();
+        final Vector paramz = new Vector();
         paramz.addElement(chatForum);
         paramz.addElement(chatThread);
         paramz.addElement(subject.getBytes());
         paramz.addElement(comment.getBytes());
-
-
         result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
-
       } catch (Exception e) {
         Log.w("Peris", e.getMessage());
         return null;
       }
-
-
       return result;
     }
 
+    @SuppressWarnings("checkstyle:requirethis")
     protected void onPostExecute(final Object[] result) {
       if (result == null) {
-
-
-        Toast toast = Toast.makeText(getActivity(), "Error connecting to the server!  erSPE", Toast.LENGTH_SHORT);
+        final Toast toast = Toast.makeText(getActivity(), "Error connecting to the server!  erSPE", Toast.LENGTH_SHORT);
         toast.show();
-
         return;
       }
 
-      load_statuses();
-      new_status.setText("");
-      update_status_button.setEnabled(true);
-      new_status.setEnabled(true);
+      loadStatuses();
+      newStatus.setText("");
+      updateStatusButton.setEnabled(true);
+      newStatus.setEnabled(true);
     }
   }
 
-  private class download_statuses extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"unchecked", "rawtypes"})
+  private class DownloadStatusesTask extends AsyncTask<String, Void, Object[]> {
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(String... params) {
-
-      Object[] result = new Object[50];
-
+    protected Object[] doInBackground(final String... params) {
+      final Object[] result = new Object[MAX_ITEM_COUNT];
       int minPost = 0;
-      int maxPost = 19;
+      int maxPost = POSTS_PER_PAGE - 1;
 
       try {
-
         Vector paramz = new Vector();
         paramz.addElement(chatThread);
         paramz.addElement(minPost);
         paramz.addElement(minPost);
         paramz.addElement(true);
 
-        HashMap map = (HashMap) application.getSession().performSynchronousCall("get_thread", paramz);
-
+        final HashMap map = (HashMap) application.getSession().performSynchronousCall("get_thread", paramz);
         maxPost = (Integer) map.get("total_post_num");
-        minPost = maxPost - 20;
+        minPost = maxPost - POSTS_PER_PAGE;
 
         paramz = new Vector();
         paramz.addElement(chatThread);
@@ -398,7 +358,6 @@ public class SocialFragment extends Fragment {
         paramz.addElement(true);
 
         result[0] = application.getSession().performSynchronousCall("get_thread", paramz);
-
       } catch (Exception e) {
         if (e.getMessage() != null) {
           Log.w(getString(R.string.app_name), e.getMessage());
@@ -407,103 +366,88 @@ public class SocialFragment extends Fragment {
         }
         return null;
       }
-
       return result;
-
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "checkstyle:nestedifdepth", "checkstyle:requirethis"})
     protected void onPostExecute(final Object[] result) {
-
       if (result == null) {
-        Toast toast = Toast.makeText(getActivity(), "Cannot connect to chat!", Toast.LENGTH_SHORT);
+        final Toast toast = Toast.makeText(getActivity(), "Cannot connect to chat!", Toast.LENGTH_SHORT);
         toast.show();
-        return;
-      }
-
-      String objectString = GsonHelper.customGson.toJson(result);
-
-      SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-      String cachedForum = app_preferences.getString("social_list", "n/a");
-
-      if (objectString.contentEquals(cachedForum)) {
-        return;
       } else {
-        SharedPreferences.Editor editor = app_preferences.edit();
-        editor.putString("social_list", objectString);
-        editor.commit();
-      }
+        final String objectString = GsonHelper.customGson.toJson(result);
+        final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+        final String cachedForum = appPreferences.getString("social_list", "n/a");
 
-      if (getActivity() == null) {
-        return;
-      }
+        if (objectString.contentEquals(cachedForum)) {
+          return;
+        } else {
+          final SharedPreferences.Editor editor = appPreferences.edit();
+          editor.putString("social_list", objectString);
+          editor.commit();
+        }
 
-      ArrayList<Post> postList = new ArrayList<Post>();
+        if (getActivity() != null) {
+          final ArrayList<Post> postList = new ArrayList<Post>();
+          for (Object o : result) {
+            if (o != null) {
+              final HashMap map = (HashMap) o;
 
-      for (Object o : result) {
+              if (map.containsKey("posts")) {
+                final Object[] topics = (Object[]) map.get("posts");
+                for (Object t : topics) {
+                  final HashMap topicMap = (HashMap) t;
+                  final Date timestamp = (Date) topicMap.get("post_time");
+                  final Post po = new Post();
+                  po.category_id = "108";
+                  po.subforum_id = "108";
+                  po.thread_id = "21";
 
-        if (o != null) {
-          HashMap map = (HashMap) o;
+                  if (topicMap.containsKey("is_online")) {
+                    po.userOnline = (Boolean) topicMap.get("is_online");
+                  }
 
-          if (map.containsKey("posts")) {
-            Object[] topics = (Object[]) map.get("posts");
-            for (Object t : topics) {
-
-              HashMap topicMap = (HashMap) t;
-
-              Date timestamp = (Date) topicMap.get("post_time");
-
-              Post po = new Post();
-              po.category_id = "108";
-              po.subforum_id = "108";
-              po.thread_id = "21";
-
-              if (topicMap.containsKey("is_online")) {
-                po.userOnline = (Boolean) topicMap.get("is_online");
+                  po.post_author = new String((byte[]) topicMap.get("post_author_name"));
+                  po.post_author_id = (String) topicMap.get("post_author_id");
+                  po.post_body = new String((byte[]) topicMap.get("post_content"));
+                  po.post_avatar = (String) topicMap.get("icon_url");
+                  po.post_id = (String) topicMap.get("post_id");
+                  po.post_tagline = "tagline";
+                  po.post_timestamp = timestamp.toString();
+                  postList.add(0, po);
+                }
               }
-
-              po.post_author = new String((byte[]) topicMap.get("post_author_name"));
-              po.post_author_id = (String) topicMap.get("post_author_id");
-              po.post_body = new String((byte[]) topicMap.get("post_content"));
-              po.post_avatar = (String) topicMap.get("icon_url");
-              po.post_id = (String) topicMap.get("post_id");
-              po.post_tagline = "tagline";
-              po.post_timestamp = timestamp.toString();
-              postList.add(0, po);
-
             }
           }
+
+          final int position = socialList.getFirstVisiblePosition();
+          socialList.setOnItemClickListener(socailItemTapped);
+          socialList.setItemsCanFocus(true);
+          socialList.setAdapter(new PostAdapter(postList, getActivity(), application, -1));
+          socialList.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
+          socialList.setSelectionFromTop(position, 0);
         }
       }
-
-      int position = socialList.getFirstVisiblePosition();
-      socialList.setOnItemClickListener(socailItemTapped);
-      socialList.setItemsCanFocus(true);
-      socialList.setAdapter(new PostAdapter(postList, getActivity(), application, -1));
-      socialList.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
-      socialList.setSelectionFromTop(position, 0);
     }
-
-
   }
 
   public class SocialTimer extends CountDownTimer {
 
-    public SocialTimer(long millisInFuture, long countDownInterval) {
+    public SocialTimer(final long millisInFuture, final long countDownInterval) {
       super(millisInFuture, countDownInterval);
     }
 
     @Override
-    public void onTick(long millisUntilFinished) {
+    public void onTick(final long millisUntilFinished) {
       //whatever
     }
 
     @Override
+    @SuppressWarnings("checkstyle:requirethis")
     public void onFinish() {
-      load_statuses();
-      socialTimer = new SocialTimer(socialRate, 1000);
+      loadStatuses();
+      socialTimer = new SocialTimer(SOCIAL_RATE, COUNTDOWN_INTERVAL);
       socialTimer.start();
     }
   }
-
 }
