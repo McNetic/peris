@@ -19,16 +19,17 @@ import android.widget.TextView;
 public class ForumSettingsFragment extends Fragment {
 
   private PerisApp application;
-  private OnMenuItemClickListener forumHomeSelected = new OnMenuItemClickListener() {
+  private OnMenuItemClickListener forumHomeSelectedListener = new OnMenuItemClickListener() {
 
     @Override
-    public boolean onMenuItemClick(MenuItem arg0) {
-      String currentServerId = application.getSession().getServer().serverId;
-      String keyName = currentServerId + "_home_page";
+    @SuppressWarnings("checkstyle:requirethis")
+    public boolean onMenuItemClick(final MenuItem menuItem) {
+      final String currentServerId = application.getSession().getServer().serverId;
+      final String keyName = currentServerId + "_home_page";
       String valueName = getString(R.string.subforum_id);
       String displayName = "Forum Index";
 
-      switch (arg0.getItemId()) {
+      switch (menuItem.getItemId()) {
         case R.id.menu_home_favs:
           valueName = "forum_favs";
           displayName = "Favorites";
@@ -53,65 +54,57 @@ public class ForumSettingsFragment extends Fragment {
           valueName = "timeline";
           displayName = "Timeline";
           break;
+        default:
+          break;
       }
 
-      SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-      SharedPreferences.Editor editor = app_preferences.edit();
+      final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+      final SharedPreferences.Editor editor = appPreferences.edit();
       editor.putString(keyName, valueName);
       editor.commit();
 
-      TextView forum_setting_home_current = (TextView) getActivity().findViewById(R.id.forum_setting_home_current);
-      forum_setting_home_current.setText(displayName);
-
+      final TextView forumSettingHomeCurrent = (TextView) getActivity().findViewById(R.id.forum_setting_home_current);
+      forumSettingHomeCurrent.setText(displayName);
       return true;
     }
 
   };
 
   @Override
-  public void onCreate(Bundle bundle) {
+  public void onCreate(final Bundle bundle) {
     super.onCreate(bundle);
-
-    application = (PerisApp) getActivity().getApplication();
+    this.application = (PerisApp) getActivity().getApplication();
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
-    View v = inflater.inflate(R.layout.forum_settings_layout, container, false);
-    return v;
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.forum_settings_layout, container, false);
   }
 
   @Override
   public void onStart() {
-
     super.onStart();
-
-    setupHandlers();
+    this.setupHandlers();
   }
 
   @Override
   public void onDestroy() {
-
     super.onDestroy();
   }
 
   @Override
   public void onPause() {
-
     super.onPause();
   }
 
   @Override
   public void onResume() {
-
     super.onResume();
 
-    if (application.getForceRefresh()) {
-      application.setForceRefresh(false);
-
-      getActivity().finish();
-      getActivity().startActivity(getActivity().getIntent());
+    if (this.application.getForceRefresh()) {
+      this.application.setForceRefresh(false);
+      this.getActivity().finish();
+      this.getActivity().startActivity(this.getActivity().getIntent());
     }
 
   }
@@ -123,31 +116,245 @@ public class ForumSettingsFragment extends Fragment {
   }
 
   private void setupHandlers() {
+    final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+    this.setupSignatureButton(appPreferences);
+    this.setupThemeButton();
+    this.setupHomeButton(appPreferences);
+    this.setupIconAvatarButton(appPreferences);
+    this.setupSidebarSettings(appPreferences);
+    this.setupQuickreplySettings(appPreferences);
+    this.setupDisplayNameButton();
+    this.setupTextSettingsButton();
+    this.setupClearCacheButton();
+    this.setupAboutButton();
+  }
 
-    SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
+  private void setupAboutButton() {
+    //About button
+    final LinearLayout forumSettingAbout = (LinearLayout) getActivity().findViewById(R.id.forum_setting_about);
+    forumSettingAbout.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(final View v) {
+        final Intent aboutIntent = new Intent(getActivity(), About.class);
+        startActivity(aboutIntent);
+      }
+    });
+  }
 
-    //Signature button
-    LinearLayout forum_setting_tagline = (LinearLayout) getActivity().findViewById(R.id.forum_setting_tagline);
+  private void setupClearCacheButton() {
+    //Clear cache button
+    final LinearLayout forumSettingCache = (LinearLayout) getActivity().findViewById(R.id.forum_setting_cache);
+    forumSettingCache.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(final View v) {
+        CacheNuker.NukeCache(getActivity());
+        final Intent intro = new Intent(getActivity(), IntroScreen.class);
 
-    if (application.getSession().getServer().serverUserName.contentEquals("0")) {
-      forum_setting_tagline.setVisibility(View.GONE);
+        getActivity().finish();
+        if (!getString(R.string.server_location).contentEquals("0")) {
+          getActivity().startActivity(intro);
+        }
+      }
+    });
+  }
+
+  private void setupTextSettingsButton() {
+    //Text settings button
+    final LinearLayout forumSettingText = (LinearLayout) getActivity().findViewById(R.id.forum_setting_text);
+    forumSettingText.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(final View v) {
+        final TextDialogFragment newFragment = TextDialogFragment.newInstance();
+        newFragment.show(getActivity().getSupportFragmentManager(), "dialog");
+      }
+    });
+  }
+
+  private void setupDisplayNameButton() {
+    //Display name button
+    final LinearLayout forumSettingDisplayName = (LinearLayout) getActivity().findViewById(R.id.forum_setting_display_name);
+    forumSettingDisplayName.setVisibility(View.GONE);
+  }
+
+  private void setupQuickreplySettings(final SharedPreferences appPreferences) {
+    //Quick Reply Setting
+    final LinearLayout forumSettingQuickReply = (LinearLayout) getActivity().findViewById(R.id.forum_setting_quick_reply);
+    forumSettingQuickReply.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(final View v) {
+        final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+        boolean quickReplySetting = appPreferences.getBoolean("show_quick_reply", true);
+        final TextView forumSettingQuickReplySetting = (TextView) getActivity().findViewById(R.id.forum_setting_quick_reply_setting);
+
+        if (quickReplySetting) {
+          forumSettingQuickReplySetting.setText("Off");
+          quickReplySetting = false;
+        } else {
+          forumSettingQuickReplySetting.setText("On");
+          quickReplySetting = true;
+        }
+
+        final SharedPreferences.Editor editor = appPreferences.edit();
+        editor.putBoolean("show_quick_reply", quickReplySetting);
+        editor.commit();
+      }
+    });
+    final boolean quickReplySetting = appPreferences.getBoolean("show_quick_reply", true);
+    final TextView forumSettingQuickReplySetting = (TextView) getActivity().findViewById(R.id.forum_setting_quick_reply_setting);
+    if (quickReplySetting) {
+      forumSettingQuickReplySetting.setText("On");
     } else {
-      LinearLayout forum_setting_tagline_body_builder = (LinearLayout) getActivity().findViewById(R.id.forum_setting_tagline_body_builder);
+      forumSettingQuickReplySetting.setText("Off");
+    }
+  }
 
+  private void setupSidebarSettings(final SharedPreferences appPreferences) {
+    //Sidebar Setting
+    final LinearLayout forumSettingSidebar = (LinearLayout) getActivity().findViewById(R.id.forum_setting_sidebar);
+    forumSettingSidebar.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(final View v) {
+        final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+        boolean currentSidebarSetting = appPreferences.getBoolean("show_sidebar", true);
+        final TextView forumSettingSidebarSetting = (TextView) getActivity().findViewById(R.id.forum_setting_sidebar_setting);
 
-      boolean useShading = app_preferences.getBoolean("use_shading", false);
-      boolean useOpenSans = app_preferences.getBoolean("use_opensans", false);
-      int fontSize = app_preferences.getInt("font_size", 16);
-      Typeface opensans = Typeface.createFromAsset(getActivity().getAssets(), "fonts/opensans.ttf");
+        if (currentSidebarSetting) {
+          forumSettingSidebarSetting.setText("Off");
+          currentSidebarSetting = false;
+        } else {
+          forumSettingSidebarSetting.setText("On");
+          currentSidebarSetting = true;
+        }
 
-      BBCodeParser.parseCode(getActivity(), forum_setting_tagline_body_builder, application.getSession().getServer().serverTagline, opensans, useOpenSans, useShading, null, fontSize, false, "#333333", application);
+        final SharedPreferences.Editor editor = appPreferences.edit();
+        editor.putBoolean("show_sidebar", currentSidebarSetting);
+        editor.commit();
+      }
+    });
+    final boolean sidebarSetting = appPreferences.getBoolean("show_sidebar", true);
+    final TextView forumSettingSidebarSetting = (TextView) getActivity().findViewById(R.id.forum_setting_sidebar_setting);
+    if (sidebarSetting) {
+      forumSettingSidebarSetting.setText("On");
+    } else {
+      forumSettingSidebarSetting.setText("Off");
+    }
+  }
 
-      forum_setting_tagline.setOnClickListener(new View.OnClickListener() {
+  private void setupIconAvatarButton(final SharedPreferences appPreferences) {
+    //Avatars and Icons button
+    final LinearLayout forumSettingShowImages = (LinearLayout) this.getActivity().findViewById(R.id.forum_setting_show_images);
+    forumSettingShowImages.setOnClickListener(new View.OnClickListener() {
+      @Override
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+        boolean currentAvatarSetting = appPreferences.getBoolean("show_images", true);
+
+        final TextView forumSettingShowImagesReadout = (TextView) getActivity().findViewById(R.id.forum_setting_show_images_readout);
+
+        if (currentAvatarSetting) {
+          forumSettingShowImagesReadout.setText("Off");
+          currentAvatarSetting = false;
+        } else {
+          forumSettingShowImagesReadout.setText("On");
+          currentAvatarSetting = true;
+        }
+
+        final SharedPreferences.Editor editor = appPreferences.edit();
+        editor.putBoolean("show_images", currentAvatarSetting);
+        editor.commit();
+      }
+    });
+
+    final boolean currentAvatarSetting = appPreferences.getBoolean("show_images", true);
+    final TextView forumSettingShowImagesReadout = (TextView) getActivity().findViewById(R.id.forum_setting_show_images_readout);
+
+    if (currentAvatarSetting) {
+      forumSettingShowImagesReadout.setText("On");
+    } else {
+      forumSettingShowImagesReadout.setText("Off");
+    }
+  }
+
+  private void setupHomeButton(final SharedPreferences appPreferences) {
+    //Home Page button
+    final LinearLayout forumSettingHome = (LinearLayout) getActivity().findViewById(R.id.forum_setting_home);
+    forumSettingHome.setOnClickListener(new View.OnClickListener() {
+      @Override
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        final PopupMenu popup = new PopupMenu(getActivity(), v);
+        final MenuInflater inflater = popup.getMenuInflater();
+        inflater.inflate(R.menu.home_page_selection, popup.getMenu());
+        popup.setOnMenuItemClickListener(forumHomeSelectedListener);
+        popup.show();
+      }
+    });
+
+    //Home Page Display Text
+    final String currentServerId = this.application.getSession().getServer().serverId;
+    final String keyName = currentServerId + "_home_page";
+    String valueName = getString(R.string.subforum_id);
+    String displayName = "Forum Index";
+
+    valueName = appPreferences.getString(keyName, getString(R.string.subforum_id));
+
+    if (valueName.contentEquals(getString(R.string.subforum_id))) {
+      displayName = "Forum Index";
+    }
+    if (valueName.contentEquals("forum_favs")) {
+      displayName = "Favorites";
+    }
+    if (valueName.contentEquals("timeline")) {
+      displayName = "Timeline";
+    }
+    if (valueName.contentEquals("participated")) {
+      displayName = "Participated Topics";
+    }
+    if (valueName.contentEquals("favs")) {
+      displayName = "Subscribed Topics";
+    }
+    if (valueName.contentEquals("unread")) {
+      displayName = "Unread Topics";
+    }
+
+    final TextView forumSettingHomeCurrent = (TextView) this.getActivity().findViewById(R.id.forum_setting_home_current);
+    forumSettingHomeCurrent.setText(displayName);
+  }
+
+  private void setupThemeButton() {
+    //Theme button
+    final LinearLayout forumSettingTheme = (LinearLayout) this.getActivity().findViewById(R.id.forum_setting_theme);
+    forumSettingTheme.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(final View v) {
+        final Intent themeIntent = new Intent(getActivity(), ThemeEditor.class);
+        startActivity(themeIntent);
+      }
+    });
+  }
+
+  private void setupSignatureButton(final SharedPreferences appPreferences) {
+    //Signature button
+    final LinearLayout forumSettingTagline = (LinearLayout) getActivity().findViewById(R.id.forum_setting_tagline);
+    if (this.application.getSession().getServer().serverUserName.contentEquals("0")) {
+      forumSettingTagline.setVisibility(View.GONE);
+    } else {
+      final LinearLayout forumSettingTaglineBodyBuilder = (LinearLayout) getActivity().findViewById(R.id.forum_setting_tagline_body_builder);
+      final boolean useShading = appPreferences.getBoolean("use_shading", false);
+      final boolean useOpenSans = appPreferences.getBoolean("use_opensans", false);
+      final int fontSize = appPreferences.getInt("font_size", 16);
+      final Typeface opensans = Typeface.createFromAsset(getActivity().getAssets(), "fonts/opensans.ttf");
+      BBCodeParser.parseCode(getActivity(), forumSettingTaglineBodyBuilder,
+          this.application.getSession().getServer().serverTagline, opensans,
+          useOpenSans, useShading, null, fontSize, false, "#333333", this.application);
+
+      forumSettingTagline.setOnClickListener(new View.OnClickListener() {
         @Override
-        public void onClick(View v) {
-          Intent myIntent = new Intent(getActivity(), NewPost.class);
-
-          Bundle bundle = new Bundle();
+        @SuppressWarnings("checkstyle:requirethis")
+        public void onClick(final View v) {
+          final Intent myIntent = new Intent(getActivity(), NewPost.class);
+          final Bundle bundle = new Bundle();
           bundle.putString("postid", "0");
           bundle.putString("parent", "0");
           bundle.putString("category", "0");
@@ -164,207 +371,5 @@ public class ForumSettingsFragment extends Fragment {
         }
       });
     }
-
-    //Theme button
-    LinearLayout forum_setting_theme = (LinearLayout) getActivity().findViewById(R.id.forum_setting_theme);
-    forum_setting_theme.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Intent themeIntent = new Intent(getActivity(), ThemeEditor.class);
-        startActivity(themeIntent);
-      }
-    });
-
-
-    //Home Page button
-    LinearLayout forum_setting_home = (LinearLayout) getActivity().findViewById(R.id.forum_setting_home);
-    forum_setting_home.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        PopupMenu popup = new PopupMenu(getActivity(), v);
-        MenuInflater inflater = popup.getMenuInflater();
-        inflater.inflate(R.menu.home_page_selection, popup.getMenu());
-        popup.setOnMenuItemClickListener(forumHomeSelected);
-        popup.show();
-      }
-    });
-
-    //Home Page Display Text
-    String currentServerId = application.getSession().getServer().serverId;
-    String keyName = currentServerId + "_home_page";
-    String valueName = getString(R.string.subforum_id);
-    String displayName = "Forum Index";
-
-    valueName = app_preferences.getString(keyName, getString(R.string.subforum_id));
-
-    if (valueName.contentEquals(getString(R.string.subforum_id))) {
-      displayName = "Forum Index";
-    }
-
-    if (valueName.contentEquals("forum_favs")) {
-      displayName = "Favorites";
-    }
-
-    if (valueName.contentEquals("timeline")) {
-      displayName = "Timeline";
-    }
-
-    if (valueName.contentEquals("participated")) {
-      displayName = "Participated Topics";
-    }
-
-    if (valueName.contentEquals("favs")) {
-      displayName = "Subscribed Topics";
-    }
-
-    if (valueName.contentEquals("unread")) {
-      displayName = "Unread Topics";
-    }
-
-    TextView forum_setting_home_current = (TextView) getActivity().findViewById(R.id.forum_setting_home_current);
-    forum_setting_home_current.setText(displayName);
-
-
-    //Avatars and Icons button
-    LinearLayout forum_setting_show_images = (LinearLayout) getActivity().findViewById(R.id.forum_setting_show_images);
-    forum_setting_show_images.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-        boolean currentAvatarSetting = app_preferences.getBoolean("show_images", true);
-
-        TextView forum_setting_show_images_readout = (TextView) getActivity().findViewById(R.id.forum_setting_show_images_readout);
-
-        if (currentAvatarSetting) {
-          forum_setting_show_images_readout.setText("Off");
-          currentAvatarSetting = false;
-        } else {
-          forum_setting_show_images_readout.setText("On");
-          currentAvatarSetting = true;
-        }
-
-        SharedPreferences.Editor editor = app_preferences.edit();
-        editor.putBoolean("show_images", currentAvatarSetting);
-        editor.commit();
-      }
-    });
-
-    boolean currentAvatarSetting = app_preferences.getBoolean("show_images", true);
-
-    TextView forum_setting_show_images_readout = (TextView) getActivity().findViewById(R.id.forum_setting_show_images_readout);
-
-    if (currentAvatarSetting) {
-      forum_setting_show_images_readout.setText("On");
-    } else {
-      forum_setting_show_images_readout.setText("Off");
-    }
-
-
-    //Sidebar Setting
-    LinearLayout forum_setting_sidebar = (LinearLayout) getActivity().findViewById(R.id.forum_setting_sidebar);
-    forum_setting_sidebar.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-        boolean currentSidebarSetting = app_preferences.getBoolean("show_sidebar", true);
-
-        TextView forum_setting_sidebar_setting = (TextView) getActivity().findViewById(R.id.forum_setting_sidebar_setting);
-
-        if (currentSidebarSetting) {
-          forum_setting_sidebar_setting.setText("Off");
-          currentSidebarSetting = false;
-        } else {
-          forum_setting_sidebar_setting.setText("On");
-          currentSidebarSetting = true;
-        }
-
-        SharedPreferences.Editor editor = app_preferences.edit();
-        editor.putBoolean("show_sidebar", currentSidebarSetting);
-        editor.commit();
-      }
-    });
-    boolean sidebarSetting = app_preferences.getBoolean("show_sidebar", true);
-    TextView forum_setting_sidebar_setting = (TextView) getActivity().findViewById(R.id.forum_setting_sidebar_setting);
-    if (sidebarSetting) {
-      forum_setting_sidebar_setting.setText("On");
-    } else {
-      forum_setting_sidebar_setting.setText("Off");
-    }
-
-
-    //Quick Reply Setting
-    LinearLayout forum_setting_quick_reply = (LinearLayout) getActivity().findViewById(R.id.forum_setting_quick_reply);
-    forum_setting_quick_reply.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-        boolean quickReplySetting = app_preferences.getBoolean("show_quick_reply", true);
-
-        TextView forum_setting_quick_reply_setting = (TextView) getActivity().findViewById(R.id.forum_setting_quick_reply_setting);
-
-        if (quickReplySetting) {
-          forum_setting_quick_reply_setting.setText("Off");
-          quickReplySetting = false;
-        } else {
-          forum_setting_quick_reply_setting.setText("On");
-          quickReplySetting = true;
-        }
-
-        SharedPreferences.Editor editor = app_preferences.edit();
-        editor.putBoolean("show_quick_reply", quickReplySetting);
-        editor.commit();
-      }
-    });
-    boolean quickReplySetting = app_preferences.getBoolean("show_quick_reply", true);
-    TextView forum_setting_quick_reply_setting = (TextView) getActivity().findViewById(R.id.forum_setting_quick_reply_setting);
-    if (quickReplySetting) {
-      forum_setting_quick_reply_setting.setText("On");
-    } else {
-      forum_setting_quick_reply_setting.setText("Off");
-    }
-
-
-    //Display name button
-    LinearLayout forum_setting_display_name = (LinearLayout) getActivity().findViewById(R.id.forum_setting_display_name);
-    forum_setting_display_name.setVisibility(View.GONE);
-
-    //Text settings button
-    LinearLayout forum_setting_text = (LinearLayout) getActivity().findViewById(R.id.forum_setting_text);
-    forum_setting_text.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        TextDialogFragment newFragment = TextDialogFragment.newInstance();
-        newFragment.show(getActivity().getSupportFragmentManager(), "dialog");
-      }
-    });
-
-    //Clear cache button
-    LinearLayout forum_setting_cache = (LinearLayout) getActivity().findViewById(R.id.forum_setting_cache);
-    forum_setting_cache.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        CacheNuker.NukeCache(getActivity());
-
-        Intent intro = new Intent(getActivity(), IntroScreen.class);
-
-        getActivity().finish();
-
-        if (!getString(R.string.server_location).contentEquals("0")) {
-          getActivity().startActivity(intro);
-        }
-      }
-    });
-
-    //About button
-    LinearLayout forum_setting_about = (LinearLayout) getActivity().findViewById(R.id.forum_setting_about);
-    forum_setting_about.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        Intent aboutIntent = new Intent(getActivity(), About.class);
-        startActivity(aboutIntent);
-      }
-    });
   }
-
-
 }
