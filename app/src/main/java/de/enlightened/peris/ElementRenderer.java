@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -12,66 +13,80 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class ElementRenderer {
+final class ElementRenderer {
 
-  public static final View renderPost(View v, PerisApp application, int page, Context c, int arg0, boolean useOpenSans, boolean useShading, Post po, int fontSize, boolean currentAvatarSetting) {
-    TextView poAuthor = (TextView) v.findViewById(R.id.post_author);
-    TextView poTimestamp = (TextView) v.findViewById(R.id.post_timestamp);
-    TextView poPage = (TextView) v.findViewById(R.id.post_number);
+  private static final int POSTS_PER_PAGE = 20;
+  private static final long MILLIS_PER_SECOND = 1000;
+  private static final int SECONDS_PER_MINUTE = 60;
+  private static final int MINUTES_PER_HOUR = 60;
+  private static final int HOURS_PER_DAY = 24;
+  private static final int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
+  private static final int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
 
-    TextView tvThanks = (TextView) v.findViewById(R.id.post_thanks_count);
-    TextView tvLikes = (TextView) v.findViewById(R.id.post_likes_count);
+  private ElementRenderer() {
+  }
 
-    TextView tvOnline = (TextView) v.findViewById(R.id.post_online_status);
-
-    Typeface opensans = Typeface.createFromAsset(c.getAssets(), "fonts/opensans.ttf");
+  @SuppressWarnings("checkstyle:parameternumber")
+  public static View renderPost(
+      final View v,
+      final PerisApp application,
+      final int page,
+      final Context context,
+      final int postNumberInPage,
+      final boolean useOpenSans,
+      final boolean useShading,
+      final Post po,
+      final int fontSize,
+      final boolean currentAvatarSetting) {
+    final TextView poAuthor = (TextView) v.findViewById(R.id.post_author);
+    final TextView poTimestamp = (TextView) v.findViewById(R.id.post_timestamp);
+    final TextView poPage = (TextView) v.findViewById(R.id.post_number);
+    final TextView tvThanks = (TextView) v.findViewById(R.id.post_thanks_count);
+    final TextView tvLikes = (TextView) v.findViewById(R.id.post_likes_count);
+    final TextView tvOnline = (TextView) v.findViewById(R.id.post_online_status);
+    final Typeface opensans = Typeface.createFromAsset(context.getAssets(), "fonts/opensans.ttf");
 
     if (page == -1) {
       poPage.setVisibility(View.GONE);
     } else {
-      int postNumber = ((page - 1) * 20) + (arg0 + 1);
+      final int postNumber = ((page - 1) * POSTS_PER_PAGE) + (postNumberInPage + 1);
       poPage.setText("#" + postNumber);
     }
 
+    final LinearLayout llBorderBackground = (LinearLayout) v.findViewById(R.id.ll_border_background);
+    final LinearLayout llColorBackground = (LinearLayout) v.findViewById(R.id.ll_color_background);
 
-    LinearLayout ll_border_background = (LinearLayout) v.findViewById(R.id.ll_border_background);
-    LinearLayout ll_color_background = (LinearLayout) v.findViewById(R.id.ll_color_background);
-
-    String textColor = c.getString(R.string.default_text_color);
-
+    String textColor = context.getString(R.string.default_text_color);
     if (application.getSession().getServer().serverTextColor.contains("#")) {
       textColor = application.getSession().getServer().serverTextColor;
     }
 
-    String boxColor = c.getString(R.string.default_element_background);
-
+    String boxColor = context.getString(R.string.default_element_background);
     if (application.getSession().getServer().serverBoxColor != null) {
       boxColor = application.getSession().getServer().serverBoxColor;
     }
 
     if (boxColor.contains("#")) {
-      ll_color_background.setBackgroundColor(Color.parseColor(boxColor));
+      llColorBackground.setBackgroundColor(Color.parseColor(boxColor));
     } else {
-      ll_color_background.setBackgroundColor(Color.TRANSPARENT);
+      llColorBackground.setBackgroundColor(Color.TRANSPARENT);
     }
 
-
-    String boxBorder = c.getString(R.string.default_element_border);
-
+    String boxBorder = context.getString(R.string.default_element_border);
     if (application.getSession().getServer().serverBoxBorder != null) {
       boxBorder = application.getSession().getServer().serverBoxBorder;
     }
 
     if (boxBorder.contentEquals("1")) {
-      ll_border_background.setBackgroundResource(R.drawable.element_border);
+      llBorderBackground.setBackgroundResource(R.drawable.element_border);
     } else {
-      ll_border_background.setBackgroundColor(Color.TRANSPARENT);
+      llBorderBackground.setBackgroundColor(Color.TRANSPARENT);
     }
-
 
     if (useOpenSans) {
       poAuthor.setTypeface(opensans);
@@ -89,21 +104,18 @@ public class ElementRenderer {
       tvOnline.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
     }
 
-    LinearLayout llPostBodyHolder = (LinearLayout) v.findViewById(R.id.post_body_holder);
-
+    final LinearLayout llPostBodyHolder = (LinearLayout) v.findViewById(R.id.post_body_holder);
     llPostBodyHolder.removeAllViews();
-
     //llPostBodyHolder.setMovementMethod(null);
 
-
-    ImageView poAvatar = (ImageView) v.findViewById(R.id.post_avatar);
+    final ImageView poAvatar = (ImageView) v.findViewById(R.id.post_avatar);
 
     if (boxColor != null && boxColor.contains("#") && boxColor.length() == 7) {
-      ImageView post_avatar_frame = (ImageView) v.findViewById(R.id.post_avatar_frame);
-      post_avatar_frame.setColorFilter(Color.parseColor(boxColor));
+      final ImageView postAvatarFrame = (ImageView) v.findViewById(R.id.post_avatar_frame);
+      postAvatarFrame.setColorFilter(Color.parseColor(boxColor));
     } else {
-      ImageView post_avatar_frame = (ImageView) v.findViewById(R.id.post_avatar_frame);
-      post_avatar_frame.setVisibility(View.GONE);
+      final ImageView postAvatarFrame = (ImageView) v.findViewById(R.id.post_avatar_frame);
+      postAvatarFrame.setVisibility(View.GONE);
     }
 
     if (po.userOnline) {
@@ -114,43 +126,16 @@ public class ElementRenderer {
     }
 
     poAuthor.setText(po.post_author);
-
-    String timeString = po.post_timestamp;
+    final String timeAgo = po.post_timestamp;
 
     try {
-      Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(po.post_timestamp);
-
-      Date now = new Date();
-
-      long difference = now.getTime() - date.getTime();
-
-      long seconds = difference / 1000;
-
-      timeString = seconds + "s";
-
-      if (seconds > 59) {
-        long minutes = seconds / 60;
-        timeString = minutes + "m";
-
-        if (minutes > 59) {
-          long hours = minutes / 60;
-          timeString = hours + "h";
-
-          if (hours > 23) {
-            long days = hours / 24;
-            timeString = days + "d";
-          }
-        }
-      }
-
-      poTimestamp.setText(timeString);
-    } catch (Exception ex) {
+      poTimestamp.setText(getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(po.post_timestamp)));
+    } catch (IllegalArgumentException | ParseException ex) {
       poTimestamp.setVisibility(View.GONE);
       tvOnline.setText(po.post_timestamp);
       tvOnline.setVisibility(View.VISIBLE);
       tvOnline.setTextColor(Color.parseColor(textColor));
     }
-
 
     tvThanks.setText("+" + Integer.toString(po.thanksCount) + " Thanks");
     tvLikes.setText("+" + Integer.toString(po.likeCount) + " Likes");
@@ -172,9 +157,8 @@ public class ElementRenderer {
       poAuthor.setTextColor(Color.LTGRAY);
     }
 
-    String postContent = po.post_body;
-
-    BBCodeParser.parseCode(c, llPostBodyHolder, postContent, opensans, useOpenSans, useShading, po.attachmentList, fontSize, true, textColor, application);
+    final String postContent = po.post_body;
+    BBCodeParser.parseCode(context, llPostBodyHolder, postContent, opensans, useOpenSans, useShading, po.attachmentList, fontSize, true, textColor, application);
 
     poAuthor.setTextColor(Color.parseColor(textColor));
     poTimestamp.setTextColor(Color.parseColor(textColor));
@@ -192,10 +176,9 @@ public class ElementRenderer {
       poAuthor.setTextColor(Color.parseColor("#ffcc00"));
     }
 
-
     if (currentAvatarSetting) {
       if (po.post_avatar != null && po.post_avatar.contains("http://")) {
-        String imageUrl = po.post_avatar;
+        final String imageUrl = po.post_avatar;
         ImageLoader.getInstance().displayImage(imageUrl, poAvatar);
       } else {
         poAvatar.setImageResource(R.drawable.no_avatar);
@@ -207,55 +190,58 @@ public class ElementRenderer {
     return v;
   }
 
-  public static final View renderCategory(View v, PerisApp application, Context c, boolean useOpenSans, boolean useShading, Category ca, boolean currentAvatarSetting) {
-    TextView tvCategoryName = (TextView) v.findViewById(R.id.category_name);
-    TextView tvCategoryLastThread = (TextView) v.findViewById(R.id.category_last_thread);
-    TextView tvCategoryUpdate = (TextView) v.findViewById(R.id.category_last_update);
-    ImageView ivSubforumIndicator = (ImageView) v.findViewById(R.id.category_subforum_indicator);
-    TextView tvThreadReplies = (TextView) v.findViewById(R.id.thread_replies);
-    TextView tvThreadViews = (TextView) v.findViewById(R.id.thread_views);
+  public static View renderCategory(
+      final View view,
+      final PerisApp application,
+      final Context context,
+      final boolean useOpenSans,
+      final boolean useShading,
+      final Category ca,
+      final boolean currentAvatarSetting) {
+    final TextView tvCategoryName = (TextView) view.findViewById(R.id.category_name);
+    final TextView tvCategoryLastThread = (TextView) view.findViewById(R.id.category_last_thread);
+    final TextView tvCategoryUpdate = (TextView) view.findViewById(R.id.category_last_update);
+    final ImageView ivSubforumIndicator = (ImageView) view.findViewById(R.id.category_subforum_indicator);
+    final TextView tvThreadReplies = (TextView) view.findViewById(R.id.thread_replies);
+    final TextView tvThreadViews = (TextView) view.findViewById(R.id.thread_views);
 
-    LinearLayout ll_border_background = (LinearLayout) v.findViewById(R.id.ll_border_background);
-    LinearLayout ll_color_background = (LinearLayout) v.findViewById(R.id.ll_color_background);
+    final LinearLayout llBorderBackground = (LinearLayout) view.findViewById(R.id.ll_border_background);
+    final LinearLayout llColorBackground = (LinearLayout) view.findViewById(R.id.ll_color_background);
 
-    String textColor = c.getString(R.string.default_text_color);
-
+    String textColor = context.getString(R.string.default_text_color);
     if (application.getSession().getServer().serverTextColor.contains("#")) {
       textColor = application.getSession().getServer().serverTextColor;
     }
 
-    String boxColor = c.getString(R.string.default_element_background);
-
+    String boxColor = context.getString(R.string.default_element_background);
     if (application.getSession().getServer().serverBoxColor != null) {
       boxColor = application.getSession().getServer().serverBoxColor;
     }
 
     if (boxColor.contains("#")) {
-      ll_color_background.setBackgroundColor(Color.parseColor(boxColor));
+      llColorBackground.setBackgroundColor(Color.parseColor(boxColor));
     } else {
-      ll_color_background.setBackgroundColor(Color.TRANSPARENT);
+      llColorBackground.setBackgroundColor(Color.TRANSPARENT);
     }
 
-
-    String boxBorder = c.getString(R.string.default_element_border);
-
+    String boxBorder = context.getString(R.string.default_element_border);
     if (application.getSession().getServer().serverBoxBorder != null) {
       boxBorder = application.getSession().getServer().serverBoxBorder;
     }
 
     if (boxBorder.contentEquals("1")) {
-      ll_border_background.setBackgroundResource(R.drawable.element_border);
+      llBorderBackground.setBackgroundResource(R.drawable.element_border);
     } else {
       try {
-        ll_border_background.setBackgroundResource(0);
+        llBorderBackground.setBackgroundResource(0);
       } catch (Exception ex) {
         // Android might be old version that cannot set background
         // didn't want to research which
+        Log.d("Peris", ex.getMessage());
       }
     }
 
-    Typeface opensans = Typeface.createFromAsset(c.getAssets(), "fonts/opensans.ttf");
-
+    final Typeface opensans = Typeface.createFromAsset(context.getAssets(), "fonts/opensans.ttf");
     if (useOpenSans) {
       tvCategoryName.setTypeface(opensans);
       tvCategoryLastThread.setTypeface(opensans);
@@ -270,7 +256,6 @@ public class ElementRenderer {
       tvCategoryUpdate.setVisibility(View.VISIBLE);
     }
 
-
     tvCategoryName.setTextColor(Color.parseColor(textColor));
     tvCategoryLastThread.setTextColor(Color.parseColor(textColor));
     tvCategoryUpdate.setTextColor(Color.parseColor(textColor));
@@ -283,41 +268,15 @@ public class ElementRenderer {
       tvThreadViews.setTextColor(Color.parseColor(textColor));
     }
 
-
     if (useShading) {
       tvCategoryName.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
     }
 
     String timeAgo = ca.category_lastupdate;
-
     if (ca.categoryType.contentEquals("C")) {
       try {
-        String string = ca.category_lastupdate;
-        Date date = new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(string);
-
-        Date now = new Date();
-
-        long difference = now.getTime() - date.getTime();
-
-        long seconds = difference / 1000;
-
-        timeAgo = seconds + "s";
-
-        if (seconds > 59) {
-          long minutes = seconds / 60;
-          timeAgo = minutes + "m";
-
-          if (minutes > 59) {
-            long hours = minutes / 60;
-            timeAgo = hours + "h";
-
-            if (hours > 23) {
-              long days = hours / 24;
-              timeAgo = days + "d";
-            }
-          }
-        }
-      } catch (Exception ex) {
+        timeAgo = getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.category_lastupdate));
+      } catch (IllegalArgumentException | ParseException e) {
         timeAgo = ca.category_lastupdate;
       }
     }
@@ -345,77 +304,7 @@ public class ElementRenderer {
       }
     }
 
-    if (currentAvatarSetting) {
-      if (ca.categoryType.contentEquals("S")) {
-        if (ivSubforumIndicator != null) {
-          ivSubforumIndicator.setVisibility(View.VISIBLE);
-
-          if (ca.categoryIcon.contains("http")) {
-            String imageUrl = ca.categoryIcon;
-            ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
-          } else {
-            if (ca.category_URL.contains("http")) {
-              ivSubforumIndicator.setImageResource(R.drawable.social_global_on);
-            } else {
-
-              ivSubforumIndicator.setImageResource(R.drawable.default_unread);
-
-              if (ca.hasNewTopic) {
-                if (application.getSession().getServer().serverColor.contains("#")) {
-                  String appColor = application.getSession().getServer().serverColor;
-                  ivSubforumIndicator.setColorFilter(Color.parseColor(appColor));
-                } else {
-                  ivSubforumIndicator.setColorFilter(Color.BLACK);
-                }
-              } else {
-                ivSubforumIndicator.setColorFilter(Color.BLACK);
-              }
-
-							/*
-              if(ca.hasNewTopic) {
-								if(ca.hasChildren) {
-									ivSubforumIndicator.setImageResource(R.drawable.category_unread);
-								} else {
-									ivSubforumIndicator.setImageResource(R.drawable.default_unread);
-								}
-								
-							} else {
-								if(ca.hasChildren) {
-									ivSubforumIndicator.setImageResource(R.drawable.category_read);
-								} else {
-									ivSubforumIndicator.setImageResource(R.drawable.default_read);
-								}
-							}
-							*/
-            }
-          }
-        }
-      } else {
-        if (ivSubforumIndicator != null) {
-          if (ca.categoryIcon.contains("http")) {
-            String imageUrl = ca.categoryIcon;
-            ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
-          } else {
-            ivSubforumIndicator.setImageResource(R.drawable.no_avatar);
-          }
-        }
-
-        if (boxColor != null && boxColor.contains("#") && boxColor.length() == 7) {
-          ImageView category_subforum_indicator_frame = (ImageView) v.findViewById(R.id.category_subforum_indicator_frame);
-          category_subforum_indicator_frame.setColorFilter(Color.parseColor(boxColor));
-        } else {
-          ImageView category_subforum_indicator_frame = (ImageView) v.findViewById(R.id.category_subforum_indicator_frame);
-          category_subforum_indicator_frame.setVisibility(View.GONE);
-        }
-
-      }
-    } else {
-      ivSubforumIndicator.setVisibility(View.GONE);
-      View indicator = v.findViewById(R.id.category_subforum_indicator_frame);
-      if (indicator != null) {
-        indicator.setVisibility(View.GONE);
-      }
-    }
+    applyAvatarSettings(currentAvatarSetting, application, ca, ivSubforumIndicator, view, boxColor);
 
     if (ca.categoryType.contentEquals("C")) {
       if (tvThreadReplies != null) {
@@ -436,9 +325,7 @@ public class ElementRenderer {
     }
 
     if (ca.topicSticky.contentEquals("Y")) {
-
       tvCategoryName.setTextColor(Color.RED);
-
       if (useShading) {
         tvCategoryName.setShadowLayer(2, 0, 0, Color.parseColor("#66ff0000"));
       }
@@ -449,6 +336,104 @@ public class ElementRenderer {
       tvCategoryUpdate.setText(ca.category_URL);
     }
 
-    return v;
+    return view;
+  }
+
+  @SuppressWarnings("checkstyle:nestedifdepth")
+  private static void applyAvatarSettings(
+      final boolean currentAvatarSetting,
+      final PerisApp application,
+      final Category ca,
+      final ImageView ivSubforumIndicator,
+      final View view,
+      final String boxColor) {
+    if (currentAvatarSetting) {
+      if (ca.categoryType.contentEquals("S")) {
+        if (ivSubforumIndicator != null) {
+          ivSubforumIndicator.setVisibility(View.VISIBLE);
+
+          if (ca.categoryIcon.contains("http")) {
+            final String imageUrl = ca.categoryIcon;
+            ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
+          } else {
+            if (ca.category_URL.contains("http")) {
+              ivSubforumIndicator.setImageResource(R.drawable.social_global_on);
+            } else {
+
+              ivSubforumIndicator.setImageResource(R.drawable.default_unread);
+
+              if (ca.hasNewTopic) {
+                if (application.getSession().getServer().serverColor.contains("#")) {
+                  final String appColor = application.getSession().getServer().serverColor;
+                  ivSubforumIndicator.setColorFilter(Color.parseColor(appColor));
+                } else {
+                  ivSubforumIndicator.setColorFilter(Color.BLACK);
+                }
+              } else {
+                ivSubforumIndicator.setColorFilter(Color.BLACK);
+              }
+
+              /*
+              if(ca.hasNewTopic) {
+                if(ca.hasChildren) {
+                  ivSubforumIndicator.setImageResource(R.drawable.category_unread);
+                } else {
+                  ivSubforumIndicator.setImageResource(R.drawable.default_unread);
+                }
+
+              } else {
+                if(ca.hasChildren) {
+                  ivSubforumIndicator.setImageResource(R.drawable.category_read);
+                } else {
+                  ivSubforumIndicator.setImageResource(R.drawable.default_read);
+                }
+              }
+              */
+            }
+          }
+        }
+      } else {
+        if (ivSubforumIndicator != null) {
+          if (ca.categoryIcon.contains("http")) {
+            final String imageUrl = ca.categoryIcon;
+            ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
+          } else {
+            ivSubforumIndicator.setImageResource(R.drawable.no_avatar);
+          }
+        }
+
+        if (boxColor != null && boxColor.contains("#") && boxColor.length() == 7) {
+          final ImageView categorySubforumIndicatorFrame = (ImageView) view.findViewById(R.id.category_subforum_indicator_frame);
+          categorySubforumIndicatorFrame.setColorFilter(Color.parseColor(boxColor));
+        } else {
+          final ImageView categorySubforumIndicatorFrame = (ImageView) view.findViewById(R.id.category_subforum_indicator_frame);
+          categorySubforumIndicatorFrame.setVisibility(View.GONE);
+        }
+
+      }
+    } else {
+      ivSubforumIndicator.setVisibility(View.GONE);
+      final View indicator = view.findViewById(R.id.category_subforum_indicator_frame);
+      if (indicator != null) {
+        indicator.setVisibility(View.GONE);
+      }
+    }
+  }
+
+  private static String getTimeAgo(final Date date) throws IllegalArgumentException {
+    final String timeAgo;
+    final long seconds = (new Date().getTime() - date.getTime()) / MILLIS_PER_SECOND;
+    if (seconds < 0) {
+      throw new IllegalArgumentException("Date is in the future");
+    } else if (seconds > SECONDS_PER_DAY - 1) {
+      timeAgo = String.format("%dd", seconds / SECONDS_PER_DAY);
+    } else if (seconds > SECONDS_PER_HOUR - 1) {
+      timeAgo = String.format("%dh", seconds / SECONDS_PER_HOUR);
+    } else if (seconds > SECONDS_PER_MINUTE - 1) {
+      timeAgo = String.format("%dm", seconds / SECONDS_PER_DAY);
+    } else {
+      timeAgo = String.format("%ds", seconds);
+    }
+    return timeAgo;
   }
 }
