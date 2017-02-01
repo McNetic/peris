@@ -17,20 +17,22 @@ import android.widget.TextView;
 
 public class TextDialogFragment extends DialogFragment {
 
+  private static final int DEFAULT_FONT_SIZE = 16;
+  private static final int PROGRESS_STEP = 10;
+
   private CheckBox cbShading;
   private CheckBox cbOpenSans;
   private SeekBar sbFontSize;
   private TextView tbSample;
-
   private boolean useShading = false;
   private boolean useOpenSans = false;
-  private int fontSize = 20;
-
+  private int fontSize = DEFAULT_FONT_SIZE;
   private Typeface opensans;
   private OnCheckedChangeListener shadingChecked = new OnCheckedChangeListener() {
 
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
       useShading = isChecked;
       updateSample();
     }
@@ -39,31 +41,30 @@ public class TextDialogFragment extends DialogFragment {
   private OnCheckedChangeListener sansChecked = new OnCheckedChangeListener() {
 
     @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
       useOpenSans = isChecked;
       updateSample();
     }
-
   };
+
   private OnSeekBarChangeListener fontSizeChanged = new OnSeekBarChangeListener() {
 
     @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
+    public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
     }
 
     @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
+    public void onStartTrackingTouch(final SeekBar seekBar) {
       // TODO Auto-generated method stub
-
     }
 
     @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-      fontSize = seekBar.getProgress() + 10;
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onStopTrackingTouch(final SeekBar seekBar) {
+      fontSize = seekBar.getProgress() + PROGRESS_STEP;
       updateSample();
     }
-
   };
 
   static TextDialogFragment newInstance() {
@@ -71,75 +72,67 @@ public class TextDialogFragment extends DialogFragment {
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    opensans = Typeface.createFromAsset(getActivity().getAssets(), "fonts/opensans.ttf");
-
+    this.opensans = Typeface.createFromAsset(getActivity().getAssets(), "fonts/opensans.ttf");
     this.setStyle(STYLE_NO_TITLE, getTheme());
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View v = inflater.inflate(R.layout.text_options, container, false);
-
-    setupDialog(v);
-
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    final View v = inflater.inflate(R.layout.text_options, container, false);
+    this.setupDialog(v);
     return v;
   }
 
-  private void setupDialog(View v) {
+  private void setupDialog(final View v) {
+    this.cbShading = (CheckBox) v.findViewById(R.id.text_settings_cb_smoothing);
+    this.cbOpenSans = (CheckBox) v.findViewById(R.id.text_settings_cb_opensans);
+    this.sbFontSize = (SeekBar) v.findViewById(R.id.text_settings_sb_font_size);
+    this.tbSample = (TextView) v.findViewById(R.id.text_settings_tb_sample);
+    this.cbShading.setOnCheckedChangeListener(this.shadingChecked);
+    this.cbOpenSans.setOnCheckedChangeListener(this.sansChecked);
+    this.sbFontSize.setOnSeekBarChangeListener(this.fontSizeChanged);
 
-    cbShading = (CheckBox) v.findViewById(R.id.text_settings_cb_smoothing);
-    cbOpenSans = (CheckBox) v.findViewById(R.id.text_settings_cb_opensans);
-    sbFontSize = (SeekBar) v.findViewById(R.id.text_settings_sb_font_size);
-    tbSample = (TextView) v.findViewById(R.id.text_settings_tb_sample);
-
-    cbShading.setOnCheckedChangeListener(shadingChecked);
-    cbOpenSans.setOnCheckedChangeListener(sansChecked);
-    sbFontSize.setOnSeekBarChangeListener(fontSizeChanged);
-
-    getCurrentValues();
-    updateSample();
+    this.getCurrentValues();
+    this.updateSample();
   }
 
   private void getCurrentValues() {
-    SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-
-    useShading = app_preferences.getBoolean("use_shading", false);
-    useOpenSans = app_preferences.getBoolean("use_opensans", false);
-    fontSize = app_preferences.getInt("font_size", 16);
-
-    sbFontSize.setProgress(fontSize - 10);
-    cbShading.setChecked(useShading);
-    cbOpenSans.setChecked(useOpenSans);
+    final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+    this.useShading = appPreferences.getBoolean("use_shading", false);
+    this.useOpenSans = appPreferences.getBoolean("use_opensans", false);
+    this.fontSize = appPreferences.getInt("font_size", DEFAULT_FONT_SIZE);
+    this.sbFontSize.setProgress(this.fontSize - PROGRESS_STEP);
+    this.cbShading.setChecked(this.useShading);
+    this.cbOpenSans.setChecked(this.useOpenSans);
   }
 
   private void storeNewValues() {
-    SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-    SharedPreferences.Editor editor = app_preferences.edit();
-    editor.putBoolean("use_shading", useShading);
-    editor.putBoolean("use_opensans", useOpenSans);
-    editor.putInt("font_size", fontSize);
+    final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+    final SharedPreferences.Editor editor = appPreferences.edit();
+    editor.putBoolean("use_shading", this.useShading);
+    editor.putBoolean("use_opensans", this.useOpenSans);
+    editor.putInt("font_size", this.fontSize);
     editor.commit();
   }
 
   private void updateSample() {
-    tbSample.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize);
+    this.tbSample.setTextSize(TypedValue.COMPLEX_UNIT_SP, this.fontSize);
 
-    if (useShading) {
-      tbSample.setShadowLayer(2, 0, 0, tbSample.getCurrentTextColor());
+    if (this.useShading) {
+      this.tbSample.setShadowLayer(2, 0, 0, this.tbSample.getCurrentTextColor());
     } else {
-      tbSample.setShadowLayer(0, 0, 0, 0);
+      this.tbSample.setShadowLayer(0, 0, 0, 0);
     }
 
-    if (useOpenSans) {
-      tbSample.setTypeface(opensans);
+    if (this.useOpenSans) {
+      this.tbSample.setTypeface(this.opensans);
     } else {
-      tbSample.setTypeface(null);
+      this.tbSample.setTypeface(null);
     }
 
-    storeNewValues();
+    this.storeNewValues();
   }
 
 }
