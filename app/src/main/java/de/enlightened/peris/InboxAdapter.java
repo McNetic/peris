@@ -18,151 +18,143 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Locale;
 import java.util.Vector;
+
+import de.enlightened.peris.support.DateTimeUtils;
 
 @SuppressLint({"NewApi", "InflateParams"})
 public class InboxAdapter extends BaseAdapter {
 
-  Context c;
+  private static final int MAX_ITEM_COUNT = 50;
+  private static final int DEFAULT_FONT_SIZE = 16;
+
+  private Context context;
   private ArrayList<InboxItem> data;
   private boolean useShading = false;
   private boolean useOpenSans = false;
-  @SuppressWarnings("unused")
-  private int fontSize = 20;
-
+  private int fontSize = DEFAULT_FONT_SIZE;
   private PerisApp application;
   private OnClickListener deleteClicked = new OnClickListener() {
 
     @Override
-    public void onClick(View arg0) {
-      int itemId = (Integer) arg0.getTag();
-      InboxItem ii = data.get(itemId);
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onClick(final View view) {
+      final int itemId = (Integer) view.getTag();
+      final InboxItem ii = data.get(itemId);
 
       if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-        new messageDeleter().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, ii);
+        new DeleteMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, ii);
       } else {
-        new messageDeleter().execute(ii);
+        new DeleteMessageTask().execute(ii);
       }
 
       ii.isDeleted = true;
       data.remove(itemId);
 
-      InboxAdapter.this.notifyDataSetChanged();
-
-
+      notifyDataSetChanged();
     }
-
   };
 
-  InboxAdapter(ArrayList<InboxItem> data, Context c, PerisApp application) {
+  InboxAdapter(final ArrayList<InboxItem> data, final Context context, final PerisApp application) {
     this.data = data;
-    this.c = c;
+    this.context = context;
     this.application = application;
 
-    SharedPreferences app_preferences = c.getSharedPreferences("prefs", 0);
+    final SharedPreferences appPreferences = context.getSharedPreferences("prefs", 0);
 
-    useShading = app_preferences.getBoolean("use_shading", false);
-    useOpenSans = app_preferences.getBoolean("use_opensans", false);
-    fontSize = app_preferences.getInt("font_size", 16);
+    this.useShading = appPreferences.getBoolean("use_shading", false);
+    this.useOpenSans = appPreferences.getBoolean("use_opensans", false);
+    this.fontSize = appPreferences.getInt("font_size", DEFAULT_FONT_SIZE);
   }
 
   public int getCount() {
     // TODO Auto-generated method stub
-    return data.size();
+    return this.data.size();
   }
 
-  public Object getItem(int arg0) {
+  public Object getItem(final int id) {
     // TODO Auto-generated method stub
-    return data.get(arg0);
+    return this.data.get(id);
   }
 
-  public long getItemId(int arg0) {
+  public long getItemId(final int id) {
     // TODO Auto-generated method stub
-    return arg0;
+    return id;
   }
 
-  public View getView(int arg0, View arg1, ViewGroup arg2) {
-    View v = arg1;
-    if (v == null) {
-      LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-      v = vi.inflate(R.layout.inbox_item, null);
-
-
+  public View getView(final int arg0, final View view, final ViewGroup viewGroup) {
+    final View inboxView;
+    if (view != null) {
+      inboxView = view;
+    } else {
+      final LayoutInflater vi = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      inboxView = vi.inflate(R.layout.inbox_item, null);
     }
 
-    LinearLayout ll_border_background = (LinearLayout) v.findViewById(R.id.ll_border_background);
-    LinearLayout ll_color_background = (LinearLayout) v.findViewById(R.id.ll_color_background);
+    final LinearLayout llBorderBackground = (LinearLayout) inboxView.findViewById(R.id.ll_border_background);
+    final LinearLayout llColorBackground = (LinearLayout) inboxView.findViewById(R.id.ll_color_background);
 
-    String textColor = c.getString(R.string.default_text_color);
-
-    if (application.getSession().getServer().serverTextColor.contains("#")) {
-      textColor = application.getSession().getServer().serverTextColor;
+    String textColor = this.context.getString(R.string.default_text_color);
+    if (this.application.getSession().getServer().serverTextColor.contains("#")) {
+      textColor = this.application.getSession().getServer().serverTextColor;
     }
 
-    String boxColor = c.getString(R.string.default_element_background);
-
-    if (application.getSession().getServer().serverBoxColor != null) {
-      boxColor = application.getSession().getServer().serverBoxColor;
+    String boxColor = this.context.getString(R.string.default_element_background);
+    if (this.application.getSession().getServer().serverBoxColor != null) {
+      boxColor = this.application.getSession().getServer().serverBoxColor;
     }
-
     if (boxColor.contains("#")) {
-      ll_color_background.setBackgroundColor(Color.parseColor(boxColor));
+      llColorBackground.setBackgroundColor(Color.parseColor(boxColor));
     } else {
-      ll_color_background.setBackgroundColor(Color.TRANSPARENT);
+      llColorBackground.setBackgroundColor(Color.TRANSPARENT);
     }
 
-
-    String boxBorder = c.getString(R.string.default_element_border);
-
-    if (application.getSession().getServer().serverBoxBorder != null) {
-      boxBorder = application.getSession().getServer().serverBoxBorder;
+    String boxBorder = this.context.getString(R.string.default_element_border);
+    if (this.application.getSession().getServer().serverBoxBorder != null) {
+      boxBorder = this.application.getSession().getServer().serverBoxBorder;
     }
-
     if (boxBorder.contentEquals("1")) {
-      ll_border_background.setBackgroundResource(R.drawable.element_border);
+      llBorderBackground.setBackgroundResource(R.drawable.element_border);
     } else {
-      ll_border_background.setBackgroundColor(Color.TRANSPARENT);
+      llBorderBackground.setBackgroundColor(Color.TRANSPARENT);
     }
 
-    TextView tvSubject = (TextView) v.findViewById(R.id.inbox_subject);
-    TextView tvUpdated = (TextView) v.findViewById(R.id.inbox_sender);
-    TextView tvTimestamp = (TextView) v.findViewById(R.id.inbox_timestamp);
-    ImageView ivSubforumIndicator = (ImageView) v.findViewById(R.id.inbox_avatar);
+    final TextView tvSubject = (TextView) inboxView.findViewById(R.id.inbox_subject);
+    final TextView tvUpdated = (TextView) inboxView.findViewById(R.id.inbox_sender);
+    final TextView tvTimestamp = (TextView) inboxView.findViewById(R.id.inbox_timestamp);
+    final ImageView ivSubforumIndicator = (ImageView) inboxView.findViewById(R.id.inbox_avatar);
+    final Typeface opensans = Typeface.createFromAsset(this.context.getAssets(), "fonts/opensans.ttf");
 
-    Typeface opensans = Typeface.createFromAsset(c.getAssets(), "fonts/opensans.ttf");
-
-    if (useOpenSans) {
+    if (this.useOpenSans) {
       tvSubject.setTypeface(opensans);
       tvUpdated.setTypeface(opensans);
     }
 
-    InboxItem ii = data.get(arg0);
+    final InboxItem ii = this.data.get(arg0);
 
     if (ii.senderAvatar.contains("http")) {
-      String imageUrl = ii.senderAvatar;
-      ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
+      ImageLoader.getInstance().displayImage(ii.senderAvatar, ivSubforumIndicator);
     } else {
       ivSubforumIndicator.setImageResource(R.drawable.no_avatar);
     }
 
     if (boxColor != null && boxColor.contains("#") && boxColor.length() == 7) {
-      ImageView category_subforum_indicator_frame = (ImageView) v.findViewById(R.id.inbox_avatar_frame);
-      category_subforum_indicator_frame.setColorFilter(Color.parseColor(boxColor));
+      final ImageView categorySubforumIndicatorFrame = (ImageView) inboxView.findViewById(R.id.inbox_avatar_frame);
+      categorySubforumIndicatorFrame.setColorFilter(Color.parseColor(boxColor));
     } else {
-      ImageView category_subforum_indicator_frame = (ImageView) v.findViewById(R.id.inbox_avatar_frame);
-      category_subforum_indicator_frame.setVisibility(View.GONE);
+      final ImageView categorySubforumIndicatorFrame = (ImageView) inboxView.findViewById(R.id.inbox_avatar_frame);
+      categorySubforumIndicatorFrame.setVisibility(View.GONE);
     }
 
     tvSubject.setTextColor(Color.parseColor(textColor));
     tvUpdated.setTextColor(Color.parseColor(textColor));
     tvTimestamp.setTextColor(Color.parseColor(textColor));
 
-    if (useShading) {
+    if (this.useShading) {
       tvSubject.setShadowLayer(2, 0, 0, Color.parseColor(textColor.replace("#", "#66")));
       tvUpdated.setShadowLayer(2, 0, 0, Color.parseColor(textColor.replace("#", "#66")));
       tvTimestamp.setShadowLayer(2, 0, 0, Color.parseColor(textColor.replace("#", "#66")));
@@ -172,90 +164,53 @@ public class InboxAdapter extends BaseAdapter {
     tvUpdated.setText(ii.inbox_moderator);
 
     if (ii.isUnread) {
-
       if (ii.inbox_sender_color.contains("#")) {
         tvSubject.setTextColor(Color.parseColor(ii.inbox_sender_color));
-
-        if (useShading) {
+        if (this.useShading) {
           tvSubject.setShadowLayer(2, 0, 0, Color.parseColor(ii.inbox_sender_color.replace("#", "#66")));
         }
       } else {
         tvSubject.setTextColor(Color.RED);
 
-        if (useShading) {
+        if (this.useShading) {
           tvSubject.setShadowLayer(2, 0, 0, Color.parseColor("#66ff0000"));
         }
       }
-
       tvSubject.setTypeface(null, Typeface.BOLD);
-
-
     } else {
       tvSubject.setTextColor(Color.parseColor(textColor));
-
       tvSubject.setTypeface(null, Typeface.NORMAL);
-
-      if (useShading) {
+      if (this.useShading) {
         tvSubject.setShadowLayer(2, 0, 0, Color.parseColor(textColor.replace("#", "#66")));
       }
     }
 
-    String timeString = ii.inbox_unread;
-
     try {
-      Date date = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(ii.inbox_unread);
-
-      Date now = new Date();
-
-      long difference = now.getTime() - date.getTime();
-
-      long seconds = difference / 1000;
-
-      timeString = seconds + "s";
-
-      if (seconds > 59) {
-        long minutes = seconds / 60;
-        timeString = minutes + "m";
-
-        if (minutes > 59) {
-          long hours = minutes / 60;
-          timeString = hours + "h";
-
-          if (hours > 23) {
-            long days = hours / 24;
-            timeString = days + "d";
-          }
-        }
-      }
-
-      tvTimestamp.setText(timeString);
-    } catch (Exception ex) {
+      tvTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(ii.inbox_unread)));
+    } catch (IllegalArgumentException | ParseException ex) {
       tvTimestamp.setVisibility(View.GONE);
     }
 
-    ImageView inbox_delete = (ImageView) v.findViewById(R.id.inbox_delete);
-    inbox_delete.setTag(arg0);
-    inbox_delete.setOnClickListener(deleteClicked);
+    final ImageView inboxDelete = (ImageView) inboxView.findViewById(R.id.inbox_delete);
+    inboxDelete.setTag(arg0);
+    inboxDelete.setOnClickListener(this.deleteClicked);
 
-    return v;
+    return inboxView;
   }
 
-  private class messageDeleter extends AsyncTask<InboxItem, Void, Object[]> {
-    @SuppressWarnings({"unchecked", "rawtypes"})
+  private class DeleteMessageTask extends AsyncTask<InboxItem, Void, Object[]> {
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(InboxItem... params) {
+    protected Object[] doInBackground(final InboxItem... params) {
 
-      Object[] result = new Object[50];
-
-      InboxItem item = params[0];
+      final Object[] result = new Object[MAX_ITEM_COUNT];
+      final InboxItem item = params[0];
 
       try {
-        Vector paramz = new Vector();
+        final Vector paramz = new Vector();
         paramz.addElement(item.sender_id);
         paramz.addElement(item.inboxId);
-
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
-
       } catch (Exception e) {
         Log.w("Peris", e.getMessage());
         return null;
@@ -267,5 +222,4 @@ public class InboxAdapter extends BaseAdapter {
       // nothing to do here really
     }
   }
-
 }

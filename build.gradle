@@ -15,6 +15,7 @@ allprojects {
 
     task checkstyle(type: Checkstyle) {
         showViolations = true
+        ignoreFailures = true
         configFile file("../build/checkstyle/checkstyle.xml")
 
         source 'src/main/java'

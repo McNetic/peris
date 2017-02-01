@@ -15,18 +15,13 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
+
+import de.enlightened.peris.support.DateTimeUtils;
 
 final class ElementRenderer {
 
   private static final int POSTS_PER_PAGE = 20;
-  private static final long MILLIS_PER_SECOND = 1000;
-  private static final int SECONDS_PER_MINUTE = 60;
-  private static final int MINUTES_PER_HOUR = 60;
-  private static final int HOURS_PER_DAY = 24;
-  private static final int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
-  private static final int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
 
   private ElementRenderer() {
   }
@@ -129,7 +124,7 @@ final class ElementRenderer {
     final String timeAgo = po.post_timestamp;
 
     try {
-      poTimestamp.setText(getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(po.post_timestamp)));
+      poTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(po.post_timestamp)));
     } catch (IllegalArgumentException | ParseException ex) {
       poTimestamp.setVisibility(View.GONE);
       tvOnline.setText(po.post_timestamp);
@@ -273,7 +268,7 @@ final class ElementRenderer {
     String timeAgo = ca.category_lastupdate;
     if (ca.categoryType.contentEquals("C")) {
       try {
-        timeAgo = getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.category_lastupdate));
+        timeAgo = DateTimeUtils.getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.category_lastupdate));
       } catch (IllegalArgumentException | ParseException e) {
         timeAgo = ca.category_lastupdate;
       }
@@ -416,20 +411,4 @@ final class ElementRenderer {
     }
   }
 
-  private static String getTimeAgo(final Date date) throws IllegalArgumentException {
-    final String timeAgo;
-    final long seconds = (new Date().getTime() - date.getTime()) / MILLIS_PER_SECOND;
-    if (seconds < 0) {
-      throw new IllegalArgumentException("Date is in the future");
-    } else if (seconds > SECONDS_PER_DAY - 1) {
-      timeAgo = String.format("%dd", seconds / SECONDS_PER_DAY);
-    } else if (seconds > SECONDS_PER_HOUR - 1) {
-      timeAgo = String.format("%dh", seconds / SECONDS_PER_HOUR);
-    } else if (seconds > SECONDS_PER_MINUTE - 1) {
-      timeAgo = String.format("%dm", seconds / SECONDS_PER_DAY);
-    } else {
-      timeAgo = String.format("%ds", seconds);
-    }
-    return timeAgo;
-  }
 }
