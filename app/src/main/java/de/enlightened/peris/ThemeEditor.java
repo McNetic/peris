@@ -174,7 +174,7 @@ public class ThemeEditor extends FragmentActivity {
       @SuppressWarnings("checkstyle:requirethis")
       public void onClick(final View v) {
         final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
-        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
 
           public void onColorSelected(final String color) {
             setColor(color);
@@ -191,7 +191,7 @@ public class ThemeEditor extends FragmentActivity {
       @SuppressWarnings("checkstyle:requirethis")
       public void onClick(final View v) {
         final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
-        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
 
           public void onColorSelected(final String color) {
             setBackground(color);
@@ -208,7 +208,7 @@ public class ThemeEditor extends FragmentActivity {
       @SuppressWarnings("checkstyle:requirethis")
       public void onClick(final View v) {
         final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
-        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
 
           public void onColorSelected(final String color) {
             setTextColor(color);
@@ -254,7 +254,7 @@ public class ThemeEditor extends FragmentActivity {
         bundle.putBoolean("show_opacity", true);
         newFragment.setArguments(bundle);
 
-        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
 
           public void onColorSelected(final String color) {
             setElementColor(color);

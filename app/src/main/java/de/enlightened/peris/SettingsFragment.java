@@ -96,7 +96,7 @@ public class SettingsFragment extends Fragment {
 
   private void setAccentColor() {
     final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
-    newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+    newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
 
       @SuppressWarnings("checkstyle:requirethis")
       public void onColorSelected(final String color) {

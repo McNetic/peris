@@ -72,7 +72,7 @@ public class NewPost extends FragmentActivity {
       imm.hideSoftInputFromWindow(bodyInputter.getWindowToken(), 0);
 
       final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
-      newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+      newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
 
         public void onColorSelected(final String color) {
           setColor(color);

@@ -160,7 +160,7 @@ public class WebViewer extends FragmentActivity {
         return true;
       case R.id.web_view_menu_theme:
         ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
-        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
+        newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
 
           public void onColorSelected(String color) {
             setColor(color);

@@ -13,16 +13,18 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class ColorPickerDialogFragment extends DialogFragment {
 
-  private boolean showOpacity = false;
-  private int opacity = 255;
+  private static final int MAX_OPACITY = 255;
 
-  private LinearLayout color_picker_colors_layout;
-  private onColorSelectedListener colorSelected = null;
+  private boolean showOpacity = false;
+  private int opacity = MAX_OPACITY;
+  private LinearLayout colorPickerColorsLayout;
+  private ColorSelectedListener colorSelected = null;
   private OnClickListener colorSetter = new OnClickListener() {
 
     @Override
-    public void onClick(View v) {
-      String color = (String) v.getTag();
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onClick(final View v) {
+      final String color = (String) v.getTag();
       setColor(color);
     }
 
@@ -33,61 +35,53 @@ public class ColorPickerDialogFragment extends DialogFragment {
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
     this.setStyle(STYLE_NO_TITLE, getTheme());
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View v = inflater.inflate(R.layout.color_picker_dialog, container, false);
-
-    setupColorPicker(v);
-
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    final View v = inflater.inflate(R.layout.color_picker_dialog, container, false);
+    this.setupColorPicker(v);
     return v;
   }
 
-  private void setupColorPicker(View v) {
-
-    Bundle bundle = getArguments();
+  private void setupColorPicker(final View v) {
+    final Bundle bundle = getArguments();
     if (bundle != null) {
       if (bundle.containsKey("show_opacity")) {
-        showOpacity = bundle.getBoolean("show_opacity");
+        this.showOpacity = bundle.getBoolean("show_opacity");
       }
     }
 
-    color_picker_colors_layout = (LinearLayout) v.findViewById(R.id.color_picker_colors_layout);
+    this.colorPickerColorsLayout = (LinearLayout) v.findViewById(R.id.color_picker_colors_layout);
+    final LinearLayout opacityLayout = (LinearLayout) v.findViewById(R.id.color_picker_opacity_layout);
 
-    LinearLayout opacityLayout = (LinearLayout) v.findViewById(R.id.color_picker_opacity_layout);
-
-    if (showOpacity) {
+    if (this.showOpacity) {
       opacityLayout.setVisibility(View.VISIBLE);
 
-      SeekBar color_opacity_seeker = (SeekBar) v.findViewById(R.id.color_opacity_seeker);
-      color_opacity_seeker.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+      final SeekBar colorOpacitySeeker = (SeekBar) v.findViewById(R.id.color_opacity_seeker);
+      colorOpacitySeeker.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 
         @Override
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        @SuppressWarnings("checkstyle:requirethis")
+        public void onProgressChanged(final SeekBar seekBar, final int progress, final boolean fromUser) {
           // TODO Auto-generated method stub
           opacity = progress;
-          float opacityPercent = progress / 255.0f;
-
+          final float opacityPercent = progress / (float) MAX_OPACITY;
           //Log.d("Color Picker",progress + "/255 = " + opacityPercent);
-
-          color_picker_colors_layout.setAlpha(opacityPercent);
+          colorPickerColorsLayout.setAlpha(opacityPercent);
         }
 
         @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
+        public void onStartTrackingTouch(final SeekBar seekBar) {
           // TODO Auto-generated method stub
-
         }
 
         @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
+        public void onStopTrackingTouch(final SeekBar seekBar) {
           // TODO Auto-generated method stub
-
         }
 
       });
@@ -95,90 +89,77 @@ public class ColorPickerDialogFragment extends DialogFragment {
       opacityLayout.setVisibility(View.GONE);
     }
 
-    LinearLayout llPicker = (LinearLayout) v.findViewById(R.id.profileColorPicker);
+    final LinearLayout llPicker = (LinearLayout) v.findViewById(R.id.profileColorPicker);
     llPicker.setVisibility(View.VISIBLE);
 
-    v.findViewById(R.id.pickColor1).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor2).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor3).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor4).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor5).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor6).setOnClickListener(colorSetter);
-
-    v.findViewById(R.id.pickColor7).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor8).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor9).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor10).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor11).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor12).setOnClickListener(colorSetter);
-
-    v.findViewById(R.id.pickColor13).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor14).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor15).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor16).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor17).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor18).setOnClickListener(colorSetter);
-
-    v.findViewById(R.id.pickColor19).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor20).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor21).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor22).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor23).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor24).setOnClickListener(colorSetter);
-
-    v.findViewById(R.id.pickColor25).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor26).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor27).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor28).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor29).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor30).setOnClickListener(colorSetter);
-
-    v.findViewById(R.id.pickColor31).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor32).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor33).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor34).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor35).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor36).setOnClickListener(colorSetter);
-
-    v.findViewById(R.id.pickColor37).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor38).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor39).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor40).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor41).setOnClickListener(colorSetter);
-    v.findViewById(R.id.pickColor42).setOnClickListener(colorSetter);
-
-
+    v.findViewById(R.id.pickColor1).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor2).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor3).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor4).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor5).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor6).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor7).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor8).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor9).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor10).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor11).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor12).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor13).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor14).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor15).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor16).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor17).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor18).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor19).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor20).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor21).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor22).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor23).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor24).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor25).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor26).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor27).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor28).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor29).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor30).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor31).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor32).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor33).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor34).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor35).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor36).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor37).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor38).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor39).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor40).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor41).setOnClickListener(this.colorSetter);
+    v.findViewById(R.id.pickColor42).setOnClickListener(this.colorSetter);
   }
 
-  private void setColor(String color) {
-    if (colorSelected == null) {
+  private void setColor(final String color) {
+    if (this.colorSelected == null) {
       this.dismiss();
       return;
     }
 
-    if (opacity < 255) {
-      String alphaValue = Integer.toHexString(opacity);
-
-      if (alphaValue.length() == 1) {
-        alphaValue = "0" + alphaValue;
-      }
-
-      color = color.replace("#", "#" + alphaValue);
-
-      Log.d("Color Picker", "Aplha'd color is: " + color);
+    final String selectedColor;
+    if (this.opacity < MAX_OPACITY) {
+      final String alphaValue = String.format("%02d", Integer.toHexString(this.opacity));
+      selectedColor = color.replace("#", "#" + alphaValue);
+      Log.d("Color Picker", "Alpha'd color is: " + selectedColor);
+    } else {
+      selectedColor = color;
     }
-
-    colorSelected.onColorSelected(color);
-
+    this.colorSelected.onColorSelected(selectedColor);
     this.dismiss();
   }
 
-  public void setOnColorSelectedListener(onColorSelectedListener l) {
-    colorSelected = l;
+  public void setOnColorSelectedListener(final ColorSelectedListener listener) {
+    this.colorSelected = listener;
   }
 
   //Color Selected Interface
-  public interface onColorSelectedListener {
-    public abstract void onColorSelected(String color);
+  public interface ColorSelectedListener {
+    void onColorSelected(String color);
   }
 }
