@@ -24,60 +24,50 @@ import java.util.Vector;
 
 @SuppressLint("NewApi")
 public class MailFragment extends ListFragment {
-  //private LinearLayout main_layout;
-
+  private static final int MAX_ITEM_COUNT = 50;
   private String rogueTitle;
-
   private String ourInboxId = "0";
   private String accent;
-  private download_mail mailDownloader;
+  private DownloadMailTask mailDownloader;
   private PerisApp application;
-
-  private InboxItem selected_item;
-
+  private InboxItem selectedItem;
 
   @Override
-  public void onCreate(Bundle bundle) {
+  public void onCreate(final Bundle bundle) {
     super.onCreate(bundle);
-
-    application = (PerisApp) getActivity().getApplication();
-
-    setHasOptionsMenu(true);
+    this.application = (PerisApp) this.getActivity().getApplication();
+    this.setHasOptionsMenu(true);
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
     return super.onCreateView(inflater, container, savedInstanceState);
   }
 
   @Override
   public void onStart() {
     super.onStart();
-
-    if (!(application.getSession().getServer().serverBackground.contentEquals(application.getSession().getServer().serverBoxColor) && application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
-      getListView().setDivider(null);
+    if (!(this.application.getSession().getServer().serverBackground.contentEquals(
+        this.application.getSession().getServer().serverBoxColor)
+        && this.application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
+      this.getListView().setDivider(null);
     }
-
-    accent = application.getSession().getServer().serverColor;
-
-
+    this.accent = this.application.getSession().getServer().serverColor;
   }
 
   @Override
   public void onResume() {
-    load_mail();
+    this.loadMail();
     super.onResume();
-
   }
 
-  private void load_mail() {
-    mailDownloader = new download_mail();
+  private void loadMail() {
+    this.mailDownloader = new DownloadMailTask();
 
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      mailDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      this.mailDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     } else {
-      mailDownloader.execute();
+      this.mailDownloader.execute();
     }
   }
 
@@ -86,54 +76,46 @@ public class MailFragment extends ListFragment {
     super.onStop();
 
     //Stop any running tasks
-    if (mailDownloader != null) {
-      if (mailDownloader.getStatus() == Status.RUNNING) {
-        mailDownloader.cancel(true);
+    if (this.mailDownloader != null) {
+      if (this.mailDownloader.getStatus() == Status.RUNNING) {
+        this.mailDownloader.cancel(true);
       }
     }
   }
 
-  private void load_conversation(InboxItem sender) {
-
-    Intent myIntent = new Intent(getActivity(), Conversation.class);
-
-    Bundle bundle = new Bundle();
+  private void loadConversation(final InboxItem sender) {
+    final Intent myIntent = new Intent(getActivity(), Conversation.class);
+    final Bundle bundle = new Bundle();
     bundle.putString("id", (String) sender.sender_id);
-    bundle.putString("boxid", (String) ourInboxId);
+    bundle.putString("boxid", (String) this.ourInboxId);
     bundle.putString("name", (String) sender.inbox_sender);
     bundle.putString("moderator", (String) sender.moderatorId);
-    bundle.putString("background", (String) accent);
+    bundle.putString("background", (String) this.accent);
     myIntent.putExtras(bundle);
 
     MailFragment.this.startActivity(myIntent);
-
-
   }
 
-  public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-
-    if (rogueTitle != null) {
+  public void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
+    if (this.rogueTitle != null) {
       return;
     }
 
-    AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
-    selected_item = (InboxItem) getListView().getItemAtPosition(info.position);
+    final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+    this.selectedItem = (InboxItem) getListView().getItemAtPosition(info.position);
 
     super.onCreateContextMenu(menu, v, menuInfo);
-
-    MenuInflater inflater = getActivity().getMenuInflater();
+    final MenuInflater inflater = getActivity().getMenuInflater();
     inflater.inflate(R.menu.delete_mail, menu);
   }
 
-  ;
-
-  public boolean onContextItemSelected(MenuItem item) {
+  public boolean onContextItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.mail_delete:
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-          new messageDeleter().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+          new DeleteMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
-          new messageDeleter().execute();
+          new DeleteMessageTask().execute();
         }
         return true;
       default:
@@ -141,29 +123,20 @@ public class MailFragment extends ListFragment {
     }
   }
 
-  private class download_mail extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"rawtypes", "unchecked"})
+  private class DownloadMailTask extends AsyncTask<String, Void, Object[]> {
+    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(String... params) {
-
-
-      Object[] result = new Object[50];
-
+    protected Object[] doInBackground(final String... params) {
+      final Object[] result = new Object[MAX_ITEM_COUNT];
       try {
-
         Vector paramz = new Vector();
-
-        HashMap map = (HashMap) application.getSession().performSynchronousCall("get_box_info", paramz);
-
-        Object[] boxes = (Object[]) map.get("list");
+        final HashMap map = (HashMap) application.getSession().performSynchronousCall("get_box_info", paramz);
+        final Object[] boxes = (Object[]) map.get("list");
 
         ourInboxId = "0";
-
         for (Object o : boxes) {
-          HashMap boxMap = (HashMap) o;
-
-          String boxType = (String) boxMap.get("box_type");
-
+          final HashMap boxMap = (HashMap) o;
+          final String boxType = (String) boxMap.get("box_type");
           Log.d("Peris", "Found Mailbox: " + boxType);
 
           if (boxType.contentEquals("INBOX")) {
@@ -174,7 +147,6 @@ public class MailFragment extends ListFragment {
         paramz = new Vector();
         paramz.addElement(ourInboxId);
         result[0] = application.getSession().performSynchronousCall("get_box", paramz);
-
       } catch (Exception e) {
         //null response
         return null;
@@ -182,38 +154,29 @@ public class MailFragment extends ListFragment {
       return result;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
     protected void onPostExecute(final Object[] result) {
       if (result == null) {
         //Toast toast = Toast.makeText(getActivity(), "Server connection timeout :-(", Toast.LENGTH_SHORT);
         //toast.show();
         return;
       }
-
       try {
-
         try {
-          ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
-
+          final ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
 
           for (Object o : result) {
-
             if (o != null) {
-              HashMap map = (HashMap) o;
-
+              final HashMap map = (HashMap) o;
               if (map.containsKey("list")) {
-                Object[] topics = (Object[]) map.get("list");
+                final Object[] topics = (Object[]) map.get("list");
                 for (Object t : topics) {
-
-                  HashMap topicMap = (HashMap) t;
-
-                  Date timestamp = (Date) topicMap.get("sent_date");
-
-                  InboxItem ii = new InboxItem();
+                  final HashMap topicMap = (HashMap) t;
+                  final Date timestamp = (Date) topicMap.get("sent_date");
+                  final InboxItem ii = new InboxItem();
 
                   if (topicMap.containsKey("msg_state")) {
-                    int state = (Integer) topicMap.get("msg_state");
-
+                    final int state = (Integer) topicMap.get("msg_state");
                     if (state == 1) {
                       ii.isUnread = true;
                     }
@@ -232,7 +195,6 @@ public class MailFragment extends ListFragment {
 
                   ii.inbox_sender_color = accent;
                   inboxList.add(ii);
-
                 }
               }
             }
@@ -242,50 +204,40 @@ public class MailFragment extends ListFragment {
           registerForContextMenu(getListView());
           getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-              InboxItem sender = (InboxItem) arg0.getItemAtPosition(arg2);
-
-              load_conversation(sender);
+            public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
+              loadConversation((InboxItem) arg0.getItemAtPosition(arg2));
             }
           });
-
         } catch (Exception ex) {
-          //error
+          Log.d("Peris", ex.getMessage());
         }
       } catch (Exception e) {
-        //error
+        Log.d("Peris", e.getMessage());
       }
     }
   }
 
-  private class messageDeleter extends AsyncTask<String, Void, Object[]> {
+  private class DeleteMessageTask extends AsyncTask<String, Void, Object[]> {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(String... params) {
-
-      Object[] result = new Object[50];
-
+    protected Object[] doInBackground(final String... params) {
+      final Object[] result = new Object[MAX_ITEM_COUNT];
       try {
-        Vector paramz = new Vector();
-        paramz.addElement(selected_item.sender_id);
+        final Vector paramz = new Vector();
+        paramz.addElement(selectedItem.sender_id);
         paramz.addElement(ourInboxId);
-
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
-
       } catch (Exception e) {
         Log.w("Peris", e.getMessage());
         return null;
       }
       return result;
-
     }
 
+    @SuppressWarnings("checkstyle:requirethis")
     protected void onPostExecute(final Object[] result) {
-
-      load_mail();
+      loadMail();
     }
   }
-
-
 }
