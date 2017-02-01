@@ -70,8 +70,7 @@ public class PostAdapter extends BaseAdapter {
 
     Post po = data.get(arg0);
 
-    v = ElementRenderer.renderPost(v, application, page, c, arg0, useOpenSans, useShading, po, fontSize, currentAvatarSetting);
-
+    ElementRenderer.renderPost(v, application, page, c, arg0, useOpenSans, useShading, po, fontSize, currentAvatarSetting);
 
     return v;
   }

@@ -32,8 +32,8 @@ final class ElementRenderer {
   }
 
   @SuppressWarnings("checkstyle:parameternumber")
-  public static View renderPost(
-      final View v,
+  public static void renderPost(
+      final View view,
       final PerisApp application,
       final int page,
       final Context context,
@@ -43,12 +43,12 @@ final class ElementRenderer {
       final Post po,
       final int fontSize,
       final boolean currentAvatarSetting) {
-    final TextView poAuthor = (TextView) v.findViewById(R.id.post_author);
-    final TextView poTimestamp = (TextView) v.findViewById(R.id.post_timestamp);
-    final TextView poPage = (TextView) v.findViewById(R.id.post_number);
-    final TextView tvThanks = (TextView) v.findViewById(R.id.post_thanks_count);
-    final TextView tvLikes = (TextView) v.findViewById(R.id.post_likes_count);
-    final TextView tvOnline = (TextView) v.findViewById(R.id.post_online_status);
+    final TextView poAuthor = (TextView) view.findViewById(R.id.post_author);
+    final TextView poTimestamp = (TextView) view.findViewById(R.id.post_timestamp);
+    final TextView poPage = (TextView) view.findViewById(R.id.post_number);
+    final TextView tvThanks = (TextView) view.findViewById(R.id.post_thanks_count);
+    final TextView tvLikes = (TextView) view.findViewById(R.id.post_likes_count);
+    final TextView tvOnline = (TextView) view.findViewById(R.id.post_online_status);
     final Typeface opensans = Typeface.createFromAsset(context.getAssets(), "fonts/opensans.ttf");
 
     if (page == -1) {
@@ -58,8 +58,8 @@ final class ElementRenderer {
       poPage.setText("#" + postNumber);
     }
 
-    final LinearLayout llBorderBackground = (LinearLayout) v.findViewById(R.id.ll_border_background);
-    final LinearLayout llColorBackground = (LinearLayout) v.findViewById(R.id.ll_color_background);
+    final LinearLayout llBorderBackground = (LinearLayout) view.findViewById(R.id.ll_border_background);
+    final LinearLayout llColorBackground = (LinearLayout) view.findViewById(R.id.ll_color_background);
 
     String textColor = context.getString(R.string.default_text_color);
     if (application.getSession().getServer().serverTextColor.contains("#")) {
@@ -104,17 +104,17 @@ final class ElementRenderer {
       tvOnline.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
     }
 
-    final LinearLayout llPostBodyHolder = (LinearLayout) v.findViewById(R.id.post_body_holder);
+    final LinearLayout llPostBodyHolder = (LinearLayout) view.findViewById(R.id.post_body_holder);
     llPostBodyHolder.removeAllViews();
     //llPostBodyHolder.setMovementMethod(null);
 
-    final ImageView poAvatar = (ImageView) v.findViewById(R.id.post_avatar);
+    final ImageView poAvatar = (ImageView) view.findViewById(R.id.post_avatar);
 
     if (boxColor != null && boxColor.contains("#") && boxColor.length() == 7) {
-      final ImageView postAvatarFrame = (ImageView) v.findViewById(R.id.post_avatar_frame);
+      final ImageView postAvatarFrame = (ImageView) view.findViewById(R.id.post_avatar_frame);
       postAvatarFrame.setColorFilter(Color.parseColor(boxColor));
     } else {
-      final ImageView postAvatarFrame = (ImageView) v.findViewById(R.id.post_avatar_frame);
+      final ImageView postAvatarFrame = (ImageView) view.findViewById(R.id.post_avatar_frame);
       postAvatarFrame.setVisibility(View.GONE);
     }
 
@@ -186,11 +186,9 @@ final class ElementRenderer {
     } else {
       poAvatar.setVisibility(View.GONE);
     }
-
-    return v;
   }
 
-  public static View renderCategory(
+  public static void renderCategory(
       final View view,
       final PerisApp application,
       final Context context,
@@ -335,8 +333,6 @@ final class ElementRenderer {
       tvCategoryUpdate.setVisibility(View.VISIBLE);
       tvCategoryUpdate.setText(ca.category_URL);
     }
-
-    return view;
   }
 
   @SuppressWarnings("checkstyle:nestedifdepth")

@@ -22,73 +22,75 @@ public class ThemeEditor extends FragmentActivity {
 
   private AnalyticsHelper ah;
 
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    application = (PerisApp) getApplication();
-    application.setForceRefresh(true);
+    this.application = (PerisApp) getApplication();
+    this.application.setForceRefresh(true);
 
     //Track app analytics
-    ah = ((PerisApp) getApplication()).getAnalyticsHelper();
-    ah.trackScreen(getClass().getName(), false);
+    this.ah = ((PerisApp) getApplication()).getAnalyticsHelper();
+    this.ah.trackScreen(getClass().getName(), false);
 
-    setContentView(R.layout.theme_editor);
+    this.setContentView(R.layout.theme_editor);
 
-    updatePreview();
-    juiceUpOptions();
+    this.updatePreview();
+    this.juiceUpOptions();
   }
 
   private void updatePreview() {
-    SharedPreferences app_preferences = getSharedPreferences("prefs", 0);
+    final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
 
-    boolean useShading = app_preferences.getBoolean("use_shading", false);
-    boolean useOpenSans = app_preferences.getBoolean("use_opensans", false);
-    int fontSize = app_preferences.getInt("font_size", 16);
-    boolean currentAvatarSetting = app_preferences.getBoolean("show_images", true);
+    final boolean useShading = appPreferences.getBoolean("use_shading", false);
+    final boolean useOpenSans = appPreferences.getBoolean("use_opensans", false);
+    final int fontSize = appPreferences.getInt("font_size", 16);
+    final boolean currentAvatarSetting = appPreferences.getBoolean("show_images", true);
 
-    TextView theme_editor_preview_appbar = (TextView) findViewById(R.id.theme_editor_preview_appbar);
-    theme_editor_preview_appbar.setBackgroundColor(Color.parseColor(application.getSession().getServer().serverColor));
+    final TextView themeEditorPreviewAppbar = (TextView) findViewById(R.id.theme_editor_preview_appbar);
+    themeEditorPreviewAppbar.setBackgroundColor(Color.parseColor(this.application.getSession().getServer().serverColor));
 
-    if (ThemeSetter.getForegroundDark(application.getSession().getServer().serverColor)) {
-      theme_editor_preview_appbar.setTextColor(Color.BLACK);
+    if (ThemeSetter.getForegroundDark(this.application.getSession().getServer().serverColor)) {
+      themeEditorPreviewAppbar.setTextColor(Color.BLACK);
     } else {
-      theme_editor_preview_appbar.setTextColor(Color.WHITE);
+      themeEditorPreviewAppbar.setTextColor(Color.WHITE);
     }
 
-    FrameLayout theme_editor_preview = (FrameLayout) findViewById(R.id.theme_editor_preview);
-    ImageView theme_editor_preview_wallpaper = (ImageView) findViewById(R.id.theme_editor_preview_wallpaper);
+    final FrameLayout themeEditorPreview = (FrameLayout) findViewById(R.id.theme_editor_preview);
+    final ImageView themeEditorPreviewWallpaper = (ImageView) findViewById(R.id.theme_editor_preview_wallpaper);
 
-    String forumWallpaper = application.getSession().getServer().serverWallpaper;
-    String forumBackground = application.getSession().getServer().serverBackground;
+    final String forumWallpaper = this.application.getSession().getServer().serverWallpaper;
+    final String forumBackground = this.application.getSession().getServer().serverBackground;
 
     if (forumWallpaper != null && forumWallpaper.contains("http")) {
-      String imageUrl = forumWallpaper;
-      theme_editor_preview_wallpaper.setVisibility(View.VISIBLE);
-      ImageLoader.getInstance().displayImage(imageUrl, theme_editor_preview_wallpaper);
+      final String imageUrl = forumWallpaper;
+      themeEditorPreviewWallpaper.setVisibility(View.VISIBLE);
+      ImageLoader.getInstance().displayImage(imageUrl, themeEditorPreviewWallpaper);
     } else {
-      theme_editor_preview_wallpaper.setVisibility(View.GONE);
+      themeEditorPreviewWallpaper.setVisibility(View.GONE);
     }
 
     if (forumBackground != null && forumBackground.contains("#") && forumBackground.length() == 7) {
-      theme_editor_preview.setBackgroundColor(Color.parseColor(forumBackground));
+      themeEditorPreview.setBackgroundColor(Color.parseColor(forumBackground));
     } else {
-      theme_editor_preview.setBackgroundColor(Color.parseColor(getString(R.string.default_background)));
+      themeEditorPreview.setBackgroundColor(Color.parseColor(getString(R.string.default_background)));
     }
 
-    boolean useDivider = true;
-
-    if (!(application.getSession().getServer().serverBackground.contentEquals(application.getSession().getServer().serverBoxColor) && application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
-      //useDivider = false;
+    final boolean useDivider = true;
+    /*
+    if (!(this.application.getSession().getServer().serverBackground.contentEquals(this.application.getSession().getServer().serverBoxColor)
+        && this.application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
+      useDivider = false;
     }
+    */
 
-    LinearLayout previewHolder = (LinearLayout) findViewById(R.id.theme_editor_preview_holder);
+    final LinearLayout previewHolder = (LinearLayout) findViewById(R.id.theme_editor_preview_holder);
     previewHolder.removeAllViews();
 
-    Category cat = new Category();
+    final Category cat = new Category();
     cat.category_name = "Fun Category";
     cat.categoryType = "S";
 
-    Category top = new Category();
+    final Category top = new Category();
     top.category_name = "Important Thread";
     top.topicSticky = "Y";
     top.thread_count = "2";
@@ -98,128 +100,130 @@ public class ThemeEditor extends FragmentActivity {
     top.hasNewTopic = true;
     top.categoryIcon = "http://localhost/nr90.jpg";
 
-    Post po = new Post();
+    final Post po = new Post();
     po.post_author = "nezkeeeze";
-    po.post_body = "Hey guys I'm new.  How do I get colored text?  Can I be an admin?  How do I start a new topic?<br /><br />" + application.getSession().getServer().serverTagline;
+    po.post_body = "Hey guys I'm new.  How do I get colored text?  Can I be an admin?  How do I start a new topic?<br /><br />"
+        + this.application.getSession().getServer().serverTagline;
     po.post_avatar = "http://localhost/nezkeys.png";
 
-    LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    final LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-    View vC = vi.inflate(R.layout.category, null);
-    View vT = vi.inflate(R.layout.thread, null);
-    View vP = vi.inflate(R.layout.post, null);
+    final View vC = vi.inflate(R.layout.category, null);
+    final View vT = vi.inflate(R.layout.thread, null);
+    final View vP = vi.inflate(R.layout.post, null);
 
-    vC = ElementRenderer.renderCategory(vC, application, this, useOpenSans, useShading, cat, currentAvatarSetting);
-    vT = ElementRenderer.renderCategory(vT, application, this, useOpenSans, useShading, top, currentAvatarSetting);
-    vP = ElementRenderer.renderPost(vP, application, 1, this, 0, useOpenSans, useShading, po, fontSize, currentAvatarSetting);
+    ElementRenderer.renderCategory(vC, this.application, this, useOpenSans, useShading, cat, currentAvatarSetting);
+    ElementRenderer.renderCategory(vT, this.application, this, useOpenSans, useShading, top, currentAvatarSetting);
+    ElementRenderer.renderPost(vP, this.application, 1, this, 0, useOpenSans, useShading, po, fontSize, currentAvatarSetting);
 
     previewHolder.addView(vC);
 
     if (useDivider) {
-      View d1 = vi.inflate(R.layout.preview_seperator, null);
+      final View d1 = vi.inflate(R.layout.preview_seperator, null);
       previewHolder.addView(d1);
     }
 
     previewHolder.addView(vT);
 
     if (useDivider) {
-      View d2 = vi.inflate(R.layout.preview_seperator, null);
+      final View d2 = vi.inflate(R.layout.preview_seperator, null);
       previewHolder.addView(d2);
     }
 
     previewHolder.addView(vP);
 
     if (useDivider) {
-      View d3 = vi.inflate(R.layout.preview_seperator, null);
+      final View d3 = vi.inflate(R.layout.preview_seperator, null);
       previewHolder.addView(d3);
     }
   }
 
-  private void setColor(String color) {
-    application.getSession().getServer().serverColor = color;
-    application.getSession().updateServer();
+  private void setColor(final String color) {
+    this.application.getSession().getServer().serverColor = color;
+    this.application.getSession().updateServer();
 
-    updatePreview();
+    this.updatePreview();
   }
 
-  private void setBackground(String color) {
-    application.getSession().getServer().serverBackground = color;
-    application.getSession().updateServer();
+  private void setBackground(final String color) {
+    this.application.getSession().getServer().serverBackground = color;
+    this.application.getSession().updateServer();
 
-    updatePreview();
+    this.updatePreview();
   }
 
-  private void setTextColor(String color) {
-    application.getSession().getServer().serverTextColor = color;
-    application.getSession().updateServer();
+  private void setTextColor(final String color) {
+    this.application.getSession().getServer().serverTextColor = color;
+    this.application.getSession().updateServer();
 
-    updatePreview();
+    this.updatePreview();
   }
 
-  private void setElementColor(String color) {
-    application.getSession().getServer().serverBoxColor = color;
-    application.getSession().updateServer();
+  private void setElementColor(final String color) {
+    this.application.getSession().getServer().serverBoxColor = color;
+    this.application.getSession().updateServer();
 
-    updatePreview();
+    this.updatePreview();
   }
 
   private void juiceUpOptions() {
-    Button btnAccent = (Button) findViewById(R.id.theme_editor_accent_color);
+    final Button btnAccent = (Button) findViewById(R.id.theme_editor_accent_color);
     btnAccent.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
-        ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
         newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
 
-          public void onColorSelected(String color) {
+          public void onColorSelected(final String color) {
             setColor(color);
           }
         });
         newFragment.show(getSupportFragmentManager(), "dialog");
       }
-
     });
 
-    Button btnBackground = (Button) findViewById(R.id.theme_editor_background_color);
+    final Button btnBackground = (Button) findViewById(R.id.theme_editor_background_color);
     btnBackground.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
-        ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
         newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
 
-          public void onColorSelected(String color) {
+          public void onColorSelected(final String color) {
             setBackground(color);
           }
         });
         newFragment.show(getSupportFragmentManager(), "dialog");
       }
-
     });
 
-    Button btnTextColor = (Button) findViewById(R.id.theme_editor_text_color);
+    final Button btnTextColor = (Button) findViewById(R.id.theme_editor_text_color);
     btnTextColor.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
-        ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
         newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
 
-          public void onColorSelected(String color) {
+          public void onColorSelected(final String color) {
             setTextColor(color);
           }
         });
         newFragment.show(getSupportFragmentManager(), "dialog");
       }
-
     });
 
-    Button btnElementBorder = (Button) findViewById(R.id.theme_editor_borders);
+    final Button btnElementBorder = (Button) findViewById(R.id.theme_editor_borders);
     btnElementBorder.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
         String currentSetting = getString(R.string.default_element_border);
 
         if (application.getSession().getServer().serverBoxBorder != null) {
@@ -236,40 +240,38 @@ public class ThemeEditor extends FragmentActivity {
 
         updatePreview();
       }
-
     });
 
-    Button btnElementColor = (Button) findViewById(R.id.theme_editor_element_color);
+    final Button btnElementColor = (Button) findViewById(R.id.theme_editor_element_color);
     btnElementColor.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
-        ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
+      @SuppressWarnings("checkstyle:requirethis")
+      public void onClick(final View v) {
+        final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
 
-        Bundle bundle = new Bundle();
+        final Bundle bundle = new Bundle();
         bundle.putBoolean("show_opacity", true);
         newFragment.setArguments(bundle);
 
         newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.onColorSelectedListener() {
 
-          public void onColorSelected(String color) {
+          public void onColorSelected(final String color) {
             setElementColor(color);
           }
         });
         newFragment.show(getSupportFragmentManager(), "dialog");
       }
-
     });
 
-    Button btnWallpaper = (Button) findViewById(R.id.theme_editor_wallpaper);
+    final Button btnWallpaper = (Button) findViewById(R.id.theme_editor_wallpaper);
     btnWallpaper.setOnClickListener(new OnClickListener() {
 
       @Override
-      public void onClick(View v) {
-        BackgroundUrlDialogFragment newFragment = BackgroundUrlDialogFragment.newInstance();
+      public void onClick(final View v) {
+        final BackgroundUrlDialogFragment newFragment = BackgroundUrlDialogFragment.newInstance();
         newFragment.show(getSupportFragmentManager(), "dialog");
       }
-
     });
   }
 

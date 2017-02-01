@@ -72,9 +72,7 @@ public class CategoryAdapter extends BaseAdapter {
       v = vi.inflate(R.layout.thread, null);
     }
 
-
-    v = ElementRenderer.renderCategory(v, application, c, useOpenSans, useShading, ca, currentAvatarSetting);
-
+    ElementRenderer.renderCategory(v, application, c, useOpenSans, useShading, ca, currentAvatarSetting);
 
     return v;
   }
