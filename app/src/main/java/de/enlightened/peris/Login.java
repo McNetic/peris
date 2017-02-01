@@ -29,34 +29,38 @@ public class Login extends Fragment {
   private CheckBox cbAge;
   private Button btnLogin;
   private Button btnNewAccount;
-
   private PerisApp application;
-  private String server_address;
-  private OnCheckedChangeListener AgreementChangedListener = new OnCheckedChangeListener() {
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+  private String serverAddress;
+
+  private OnCheckedChangeListener agreementChangedListener = new OnCheckedChangeListener() {
+
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onCheckedChanged(final CompoundButton buttonView, final boolean isChecked) {
       if (cbAgreement.isChecked() && cbAge.isChecked()) {
         btnLogin.setEnabled(true);
       } else {
         btnLogin.setEnabled(false);
       }
     }
-
   };
-  private OnClickListener CreateAccount = new OnClickListener() {
-    public void onClick(View v) {
+
+  private OnClickListener createAccountListener = new OnClickListener() {
+
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onClick(final View v) {
       if (getString(R.string.registration_url).contentEquals("0")) {
         if (application.getSession().getAllowRegistration()) {
-          Intent myIntent = new Intent(getActivity(), NewAccount.class);
+          final Intent myIntent = new Intent(getActivity(), NewAccount.class);
           Login.this.startActivity(myIntent);
         } else {
-          AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+          final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
           builder.setTitle("Account Registration");
           builder.setMessage("Account registeration for this forum must be done on the forum website.  Hit Ok to go to the website now.");
           builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 
             @Override
-            public void onClick(DialogInterface dialog, int which) {
-              Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(application.getSession().getServer().serverAddress));
+            public void onClick(final DialogInterface dialog, final int which) {
+              final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(application.getSession().getServer().serverAddress));
               startActivity(browserIntent);
 
               dialog.dismiss();
@@ -65,26 +69,27 @@ public class Login extends Fragment {
           builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
 
             @Override
-            public void onClick(DialogInterface dialog, int which) {
+            public void onClick(final DialogInterface dialog, final int which) {
               // whatever
-
               dialog.dismiss();
             }
           });
           builder.create().show();
         }
       } else {
-        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.registration_url)));
+        final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.registration_url)));
         startActivity(browserIntent);
       }
     }
   };
-  private OnClickListener LoginListener = new OnClickListener() {
-    public void onClick(View v) {
+
+  private OnClickListener loginListener = new OnClickListener() {
+    @SuppressWarnings("checkstyle:requirethis")
+    public void onClick(final View v) {
       btnLogin.setEnabled(false);
 
-      String username = tvUsername.getText().toString().trim();
-      String password = tvPassword.getText().toString().trim();
+      final String username = tvUsername.getText().toString().trim();
+      final String password = tvPassword.getText().toString().trim();
 
       application.getSession().setSessionListener(new Session.SessionListener() {
 
@@ -97,19 +102,17 @@ public class Login extends Fragment {
 
           getActivity().finish();
           application.getSession().getServer().serverTab = "0";
-
           getActivity().startActivity(getActivity().getIntent());
         }
 
         @Override
-        public void onSessionConnectionFailed(String reason) {
+        public void onSessionConnectionFailed(final String reason) {
           if (reason != null) {
-            Toast toast = Toast.makeText(getActivity(), reason, Toast.LENGTH_LONG);
+            final Toast toast = Toast.makeText(getActivity(), reason, Toast.LENGTH_LONG);
             toast.show();
             btnLogin.setEnabled(true);
           }
         }
-
       });
 
       application.getSession().loginSession(username, password);
@@ -117,104 +120,82 @@ public class Login extends Fragment {
   };
 
   private static String byteToHex(final byte[] hash) {
-    String returnValue = "";
-    Formatter formatter = new Formatter();
+    final Formatter formatter = new Formatter();
     for (byte b : hash) {
       formatter.format("%02x", b);
     }
-    returnValue = formatter.toString();
+    final String rv = formatter.toString();
     formatter.close();
-
-    return returnValue;
+    return rv;
   }
 
   @Override
-  public void onCreate(Bundle bundle) {
+  public void onCreate(final Bundle bundle) {
     super.onCreate(bundle);
-
-    application = (PerisApp) getActivity().getApplication();
-
+    this.application = (PerisApp) getActivity().getApplication();
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View v = inflater.inflate(R.layout.login, container, false);
-    return v;
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.login, container, false);
   }
 
   @Override
   public void onStart() {
     super.onStart();
-
-    server_address = application.getSession().getServer().serverAddress;
-
-    link_layouts();
+    this.serverAddress = this.application.getSession().getServer().serverAddress;
+    this.linkLayouts();
   }
 
   @Override
   public void onResume() {
-
-    String userid = application.getSession().getServer().serverUserId;
-
+    final String userid = this.application.getSession().getServer().serverUserId;
     if (!userid.contentEquals("0")) {
       getActivity().finish();
       getActivity().startActivity(getActivity().getIntent());
     }
-
     super.onResume();
   }
 
-  private void link_layouts() {
-    tvUsername = (TextView) getActivity().findViewById(R.id.login_username);
-    tvPassword = (TextView) getActivity().findViewById(R.id.login_password);
-    cbAgreement = (CheckBox) getActivity().findViewById(R.id.login_agreement);
-    cbAge = (CheckBox) getActivity().findViewById(R.id.login_age);
-    btnLogin = (Button) getActivity().findViewById(R.id.login_login);
-    btnNewAccount = (Button) getActivity().findViewById(R.id.login_new_account);
+  private void linkLayouts() {
+    this.tvUsername = (TextView) getActivity().findViewById(R.id.login_username);
+    this.tvPassword = (TextView) getActivity().findViewById(R.id.login_password);
+    this.cbAgreement = (CheckBox) getActivity().findViewById(R.id.login_agreement);
+    this.cbAge = (CheckBox) getActivity().findViewById(R.id.login_age);
+    this.btnLogin = (Button) getActivity().findViewById(R.id.login_login);
+    this.btnNewAccount = (Button) getActivity().findViewById(R.id.login_new_account);
 
-    TextView disclaimer = (TextView) getActivity().findViewById(R.id.tv_login_disclaimer);
+    final TextView disclaimer = (TextView) getActivity().findViewById(R.id.tv_login_disclaimer);
 
-    cbAgreement.setText(cbAgreement.getText().toString().replace("SERVERNAME", server_address.replace("http://", "")));
-
-    btnLogin.setEnabled(false);
-
-    cbAgreement.setOnCheckedChangeListener(AgreementChangedListener);
-    cbAge.setOnCheckedChangeListener(AgreementChangedListener);
-
-    btnNewAccount.setOnClickListener(CreateAccount);
-    btnLogin.setOnClickListener(LoginListener);
+    this.cbAgreement.setText(this.cbAgreement.getText().toString().replace("SERVERNAME",
+        this.serverAddress.replace("http://", "")));
+    this.btnLogin.setEnabled(false);
+    this.cbAgreement.setOnCheckedChangeListener(this.agreementChangedListener);
+    this.cbAge.setOnCheckedChangeListener(this.agreementChangedListener);
+    this.btnNewAccount.setOnClickListener(this.createAccountListener);
+    this.btnLogin.setOnClickListener(this.loginListener);
   }
 
-  public String MD5(String string) {
-
-    String md5 = "";
+  private String calculateDigest(final String algorithm, final String string) {
+    String cryptedString = "";
     try {
-      MessageDigest crypt = MessageDigest.getInstance("MD5");
-      crypt.reset();
-      crypt.update(string.getBytes("UTF-8"));
-      md5 = byteToHex(crypt.digest());
+      final MessageDigest digest = MessageDigest.getInstance(algorithm);
+      digest.reset();
+      digest.update(string.getBytes("UTF-8"));
+      cryptedString = byteToHex(digest.digest());
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
-    return md5;
+    return cryptedString;
   }
 
-  public String SHA1(String string) {
-
-    String sha1 = "";
-    try {
-      MessageDigest crypt = MessageDigest.getInstance("SHA-1");
-      crypt.reset();
-      crypt.update(string.getBytes("UTF-8"));
-      sha1 = byteToHex(crypt.digest());
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    return sha1;
+  public String md55(final String string) {
+    return this.calculateDigest("MD5", string);
   }
 
+  public String sha1(final String string) {
+    return this.calculateDigest("SHA-1", string);
+  }
 }
