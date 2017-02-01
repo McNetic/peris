@@ -54,7 +54,7 @@ public class CategoryParser {
             subOnly = (Boolean) map.get("sub_only");
             ca.hasChildren = true;
             if (ca.hasChildren) {
-              Log.e("Peris", "aaa sub only on " + ca.category_id);
+              Log.v("Peris", "aaa sub only on " + ca.category_id);
             }
           }
         }

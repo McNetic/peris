@@ -207,8 +207,8 @@ public class PostsFragment extends Fragment {
 
     final Bundle bundle = getArguments();
     this.subforumId = bundle.getString("subforum_id");
-    this.categoryId = bundle.getString("categoryId");
-    this.threadId = bundle.getString("threadId");
+    this.categoryId = bundle.getString("category_id");
+    this.threadId = bundle.getString("thread_id");
     this.lock = bundle.getString("lock");
     this.postCount = bundle.getString("posts");
     this.currentThreadSubject = bundle.getString("subject");
