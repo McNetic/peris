@@ -119,16 +119,6 @@ public class Login extends Fragment {
     }
   };
 
-  private static String byteToHex(final byte[] hash) {
-    final Formatter formatter = new Formatter();
-    for (byte b : hash) {
-      formatter.format("%02x", b);
-    }
-    final String rv = formatter.toString();
-    formatter.close();
-    return rv;
-  }
-
   @Override
   public void onCreate(final Bundle bundle) {
     super.onCreate(bundle);
@@ -174,28 +164,5 @@ public class Login extends Fragment {
     this.cbAge.setOnCheckedChangeListener(this.agreementChangedListener);
     this.btnNewAccount.setOnClickListener(this.createAccountListener);
     this.btnLogin.setOnClickListener(this.loginListener);
-  }
-
-  private String calculateDigest(final String algorithm, final String string) {
-    String cryptedString = "";
-    try {
-      final MessageDigest digest = MessageDigest.getInstance(algorithm);
-      digest.reset();
-      digest.update(string.getBytes("UTF-8"));
-      cryptedString = byteToHex(digest.digest());
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
-    }
-    return cryptedString;
-  }
-
-  public String md55(final String string) {
-    return this.calculateDigest("MD5", string);
-  }
-
-  public String sha1(final String string) {
-    return this.calculateDigest("SHA-1", string);
   }
 }
