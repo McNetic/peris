@@ -101,10 +101,10 @@ public class ThemeEditor extends FragmentActivity {
     top.categoryIcon = "http://localhost/nr90.jpg";
 
     final Post po = new Post();
-    po.post_author = "nezkeeeze";
-    po.post_body = "Hey guys I'm new.  How do I get colored text?  Can I be an admin?  How do I start a new topic?<br /><br />"
+    po.author = "nezkeeeze";
+    po.body = "Hey guys I'm new.  How do I get colored text?  Can I be an admin?  How do I start a new topic?<br /><br />"
         + this.application.getSession().getServer().serverTagline;
-    po.post_avatar = "http://localhost/nezkeys.png";
+    po.avatar = "http://localhost/nezkeys.png";
 
     final LayoutInflater vi = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 

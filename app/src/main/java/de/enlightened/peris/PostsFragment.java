@@ -403,13 +403,13 @@ public class PostsFragment extends Fragment {
     } else {
       final Intent myIntent = new Intent(this.activity, NewPost.class);
       final Bundle bundle = new Bundle();
-      bundle.putString("postid", (String) this.selectedPost.post_id);
+      bundle.putString("postid", (String) this.selectedPost.id);
       bundle.putString("parent", (String) this.threadId);
       bundle.putString("category", (String) this.categoryId);
       bundle.putString("subforum_id", (String) this.subforumId);
-      bundle.putString("original_text", (String) this.selectedPost.post_body);
+      bundle.putString("original_text", (String) this.selectedPost.body);
       bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
-      bundle.putString("picture", (String) this.selectedPost.post_picture);
+      bundle.putString("picture", (String) this.selectedPost.picture);
       bundle.putString("color", (String) this.background);
       bundle.putString("subject", (String) this.currentThreadSubject);
       bundle.putInt("post_type", (Integer) 3);
@@ -434,7 +434,7 @@ public class PostsFragment extends Fragment {
       bundle.putString("category", (String) this.categoryId);
       bundle.putString("subforum_id", (String) this.subforumId);
       bundle.putString("boxTitle", (String) "RE: " + this.currentThreadSubject);
-      bundle.putString("original_text", (String) "[quote=\"" + this.selectedPost.post_author + "\"]" + this.selectedPost.post_body + "[/quote]<br /><br />");
+      bundle.putString("original_text", (String) "[quote=\"" + this.selectedPost.author + "\"]" + this.selectedPost.body + "[/quote]<br /><br />");
       bundle.putString("picture", (String) "0");
       bundle.putString("color", (String) this.background);
       bundle.putInt("post_type", (Integer) 2);
@@ -475,8 +475,8 @@ public class PostsFragment extends Fragment {
       item5.setVisible(true);
     }
 
-    if (this.selectedPost.post_author_id != null) {
-      if (this.userid.contentEquals(this.selectedPost.post_author_id)) {
+    if (this.selectedPost.authorId != null) {
+      if (this.userid.contentEquals(this.selectedPost.authorId)) {
         final MenuItem item5 = menu.findItem(R.id.posts_message);
         item5.setVisible(false);
       }
@@ -530,13 +530,13 @@ public class PostsFragment extends Fragment {
     } else if (itemId == R.id.posts_copy) {
       this.storePostInClipboard();
     } else if (itemId == R.id.posts_context_delete_yes) {
-      new DeletePostTask().execute(this.selectedPost.post_id);
+      new DeletePostTask().execute(this.selectedPost.id);
     } else if (itemId == R.id.posts_context_ban) {
       this.dropTheHammer();
     } else if (itemId == R.id.posts_thank) {
-      new ThankPostTask().execute(this.selectedPost.post_id);
+      new ThankPostTask().execute(this.selectedPost.id);
     } else if (itemId == R.id.posts_like) {
-      new LikePostTask().execute(this.selectedPost.post_id);
+      new LikePostTask().execute(this.selectedPost.id);
     } else {
       return super.onContextItemSelected(item);
     }
@@ -549,11 +549,11 @@ public class PostsFragment extends Fragment {
     //Copy text support for all Android versions
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
       final ClipboardManager clipboard = (ClipboardManager) this.activity.getSystemService(Context.CLIPBOARD_SERVICE);
-      final ClipData cd = ClipData.newHtmlText(this.currentThreadSubject, this.selectedPost.post_body, this.selectedPost.post_body);
+      final ClipData cd = ClipData.newHtmlText(this.currentThreadSubject, this.selectedPost.body, this.selectedPost.body);
       clipboard.setPrimaryClip(cd);
     } else {
       final android.text.ClipboardManager clipboard = (android.text.ClipboardManager) this.activity.getSystemService(Context.CLIPBOARD_SERVICE);
-      clipboard.setText(this.selectedPost.post_body);
+      clipboard.setText(this.selectedPost.body);
     }
 
     final Toast toast = Toast.makeText(this.activity, "Text copied!", Toast.LENGTH_SHORT);
@@ -618,7 +618,7 @@ public class PostsFragment extends Fragment {
     final Bundle bundle = new Bundle();
     bundle.putString("postid", (String) "0");
     bundle.putString("parent", (String) "0");
-    bundle.putString("category", this.selectedPost.post_author);
+    bundle.putString("category", this.selectedPost.author);
     bundle.putString("subforum_id", (String) "0");
     bundle.putString("original_text", (String) "");
     bundle.putString("boxTitle", (String) "New Message");
@@ -633,7 +633,7 @@ public class PostsFragment extends Fragment {
 
   private void dropTheHammer() {
     final Bundle bundle = new Bundle();
-    bundle.putString("username", this.selectedPost.post_author);
+    bundle.putString("username", this.selectedPost.author);
 
     final BanHammerDialogFragment newFragment = BanHammerDialogFragment.newInstance();
     newFragment.setArguments(bundle);
@@ -704,25 +704,25 @@ public class PostsFragment extends Fragment {
                   final HashMap topicMap = (HashMap) t;
                   final Date timestamp = (Date) topicMap.get("post_time");
                   final Post po = new Post();
-                  po.category_id = categoryId;
-                  po.subforum_id = subforumId;
-                  po.thread_id = threadId;
+                  po.categoryId = categoryId;
+                  po.subforumId = subforumId;
+                  po.threadId = threadId;
                   //po.categoryModerator = moderator;
 
                   if (!topicMap.containsKey("post_author_id")) {
                     Log.w("Peris", "There is no author id with this post!");
                   }
 
-                  po.post_author = new String((byte[]) topicMap.get("post_author_name"));
-                  po.post_author_id = (String) topicMap.get("post_author_id");
-                  po.post_body = new String((byte[]) topicMap.get("post_content"));
-                  po.post_avatar = (String) topicMap.get("icon_url");
+                  po.author = new String((byte[]) topicMap.get("post_author_name"));
+                  po.authorId = (String) topicMap.get("post_author_id");
+                  po.body = new String((byte[]) topicMap.get("post_content"));
+                  po.avatar = (String) topicMap.get("icon_url");
 
-                  po.post_id = (String) topicMap.get("post_id");
-                  po.post_tagline = "tagline";
+                  po.id = (String) topicMap.get("post_id");
+                  po.tagline = "tagline";
 
                   if (timestamp != null) {
-                    po.post_timestamp = timestamp.toString();
+                    po.timestamp = timestamp.toString();
                   }
 
                   if (topicMap.containsKey("attachments")) {
@@ -802,7 +802,7 @@ public class PostsFragment extends Fragment {
 
                 if (profileSelected != null) {
                   final Post sender = (Post) adapterView.getItemAtPosition(itemPos);
-                  profileSelected.onProfileSelected(sender.post_author, sender.post_author_id);
+                  profileSelected.onProfileSelected(sender.author, sender.authorId);
                 }
               }
             });

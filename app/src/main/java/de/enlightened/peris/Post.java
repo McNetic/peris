@@ -4,26 +4,25 @@ import android.view.View;
 
 import java.util.ArrayList;
 
+@SuppressWarnings("checkstyle:visibilitymodifier")
 public class Post {
-  public String post_tagline = "tagline";
-  public String post_author = "Author";
-  public String post_body = "Post body goes here!";
-  public String post_avatar = "n/a";
-
-  public String post_id = "0";
-  public String category_id = "0";
-  public String subforum_id = "0";
-  public String thread_id = "0";
-  public String post_author_id = "0";
-  public String post_timestamp = "00-00-0000";
-  public String post_color = "#000000";
-  public String post_author_level = "0";
-  public String post_picture = "0";
-  public String post_parent = "0";
-  public View subforum_seperator;
+  public String tagline = "tagline";
+  public String author = "Author";
+  public String body = "Post body goes here!";
+  public String avatar = "n/a";
+  public String id = "0";
+  public String categoryId = "0";
+  public String subforumId = "0";
+  public String threadId = "0";
+  public String authorId = "0";
+  public String timestamp = "00-00-0000";
+  public String color = "#000000";
+  public String authorLevel = "0";
+  public String picture = "0";
+  public String parent = "0";
+  public View subforumSeperator;
   public String categoryModerator = "0";
   public String attachmentExtension = "jpg";
-
   public boolean userOnline = false;
   public boolean userBanned = false;
   public boolean canBan = false;
@@ -31,15 +30,7 @@ public class Post {
   public boolean canEdit = false;
   public boolean canThank = false;
   public boolean canLike = false;
-
   public int thanksCount = 0;
   public int likeCount = 0;
-
-  public ArrayList<PostAttachment> attachmentList;
-
-  public Post() {
-    attachmentList = new ArrayList<PostAttachment>();
-  }
-
-
+  public final ArrayList<PostAttachment> attachmentList = new ArrayList<PostAttachment>();
 }

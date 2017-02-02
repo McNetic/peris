@@ -63,7 +63,7 @@ public class SocialFragment extends Fragment {
     public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
       final Post sender = (Post) arg0.getItemAtPosition(arg2);
       if (profileSelectedListener != null) {
-        profileSelectedListener.onProfileSelected(sender.post_author, sender.post_author_id);
+        profileSelectedListener.onProfileSelected(sender.author, sender.authorId);
       }
     }
   };
@@ -230,11 +230,11 @@ public class SocialFragment extends Fragment {
     //Copy text support for all Android versions
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
       final ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-      final ClipData cd = ClipData.newHtmlText(this.selectedPost.post_author + "'s Social Post", this.selectedPost.post_body, this.selectedPost.post_body);
+      final ClipData cd = ClipData.newHtmlText(this.selectedPost.author + "'s Social Post", this.selectedPost.body, this.selectedPost.body);
       clipboard.setPrimaryClip(cd);
     } else {
       final android.text.ClipboardManager clipboard = (android.text.ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-      clipboard.setText(this.selectedPost.post_body);
+      clipboard.setText(this.selectedPost.body);
     }
 
     final Toast toast = Toast.makeText(this.getActivity(), "Text copied!", Toast.LENGTH_SHORT);
@@ -399,21 +399,21 @@ public class SocialFragment extends Fragment {
                   final HashMap topicMap = (HashMap) t;
                   final Date timestamp = (Date) topicMap.get("post_time");
                   final Post po = new Post();
-                  po.category_id = "108";
-                  po.subforum_id = "108";
-                  po.thread_id = "21";
+                  po.categoryId = "108";
+                  po.subforumId = "108";
+                  po.threadId = "21";
 
                   if (topicMap.containsKey("is_online")) {
                     po.userOnline = (Boolean) topicMap.get("is_online");
                   }
 
-                  po.post_author = new String((byte[]) topicMap.get("post_author_name"));
-                  po.post_author_id = (String) topicMap.get("post_author_id");
-                  po.post_body = new String((byte[]) topicMap.get("post_content"));
-                  po.post_avatar = (String) topicMap.get("icon_url");
-                  po.post_id = (String) topicMap.get("post_id");
-                  po.post_tagline = "tagline";
-                  po.post_timestamp = timestamp.toString();
+                  po.author = new String((byte[]) topicMap.get("post_author_name"));
+                  po.authorId = (String) topicMap.get("post_author_id");
+                  po.body = new String((byte[]) topicMap.get("post_content"));
+                  po.avatar = (String) topicMap.get("icon_url");
+                  po.id = (String) topicMap.get("post_id");
+                  po.tagline = "tagline";
+                  po.timestamp = timestamp.toString();
                   postList.add(0, po);
                 }
               }

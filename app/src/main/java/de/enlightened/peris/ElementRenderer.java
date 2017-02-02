@@ -120,14 +120,14 @@ final class ElementRenderer {
       tvOnline.setVisibility(View.GONE);
     }
 
-    poAuthor.setText(po.post_author);
-    final String timeAgo = po.post_timestamp;
+    poAuthor.setText(po.author);
+    final String timeAgo = po.timestamp;
 
     try {
-      poTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(po.post_timestamp)));
+      poTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(po.timestamp)));
     } catch (IllegalArgumentException | ParseException ex) {
       poTimestamp.setVisibility(View.GONE);
-      tvOnline.setText(po.post_timestamp);
+      tvOnline.setText(po.timestamp);
       tvOnline.setVisibility(View.VISIBLE);
       tvOnline.setTextColor(Color.parseColor(textColor));
     }
@@ -152,7 +152,7 @@ final class ElementRenderer {
       poAuthor.setTextColor(Color.LTGRAY);
     }
 
-    final String postContent = po.post_body;
+    final String postContent = po.body;
     BBCodeParser.parseCode(context, llPostBodyHolder, postContent, opensans, useOpenSans, useShading, po.attachmentList, fontSize, true, textColor, application);
 
     poAuthor.setTextColor(Color.parseColor(textColor));
@@ -160,20 +160,20 @@ final class ElementRenderer {
     poPage.setTextColor(Color.parseColor(textColor));
 
     if (po.categoryModerator != null) {
-      if (po.post_author_id != null) {
-        if (po.post_author_id.contentEquals(po.categoryModerator) && !po.categoryModerator.contentEquals("0")) {
+      if (po.authorId != null) {
+        if (po.authorId.contentEquals(po.categoryModerator) && !po.categoryModerator.contentEquals("0")) {
           poAuthor.setTextColor(Color.BLUE);
         }
       }
     }
 
-    if (po.post_author_level.contentEquals("D")) {
+    if (po.authorLevel.contentEquals("D")) {
       poAuthor.setTextColor(Color.parseColor("#ffcc00"));
     }
 
     if (currentAvatarSetting) {
-      if (po.post_avatar != null && po.post_avatar.contains("http://")) {
-        final String imageUrl = po.post_avatar;
+      if (po.avatar != null && po.avatar.contains("http://")) {
+        final String imageUrl = po.avatar;
         ImageLoader.getInstance().displayImage(imageUrl, poAvatar);
       } else {
         poAvatar.setImageResource(R.drawable.no_avatar);

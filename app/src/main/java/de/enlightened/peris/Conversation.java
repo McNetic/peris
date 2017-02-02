@@ -277,13 +277,13 @@ public class Conversation extends FragmentActivity {
             //po.categoryModerator = moderator;
 
             senderName = new String((byte[]) map.get("msg_from"));
-            po.post_author = new String((byte[]) map.get("msg_from"));
-            po.post_author_id = conversationModerator;
-            po.post_body = new String((byte[]) map.get("text_body"));
-            po.post_avatar = (String) map.get("icon_url");
-            po.post_id = partner;
-            po.post_tagline = "tagline";
-            po.post_timestamp = timestamp.toString();
+            po.author = new String((byte[]) map.get("msg_from"));
+            po.authorId = conversationModerator;
+            po.body = new String((byte[]) map.get("text_body"));
+            po.avatar = (String) map.get("icon_url");
+            po.id = partner;
+            po.tagline = "tagline";
+            po.timestamp = timestamp.toString();
 
             postList.add(po);
           }
