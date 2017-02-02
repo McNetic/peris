@@ -56,6 +56,8 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.enlightened.peris.support.Net;
+
 
 @SuppressLint("NewApi")
 @SuppressWarnings("checkstyle:requirethis")
@@ -450,42 +452,14 @@ public class IntroScreen extends FragmentActivity {
       for (String subdomain : subdomains) {
         for (String directory : directories) {
           final String url = String.format("%s://%s%s/%s", protocol, subdomain, domain, directory);
-          if (checkURL(url)) {
+          Log.d("Peris", "Checking: " + url);
+          if (Net.checkURL(url + "/mobiquo/mobiquo.php")) {
             return url;
           }
         }
       }
     }
     return "none";
-  }
-
-  private boolean checkURL(final String url) {
-    Log.d("Peris", "Checking: " + url);
-
-    try {
-      final URL myFileUrl = new URL(url + "/mobiquo/mobiquo.php");
-
-      try {
-        final HttpURLConnection huc = (HttpURLConnection) myFileUrl.openConnection();
-        huc.setRequestMethod("GET");
-        huc.setInstanceFollowRedirects(false);
-        huc.connect();
-
-        if (huc.getResponseCode() == HttpURLConnection.HTTP_OK) {
-          return true;
-        }
-      } catch (Exception ex) {
-        if (ex.getMessage() != null) {
-          Log.e("Peris", ex.getMessage());
-        } else {
-          Log.e("Peris", "Header connection error");
-        }
-      }
-    } catch (MalformedURLException e) {
-      Log.d("Peris", "Bad URl");
-    }
-
-    return false;
   }
 
   private void stealTapatalkLink(final String link) {
@@ -1110,7 +1084,7 @@ public class IntroScreen extends FragmentActivity {
 
       final String manifestUrl = passedServer.serverAddress + "/peris.json";
 
-      if (checkURL(manifestUrl)) {
+      if (Net.checkURL(manifestUrl)) {
 
         try {
           final HttpClient httpclient = new DefaultHttpClient();

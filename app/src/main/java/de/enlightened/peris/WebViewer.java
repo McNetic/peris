@@ -5,7 +5,6 @@ import android.app.ActionBar;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -13,19 +12,13 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import de.enlightened.peris.support.Net;
 
 
 public class WebViewer extends FragmentActivity {
-
-
   private ActionBar actionBar;
   private String background;
-
   private WebView wvMain;
-
   private PerisApp application;
   private AnalyticsHelper ah;
 
@@ -33,57 +26,42 @@ public class WebViewer extends FragmentActivity {
    * Called when the activity is first created.
    */
 
-
   @SuppressLint("NewApi")
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
 
-    application = (PerisApp) getApplication();
-
-    String url = application.getSession().getServer().serverAddress;
-
-    background = application.getSession().getServer().serverColor;
-    ThemeSetter.setTheme(this, background);
-
-
+    this.application = (PerisApp) getApplication();
+    final String url = this.application.getSession().getServer().serverAddress;
+    this.background = this.application.getSession().getServer().serverColor;
+    ThemeSetter.setTheme(this, this.background);
     super.onCreate(savedInstanceState);
-
-    ThemeSetter.setActionBar(this, background);
-
-
-    actionBar = getActionBar();
+    ThemeSetter.setActionBar(this, this.background);
+    this.actionBar = getActionBar();
     //actionBar.setDisplayHomeAsUpEnabled(true);
     //actionBar.setHomeButtonEnabled(true);
-
     //actionBar.setTitle(screenTitle);
-    actionBar.setSubtitle(url);
+    this.actionBar.setSubtitle(url);
 
     //Track app analytics
-    ah = application.getAnalyticsHelper();
-    ah.trackScreen(getClass().getName(), false);
+    this.ah = this.application.getAnalyticsHelper();
+    this.ah.trackScreen(getClass().getName(), false);
 
     setContentView(R.layout.web_viewer);
+    this.wvMain = (WebView) findViewById(R.id.web_viewer_webview);
+    this.wvMain.setWebViewClient(new HelloWebViewClient());
+    this.wvMain.loadUrl(url);
 
-
-    wvMain = (WebView) findViewById(R.id.web_viewer_webview);
-
-    wvMain.setWebViewClient(new HelloWebViewClient());
-
-    wvMain.loadUrl(url);
-
-    new checkForumIcon().execute();
+    new CheckForumIconTask().execute();
   }
 
   @Override
   public void onResume() {
-
     super.onResume();
   }
 
   @Override
   public void onStart() {
     super.onStart();
-
   }
 
   @Override
@@ -92,118 +70,74 @@ public class WebViewer extends FragmentActivity {
 
   }
 
-  private boolean checkURL(String theURL) {
-    boolean URLValid = false;
-
-    int code = -1;
-
-    URL myFileUrl = null;
-
-    try {
-      myFileUrl = new URL(theURL);
-    } catch (MalformedURLException e) {
-      Log.d("Peris", "Bad URl");
-      return URLValid;
-    }
-
-    try {
-      HttpURLConnection huc = (HttpURLConnection) myFileUrl.openConnection();
-      huc.setRequestMethod("GET");
-      huc.setInstanceFollowRedirects(false);
-      huc.connect();
-      code = huc.getResponseCode();
-    } catch (Exception ex) {
-      Log.d("Peris", "Header connection error");
-      return URLValid;
-    }
-
-    Log.d("Peris", "Return Code: " + code);
-
-    if (code == 200) {
-      URLValid = true;
-    }
-
-    return URLValid;
-  }
-
   @Override
-  public boolean onKeyDown(int keyCode, KeyEvent event) {
+  public boolean onKeyDown(final int keyCode, final KeyEvent event) {
     if (event.getAction() == KeyEvent.ACTION_DOWN) {
-      switch (keyCode) {
-        case KeyEvent.KEYCODE_BACK:
-          if (wvMain.canGoBack()) {
-            wvMain.goBack();
-          } else {
-            finish();
-          }
-          return true;
+      if (keyCode == KeyEvent.KEYCODE_BACK) {
+        if (this.wvMain.canGoBack()) {
+          this.wvMain.goBack();
+        } else {
+          this.finish();
+        }
+        return true;
       }
-
     }
-
     return super.onKeyDown(keyCode, event);
   }
 
   @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    MenuInflater inflater = getMenuInflater();
+  public boolean onCreateOptionsMenu(final Menu menu) {
+    final MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.web_view_menu, menu);
-
     return true;
   }
 
-  public boolean onOptionsItemSelected(MenuItem item) {
-
+  public boolean onOptionsItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.web_view_menu_close:
         finish();
-        return true;
+        break;
       case R.id.web_view_menu_theme:
-        ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
+        final ColorPickerDialogFragment newFragment = ColorPickerDialogFragment.newInstance();
         newFragment.setOnColorSelectedListener(new ColorPickerDialogFragment.ColorSelectedListener() {
-
-          public void onColorSelected(String color) {
+          @SuppressWarnings("checkstyle:requirethis")
+          public void onColorSelected(final String color) {
             setColor(color);
           }
         });
         newFragment.show(getSupportFragmentManager(), "dialog");
-        return true;
+        break;
       default:
         return super.onOptionsItemSelected(item);
     }
+    return true;
   }
 
-  private void setColor(String color) {
-
-    application.getSession().getServer().serverColor = color;
-    application.getSession().updateServer();
-
-    finish();
-    startActivity(getIntent());
+  private void setColor(final String color) {
+    this.application.getSession().getServer().serverColor = color;
+    this.application.getSession().updateServer();
+    this.finish();
+    this.startActivity(getIntent());
   }
 
-  private class checkForumIcon extends AsyncTask<String, Void, String> {
+  private class CheckForumIconTask extends AsyncTask<String, Void, String> {
 
-    protected String doInBackground(String... params) {
-
-      if (application.getSession().getServer().serverIcon.contains("http")) {
-        return null;
+    @SuppressWarnings("checkstyle:requirethis")
+    protected String doInBackground(final String... params) {
+      if (!application.getSession().getServer().serverIcon.contains("http")) {
+        final String forumIconUrl = application.getSession().getServer().serverAddress + "/favicon.ico";
+        if (Net.checkURL(forumIconUrl)) {
+          return forumIconUrl;
+        }
       }
-
-      String forumIconUrl = application.getSession().getServer().serverAddress + "/favicon.ico";
-
-      if (checkURL(forumIconUrl)) {
-        return forumIconUrl;
-      }
-
       return null;
     }
 
+    @SuppressWarnings("checkstyle:requirethis")
     protected void onPostExecute(final String result) {
       if (result == null) {
         return;
       }
-
       application.getSession().getServer().serverIcon = result;
       application.getSession().updateServer();
     }
@@ -211,7 +145,7 @@ public class WebViewer extends FragmentActivity {
 
   private class HelloWebViewClient extends WebViewClient {
     @Override
-    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+    public boolean shouldOverrideUrlLoading(final WebView view, final String url) {
       view.loadUrl(url);
       return true;
     }

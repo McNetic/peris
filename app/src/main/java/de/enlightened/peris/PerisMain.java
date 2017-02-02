@@ -35,14 +35,9 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Formatter;
+
+import de.enlightened.peris.support.Net;
 
 @SuppressWarnings("deprecation")
 @SuppressLint("NewApi")
@@ -860,26 +855,6 @@ public class PerisMain extends FragmentActivity {
     return super.onKeyDown(keyCode, event);
   }
 
-  private boolean checkURL(final String urlString) {
-    try {
-      final URL url = new URL(urlString);
-      final HttpURLConnection huc = (HttpURLConnection) url.openConnection();
-      huc.setRequestMethod("GET");
-      huc.setInstanceFollowRedirects(false);
-      huc.connect();
-      final int code = huc.getResponseCode();
-      Log.d("Peris", "Return Code: " + code);
-      if (code == HttpURLConnection.HTTP_OK) {
-        return true;
-      }
-    } catch (MalformedURLException e) {
-      Log.d("Peris", "Bad URL " + urlString);
-    } catch (Exception e) {
-      Log.d("Peris", "Header connection error");
-    }
-    return false;
-  }
-
   private void setupSidebar() {
     final String customChatForum = this.application.getSession().getServer().chatForum;
     final String customChatThread = this.application.getSession().getServer().chatThread;
@@ -1011,7 +986,7 @@ public class PerisMain extends FragmentActivity {
       if (!application.getSession().getServer().serverIcon.contains("http")) {
         final String forumIconUrl = application.getSession().getServer().serverAddress + "/favicon.ico";
 
-        if (checkURL(forumIconUrl)) {
+        if (Net.checkURL(forumIconUrl)) {
           return forumIconUrl;
         }
       }
