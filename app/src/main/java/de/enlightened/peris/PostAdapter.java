@@ -12,68 +12,55 @@ import java.util.ArrayList;
 
 @SuppressLint("NewApi")
 public class PostAdapter extends BaseAdapter {
+  private static final int DEFAULT_FONT_SIZE = 16;
 
-  Context c;
+  private Context context;
   private ArrayList<Post> data;
   private boolean useShading = false;
   private boolean useOpenSans = false;
-  private int fontSize = 20;
+  private int fontSize = DEFAULT_FONT_SIZE;
   private boolean currentAvatarSetting = false;
   private int page;
-
   private PerisApp application;
 
-  PostAdapter(ArrayList<Post> data, Context c, PerisApp app, int pageNumber) {
+  PostAdapter(final ArrayList<Post> data, final Context context, final PerisApp app, final int pageNumber) {
     this.data = data;
-    this.c = c;
-    application = app;
-    page = pageNumber;
+    this.context = context;
+    this.application = app;
+    this.page = pageNumber;
 
-    if (c == null) {
+    if (context == null) {
       return;
     }
 
-    SharedPreferences app_preferences = c.getSharedPreferences("prefs", 0);
-
-
-    useShading = app_preferences.getBoolean("use_shading", false);
-    useOpenSans = app_preferences.getBoolean("use_opensans", false);
-    fontSize = app_preferences.getInt("font_size", 16);
-    currentAvatarSetting = app_preferences.getBoolean("show_images", true);
+    final SharedPreferences appPreferences = context.getSharedPreferences("prefs", 0);
+    this.useShading = appPreferences.getBoolean("use_shading", false);
+    this.useOpenSans = appPreferences.getBoolean("use_opensans", false);
+    this.fontSize = appPreferences.getInt("font_size", DEFAULT_FONT_SIZE);
+    this.currentAvatarSetting = appPreferences.getBoolean("show_images", true);
   }
 
   public int getCount() {
-    // TODO Auto-generated method stub
-    return data.size();
+    return this.data.size();
   }
 
-  public Object getItem(int arg0) {
-    // TODO Auto-generated method stub
-    return data.get(arg0);
+  public Object getItem(final int arg0) {
+    return this.data.get(arg0);
   }
 
-  public long getItemId(int arg0) {
-    // TODO Auto-generated method stub
+  public long getItemId(final int arg0) {
     return arg0;
   }
 
-
   @SuppressLint("InflateParams")
-  public View getView(final int arg0, View arg1, ViewGroup arg2) {
+  public View getView(final int arg0, final View arg1, final ViewGroup arg2) {
     View v = arg1;
     if (v == null) {
-      LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
+      final LayoutInflater vi = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
       v = vi.inflate(R.layout.post, null);
-
     }
-
-    Post po = data.get(arg0);
-
-    ElementRenderer.renderPost(v, application, page, c, arg0, useOpenSans, useShading, po, fontSize, currentAvatarSetting);
-
+    final Post po = this.data.get(arg0);
+    ElementRenderer.renderPost(v, this.application, this.page, this.context, arg0, this.useOpenSans, this.useShading, po, this.fontSize, this.currentAvatarSetting);
     return v;
   }
-
-
 }
