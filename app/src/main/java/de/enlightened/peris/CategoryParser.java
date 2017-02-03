@@ -17,21 +17,21 @@ public class CategoryParser {
         LinkedTreeMap map = (LinkedTreeMap) o;
 
         Category ca = new Category();
-        ca.category_name = (String) map.get("forum_name");
-        ca.subforum_id = subforum_id;
-        ca.category_id = (String) map.get("forum_id");
-        ca.categoryType = "S";
-        ca.categoryColor = background;
+        ca.name = (String) map.get("forum_name");
+        ca.subforumId = subforum_id;
+        ca.id = (String) map.get("forum_id");
+        ca.type = "S";
+        ca.color = background;
 
         if (map.containsKey("logo_url")) {
           if (map.get("logo_url") != null) {
-            ca.categoryIcon = (String) map.get("logo_url");
+            ca.icon = (String) map.get("logo_url");
           }
         }
 
         if (map.containsKey("url")) {
           if (map.get("url") != null) {
-            ca.category_URL = (String) map.get("url");
+            ca.url = (String) map.get("url");
           }
         }
 
@@ -54,7 +54,7 @@ public class CategoryParser {
             subOnly = (Boolean) map.get("sub_only");
             ca.hasChildren = true;
             if (ca.hasChildren) {
-              Log.v("Peris", "aaa sub only on " + ca.category_id);
+              Log.v("Peris", "aaa sub only on " + ca.id);
             }
           }
         }
@@ -65,7 +65,7 @@ public class CategoryParser {
 
             if (map.get("child") != null) {
 
-              ca.category_id = subforum_id + "###" + (String) map.get("forum_id");
+              ca.id = subforum_id + "###" + (String) map.get("forum_id");
 
               ArrayList childArray = (ArrayList) map.get("child");
 
@@ -82,7 +82,7 @@ public class CategoryParser {
                 i++;
               }
 
-              ca.children = parseCategories(objArray, ca.category_id, background);
+              ca.children = parseCategories(objArray, ca.id, background);
 
             }
           }

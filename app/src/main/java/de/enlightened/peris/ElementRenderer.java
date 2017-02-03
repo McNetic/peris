@@ -241,7 +241,7 @@ final class ElementRenderer {
       tvCategoryUpdate.setTypeface(opensans);
     }
 
-    if (ca.categoryType.contentEquals("S")) {
+    if (ca.type.contentEquals("S")) {
       tvCategoryLastThread.setVisibility(View.GONE);
       tvCategoryUpdate.setVisibility(View.GONE);
     } else {
@@ -265,22 +265,22 @@ final class ElementRenderer {
       tvCategoryName.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
     }
 
-    String timeAgo = ca.category_lastupdate;
-    if (ca.categoryType.contentEquals("C")) {
+    String timeAgo = ca.lastUpdate;
+    if (ca.type.contentEquals("C")) {
       try {
-        timeAgo = DateTimeUtils.getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.category_lastupdate));
+        timeAgo = DateTimeUtils.getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.lastUpdate));
       } catch (IllegalArgumentException | ParseException e) {
-        timeAgo = ca.category_lastupdate;
+        timeAgo = ca.lastUpdate;
       }
     }
 
-    tvCategoryName.setText(ca.category_name);
-    tvCategoryLastThread.setText(Html.fromHtml(ca.category_lastthread));
+    tvCategoryName.setText(ca.name);
+    tvCategoryLastThread.setText(Html.fromHtml(ca.lastThread));
     tvCategoryUpdate.setText(timeAgo);
 
     if (ca.isLocked) {
       tvCategoryName.setTextColor(Color.LTGRAY);
-      tvCategoryName.setText("LOCKED: " + ca.category_name);
+      tvCategoryName.setText("LOCKED: " + ca.name);
     }
 
     if (useOpenSans) {
@@ -299,18 +299,18 @@ final class ElementRenderer {
 
     applyAvatarSettings(currentAvatarSetting, application, ca, ivSubforumIndicator, view, boxColor);
 
-    if (ca.categoryType.contentEquals("C")) {
+    if (ca.type.contentEquals("C")) {
       if (tvThreadReplies != null) {
-        if (ca.thread_count != null) {
-          tvThreadReplies.setText(ca.thread_count);
+        if (ca.threadCount != null) {
+          tvThreadReplies.setText(ca.threadCount);
         } else {
           tvThreadReplies.setVisibility(View.GONE);
         }
       }
 
       if (tvThreadViews != null) {
-        if (ca.view_count != null) {
-          tvThreadViews.setText(ca.view_count);
+        if (ca.viewCount != null) {
+          tvThreadViews.setText(ca.viewCount);
         } else {
           tvThreadViews.setVisibility(View.GONE);
         }
@@ -324,9 +324,9 @@ final class ElementRenderer {
       }
     }
 
-    if (ca.category_URL.contains("http")) {
+    if (ca.url.contains("http")) {
       tvCategoryUpdate.setVisibility(View.VISIBLE);
-      tvCategoryUpdate.setText(ca.category_URL);
+      tvCategoryUpdate.setText(ca.url);
     }
   }
 
@@ -339,15 +339,15 @@ final class ElementRenderer {
       final View view,
       final String boxColor) {
     if (currentAvatarSetting) {
-      if (ca.categoryType.contentEquals("S")) {
+      if (ca.type.contentEquals("S")) {
         if (ivSubforumIndicator != null) {
           ivSubforumIndicator.setVisibility(View.VISIBLE);
 
-          if (ca.categoryIcon.contains("http")) {
-            final String imageUrl = ca.categoryIcon;
+          if (ca.icon.contains("http")) {
+            final String imageUrl = ca.icon;
             ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
           } else {
-            if (ca.category_URL.contains("http")) {
+            if (ca.url.contains("http")) {
               ivSubforumIndicator.setImageResource(R.drawable.social_global_on);
             } else {
 
@@ -385,8 +385,8 @@ final class ElementRenderer {
         }
       } else {
         if (ivSubforumIndicator != null) {
-          if (ca.categoryIcon.contains("http")) {
-            final String imageUrl = ca.categoryIcon;
+          if (ca.icon.contains("http")) {
+            final String imageUrl = ca.icon;
             ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
           } else {
             ivSubforumIndicator.setImageResource(R.drawable.no_avatar);

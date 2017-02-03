@@ -271,10 +271,10 @@ public class Conversation extends FragmentActivity {
             final HashMap map = (HashMap) o;
             final Date timestamp = (Date) map.get("sent_date");
             final Post po = new Post();
-            //po.category_id = category_id;
-            //po.subforum_id = subforum_id;
+            //po.id = id;
+            //po.subforumId = subforumId;
             //po.thread_id = thread_id;
-            //po.categoryModerator = moderator;
+            //po.moderator = moderator;
 
             senderName = new String((byte[]) map.get("msg_from"));
             po.author = new String((byte[]) map.get("msg_from"));

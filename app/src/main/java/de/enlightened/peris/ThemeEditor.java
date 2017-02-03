@@ -87,18 +87,18 @@ public class ThemeEditor extends FragmentActivity {
     previewHolder.removeAllViews();
 
     final Category cat = new Category();
-    cat.category_name = "Fun Category";
-    cat.categoryType = "S";
+    cat.name = "Fun Category";
+    cat.type = "S";
 
     final Category top = new Category();
-    top.category_name = "Important Thread";
+    top.name = "Important Thread";
     top.topicSticky = "Y";
-    top.thread_count = "2";
-    top.view_count = "7";
-    top.category_lastthread = "NR89";
-    top.categoryType = "C";
+    top.threadCount = "2";
+    top.viewCount = "7";
+    top.lastThread = "NR89";
+    top.type = "C";
     top.hasNewTopic = true;
-    top.categoryIcon = "http://localhost/nr90.jpg";
+    top.icon = "http://localhost/nr90.jpg";
 
     final Post po = new Post();
     po.author = "nezkeeeze";

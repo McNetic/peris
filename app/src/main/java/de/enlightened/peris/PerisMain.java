@@ -190,9 +190,9 @@ public class PerisMain extends FragmentActivity {
         }
       } else {
         final Category ca = new Category();
-        ca.category_id = getString(R.string.subforum_id);
-        ca.category_name = "Forums";
-        ca.categoryType = "S";
+        ca.id = getString(R.string.subforum_id);
+        ca.name = "Forums";
+        ca.type = "S";
         loadCategories(ca);
       }
 
@@ -407,17 +407,17 @@ public class PerisMain extends FragmentActivity {
 
           if (stealingType.contentEquals("forum") && locationNumeric && !stealingLocation.contentEquals("0")) {
             final Category ca = new Category();
-            ca.category_id = stealingLocation;
-            ca.category_name = "External Link";
-            ca.categoryType = "S";
+            ca.id = stealingLocation;
+            ca.name = "External Link";
+            ca.type = "S";
             this.loadCategories(ca);
           }
 
           if (stealingType.contentEquals("topic") && locationNumeric && !stealingLocation.contentEquals("0")) {
             final Category ca = new Category();
-            ca.category_id = stealingLocation;
-            ca.category_name = "External Link";
-            ca.categoryType = "C";
+            ca.id = stealingLocation;
+            ca.name = "External Link";
+            ca.type = "C";
             this.loadCategories(ca);
           }
         }
@@ -777,37 +777,37 @@ public class PerisMain extends FragmentActivity {
   }
 
   private void loadCategories(final Category ca) {
-    if (ca.category_URL.contains("http")) {
-      final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(ca.category_URL));
+    if (ca.url.contains("http")) {
+      final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(ca.url));
       startActivity(browserIntent);
       return;
     }
 
-    if (ca.categoryType.contentEquals("C")) {
+    if (ca.type.contentEquals("C")) {
       String lockString = "0";
       if (ca.isLocked) {
         lockString = "1";
       }
 
       final Bundle bundle = new Bundle();
-      bundle.putString("subject", (String) ca.category_name);
-      bundle.putString("category_id", (String) ca.subforum_id);
-      bundle.putString("subforum_id", (String) ca.subforum_id);
-      bundle.putString("thread_id", (String) ca.category_id);
+      bundle.putString("subject", (String) ca.name);
+      bundle.putString("category_id", (String) ca.subforumId);
+      bundle.putString("subforum_id", (String) ca.subforumId);
+      bundle.putString("thread_id", (String) ca.id);
       bundle.putString("lock", (String) lockString);
       bundle.putString("background", (String) this.background);
-      bundle.putString("posts", (String) ca.thread_count);
-      bundle.putString("moderator", (String) ca.categoryModerator);
+      bundle.putString("posts", (String) ca.threadCount);
+      bundle.putString("moderator", (String) ca.moderator);
 
-      Log.d("Peris", "Loading topic " + ca.category_id);
+      Log.d("Peris", "Loading topic " + ca.id);
 
       this.loadTopic(bundle);
     } else {
       final Bundle bundle = new Bundle();
-      bundle.putString("subforum_name", (String) ca.category_name);
-      bundle.putString("subforum_id", (String) ca.category_id);
-      bundle.putString("background", (String) ca.categoryColor);
-      bundle.putString("icon", (String) ca.categoryIcon);
+      bundle.putString("subforum_name", (String) ca.name);
+      bundle.putString("subforum_id", (String) ca.id);
+      bundle.putString("background", (String) ca.color);
+      bundle.putString("icon", (String) ca.icon);
       bundle.putString("inTab", (String) "N");
 
       this.loadForum(bundle, "LOAD_CATEGORIES", false);

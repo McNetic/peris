@@ -5,41 +5,33 @@ import android.view.View;
 
 import java.util.ArrayList;
 
-@SuppressLint({"NewApi", "NewApi"})
+@SuppressLint("NewApi")
+@SuppressWarnings("checkstyle:visibilitymodifier")
 public class Category {
-  public String category_description = "Category Description";
-  public String category_name = "Category Name";
-  public String category_id = "0";
-  public String subforum_id = "0";
-  public String category_lastupdate = "00-00-0000";
-  public String category_lastthread = "Thread Name";
-  public String thread_count = "0";
-  public String view_count = "0";
-  public View subforum_seperator;
-  public String categoryModerator;
-  public String categoryColor = "#000000";
-  public String categoryIcon = "n/a";
-  public String categoryMature = "N";
-  public String categoryType = "C";
-  public String categoryOnUnified = "Y";
-
+  public String description = "Category Description";
+  public String name = "Category Name";
+  public String id = "0";
+  public String subforumId = "0";
+  public String lastUpdate = "00-00-0000";
+  public String lastThread = "Thread Name";
+  public String threadCount = "0";
+  public String viewCount = "0";
+  public View subforumSeperator;
+  public String moderator;
+  public String color = "#000000";
+  public String icon = "n/a";
+  public String mature = "N";
+  public String type = "C";
+  public String onUnified = "Y";
   public boolean canSticky = false;
   public boolean canLock = false;
   public boolean canDelete = false;
-
   public boolean canSubscribe = false;
   public boolean isSubscribed = false;
-
-
   public boolean isLocked = false;
-
-  public String category_URL = "n/a";
-
+  public String url = "n/a";
   public boolean hasNewTopic = false;
-
   public boolean hasChildren = false;
-
   public String topicSticky = "N";
-
   public ArrayList<Category> children;
 }

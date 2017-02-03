@@ -66,7 +66,7 @@ public class CategoryAdapter extends BaseAdapter {
 
     LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-    if (ca.categoryType.contentEquals("S")) {
+    if (ca.type.contentEquals("S")) {
       v = vi.inflate(R.layout.category, null);
     } else {
       v = vi.inflate(R.layout.thread, null);

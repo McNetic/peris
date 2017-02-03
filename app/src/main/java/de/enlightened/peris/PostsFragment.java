@@ -707,7 +707,7 @@ public class PostsFragment extends Fragment {
                   po.categoryId = categoryId;
                   po.subforumId = subforumId;
                   po.threadId = threadId;
-                  //po.categoryModerator = moderator;
+                  //po.moderator = moderator;
 
                   if (!topicMap.containsKey("post_author_id")) {
                     Log.w("Peris", "There is no author id with this post!");

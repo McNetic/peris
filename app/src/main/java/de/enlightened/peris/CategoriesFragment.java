@@ -272,9 +272,9 @@ public class CategoriesFragment extends ListFragment {
   /*
   private void setChatThread() {
 
-        application.getSession().getServer().chatThread = clickedCategory.category_id;
+        application.getSession().getServer().chatThread = clickedCategory.id;
         application.getSession().getServer().chatForum = clickedCategory.subforumId;
-        application.getSession().getServer().chatName = clickedCategory.category_name;
+        application.getSession().getServer().chatName = clickedCategory.name;
         application.getSession().updateServer();
 
         chatChanged.onChatChanged(application.getSession().getServer().chatThread);
@@ -337,7 +337,7 @@ public class CategoriesFragment extends ListFragment {
           Log.d("Peris", "Checking hash: " + currentHash + " (total hash is " + this.totalHash + ")");
           ArrayList<Category> tempForums = null;
           for (Category c : forumz) {
-            if (c.children != null && c.category_id.contentEquals(currentHash)) {
+            if (c.children != null && c.id.contentEquals(currentHash)) {
               tempForums = c.children;
             }
           }
@@ -383,15 +383,15 @@ public class CategoriesFragment extends ListFragment {
             final LinkedTreeMap forumMap = (LinkedTreeMap) f;
 
             final Category ca = new Category();
-            ca.category_name = (String) forumMap.get("forum_name");
-            ca.subforum_id = this.subforumId;
-            ca.category_id = (String) forumMap.get("forum_id");
-            ca.categoryType = "S";
-            ca.categoryColor = this.background;
+            ca.name = (String) forumMap.get("forum_name");
+            ca.subforumId = this.subforumId;
+            ca.id = (String) forumMap.get("forum_id");
+            ca.type = "S";
+            ca.color = this.background;
 
             if (forumMap.containsKey("icon_url")) {
               if (forumMap.get("icon_url") != null) {
-                ca.categoryIcon = (String) forumMap.get("icon_url");
+                ca.icon = (String) forumMap.get("icon_url");
               }
             }
             ca.isSubscribed = true;
@@ -431,36 +431,36 @@ public class CategoriesFragment extends ListFragment {
 
   private Category createCategoryFromTopics(final LinkedTreeMap topicMap, final boolean subforum, final boolean sticky) {
     final Category ca = new Category();
-    ca.category_name = (String) topicMap.get("topic_title");
+    ca.name = (String) topicMap.get("topic_title");
 
     if (subforum && topicMap.get("forum_id") != null) {
-      ca.subforum_id = (String) topicMap.get("forum_id");
+      ca.subforumId = (String) topicMap.get("forum_id");
     } else {
-      ca.subforum_id = this.subforumId;
+      ca.subforumId = this.subforumId;
 
       //if(!hashId.contentEquals("0")) {
       //  ca.subforumId = hashId;
       //}
     }
-    ca.category_id = (String) topicMap.get("topic_id");
-    ca.category_lastupdate = (String) topicMap.get("last_reply_time");
+    ca.id = (String) topicMap.get("topic_id");
+    ca.lastUpdate = (String) topicMap.get("last_reply_time");
     if (!subforum || topicMap.get("topic_author_name") != null) {
-      ca.category_lastthread = (String) topicMap.get("topic_author_name");
+      ca.lastThread = (String) topicMap.get("topic_author_name");
     } else {
-      ca.category_lastthread = (String) topicMap.get("forum_name");
+      ca.lastThread = (String) topicMap.get("forum_name");
     }
     if (sticky) {
       ca.topicSticky = "Y";
     }
-    ca.categoryType = "C";
-    ca.categoryColor = this.background;
+    ca.type = "C";
+    ca.color = this.background;
 
     if (topicMap.get("reply_number") != null) {
-      ca.thread_count = topicMap.get("reply_number").toString().replace(".0", "");
+      ca.threadCount = topicMap.get("reply_number").toString().replace(".0", "");
     }
 
     if (topicMap.get("view_number") != null) {
-      ca.view_count = topicMap.get("view_number").toString().replace(".0", "");
+      ca.viewCount = topicMap.get("view_number").toString().replace(".0", "");
     }
 
     if (topicMap.get("new_post") != null) {
@@ -473,7 +473,7 @@ public class CategoriesFragment extends ListFragment {
 
     if (topicMap.containsKey("icon_url")) {
       if (topicMap.get("icon_url") != null) {
-        ca.categoryIcon = (String) topicMap.get("icon_url");
+        ca.icon = (String) topicMap.get("icon_url");
       }
     }
 
@@ -501,7 +501,7 @@ public class CategoriesFragment extends ListFragment {
       return;
     }
     super.onCreateContextMenu(menu, v, menuInfo);
-    menu.setHeaderTitle(this.clickedCategory.category_name);
+    menu.setHeaderTitle(this.clickedCategory.name);
     final MenuInflater inflater = this.activity.getMenuInflater();
 
     inflater.inflate(R.menu.categories_context, menu);
@@ -515,7 +515,7 @@ public class CategoriesFragment extends ListFragment {
     final MenuItem subscribeItem = menu.findItem(R.id.categories_add_favorite);
     final MenuItem unsubscribeItem = menu.findItem(R.id.categories_remove_favorite);
 
-    if (this.clickedCategory.categoryType.contentEquals("S")) {
+    if (this.clickedCategory.type.contentEquals("S")) {
       ubsubItem.setVisible(false);
       subItem.setVisible(false);
       stickyItem.setVisible(false);
@@ -583,33 +583,33 @@ public class CategoriesFragment extends ListFragment {
   public final  boolean onContextItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.categories_unsubscribe:
-        new UnsubscribeTopicTask().execute(this.clickedCategory.category_id);
+        new UnsubscribeTopicTask().execute(this.clickedCategory.id);
         break;
       case R.id.categories_subscribe:
-        new SubscribeTopicTask().execute(this.clickedCategory.category_id);
+        new SubscribeTopicTask().execute(this.clickedCategory.id);
         break;
       case R.id.categories_context_sticky:
         if (this.clickedCategory.topicSticky.contentEquals("N")) {
-          new StickyTopicTask().execute(this.clickedCategory.category_id, "1");
+          new StickyTopicTask().execute(this.clickedCategory.id, "1");
         } else {
-          new StickyTopicTask().execute(this.clickedCategory.category_id, "2");
+          new StickyTopicTask().execute(this.clickedCategory.id, "2");
         }
         break;
       case R.id.categories_context_lock:
         if (this.clickedCategory.isLocked) {
-          new LockTopicTask().execute(this.clickedCategory.category_id, "1");
+          new LockTopicTask().execute(this.clickedCategory.id, "1");
         } else {
-          new LockTopicTask().execute(this.clickedCategory.category_id, "2");
+          new LockTopicTask().execute(this.clickedCategory.id, "2");
         }
         break;
       case R.id.categories_context_delete_yes:
-        new DeleteTopicTask().execute(this.clickedCategory.category_id);
+        new DeleteTopicTask().execute(this.clickedCategory.id);
         break;
       case R.id.categories_add_favorite:
-        new AddToFavoritesTask().execute(this.clickedCategory.category_id);
+        new AddToFavoritesTask().execute(this.clickedCategory.id);
         break;
       case R.id.categories_remove_favorite:
-        new RemoveFromFavoritesTask().execute(this.clickedCategory.category_id);
+        new RemoveFromFavoritesTask().execute(this.clickedCategory.id);
         break;
       default:
         return super.onContextItemSelected(item);
