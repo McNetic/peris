@@ -24,35 +24,30 @@ import java.util.List;
 
 
 public class PerisApp extends Application {
-
-  public boolean appActive = false;
-  public BackStackManager stackManager;
+  private boolean active = false;
+  private BackStackManager stackManager;
   private AnalyticsHelper ah;
   private Session session;
   private int backStackid;
-
   private boolean forceRefresh = false;
-
 
   @Override
   public void onCreate() {
     super.onCreate();
 
-    stackManager = new BackStackManager();
-    backStackid = stackManager.createBackstack();
+    this.stackManager = new BackStackManager();
+    this.backStackid = this.stackManager.createBackstack();
+    final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
+    final boolean cleanClose = appPreferences.getBoolean("ff_clean_close", true);
+    this.ah = new AnalyticsHelper(this, getString(R.string.analytics_app_tracker), getString(R.string.app_name));
 
-    SharedPreferences app_preferences = getSharedPreferences("prefs", 0);
-    boolean cleanClose = app_preferences.getBoolean("ff_clean_close", true);
-
-    ah = new AnalyticsHelper(this, getString(R.string.analytics_app_tracker), getString(R.string.app_name));
-
-    DisplayImageOptions options = new DisplayImageOptions.Builder()
+    final DisplayImageOptions options = new DisplayImageOptions.Builder()
         .cacheInMemory(true)
         .cacheOnDisk(true)
         .bitmapConfig(Bitmap.Config.RGB_565)
         .imageScaleType(ImageScaleType.IN_SAMPLE_INT)
         .build();
-    ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext()).defaultDisplayImageOptions(options).build();
+    final ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext()).defaultDisplayImageOptions(options).build();
     ImageLoader.getInstance().init(config);
 
     if (!cleanClose) {
@@ -61,35 +56,45 @@ public class PerisApp extends Application {
       ImageLoader.getInstance().clearMemoryCache();
     }
 
-    Editor editor = app_preferences.edit();
+    final Editor editor = appPreferences.edit();
     editor.putBoolean("ff_clean_close", false);
     editor.commit();
   }
 
+  public boolean isActive() {
+    return this.active;
+  }
+
+  public void setActive(final boolean active) {
+    this.active = active;
+  }
+
+  public BackStackManager getStackManager() {
+    return this.stackManager;
+  }
+
   public AnalyticsHelper getAnalyticsHelper() {
-    return ah;
+    return this.ah;
   }
 
   public void freshBackstack() {
-    stackManager.clearAllStacks();
-    backStackid = stackManager.createBackstack();
+    this.stackManager.clearAllStacks();
+    this.backStackid = this.stackManager.createBackstack();
   }
 
   public int getBackStackId() {
-    return backStackid;
+    return this.backStackid;
   }
 
   public void initSession() {
-    session = new Session(this, this);
+    this.session = new Session(this, this);
   }
 
   public Session getSession() {
-
-    if (session == null) {
-      session = new Session(this, this);
+    if (this.session == null) {
+      this.session = new Session(this, this);
     }
-
-    return session;
+    return this.session;
   }
 
   @Override
@@ -98,33 +103,33 @@ public class PerisApp extends Application {
     //TODO: onTrim
   }
 
-  public void sendLoginStat(String address) {
+  public void sendLoginStat(final String address) {
     //new sendLoginStat().execute(address);
   }
 
   public boolean getForceRefresh() {
-    return forceRefresh;
+    return this.forceRefresh;
   }
 
-  public void setForceRefresh(boolean value) {
-    forceRefresh = value;
+  public void setForceRefresh(final boolean value) {
+    this.forceRefresh = value;
   }
 
-  private class sendLoginStat extends AsyncTask<String, Void, String> {
+  private class SendLoginStatTask extends AsyncTask<String, Void, String> {
 
     @Override
-    protected String doInBackground(String... params) {
-      HttpClient httpclient = new DefaultHttpClient();
-      HttpPost httppost = new HttpPost("http://loginstaturl");
+    protected String doInBackground(final String... params) {
+      final HttpClient httpclient = new DefaultHttpClient();
+      final HttpPost httppost = new HttpPost("http://loginstaturl");
 
       try {
-        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+        final List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
         nameValuePairs.add(new BasicNameValuePair("server_address", params[0]));
         httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
         httpclient.execute(httppost);
       } catch (Exception e) {
-        //who cares
+        Log.d("Peris", e.getMessage());
       }
 
       return "";

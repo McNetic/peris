@@ -302,7 +302,7 @@ public class IntroScreen extends FragmentActivity {
 
     final PerisApp app = (PerisApp) getApplication();
     app.initSession();
-    app.appActive = false;
+    app.setActive(false);
 
     final RelativeLayout connectingLayout = (RelativeLayout) findViewById(R.id.intro_connecting_layout);
     connectingLayout.setVisibility(View.GONE);

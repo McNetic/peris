@@ -170,7 +170,7 @@ public class PerisMain extends FragmentActivity {
 
       if (valueName.contentEquals(getString(R.string.subforum_id))) {
 
-        final BackStackManager.BackStackItem item = application.stackManager.navigateToBase(backStackId);
+        final BackStackManager.BackStackItem item = application.getStackManager().navigateToBase(backStackId);
 
         switch (item.getType()) {
           case BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM:
@@ -279,7 +279,7 @@ public class PerisMain extends FragmentActivity {
   @Override
   public final void onCreate(final Bundle savedInstanceState) {
     this.application = (PerisApp) getApplication();
-    this.application.appActive = true;
+    this.application.setActive(true);
     this.backStackId = this.application.getBackStackId();
     this.ah = this.application.getAnalyticsHelper();
 
@@ -387,7 +387,7 @@ public class PerisMain extends FragmentActivity {
 
     this.setupSlidingDrawer();
 
-    if (this.application.stackManager.getBackStackSize(this.backStackId) == 0) {
+    if (this.application.getStackManager().getBackStackSize(this.backStackId) == 0) {
       final Bundle bundle = this.initializeNewSession(appPreferences);
       this.loadForum(bundle, "NEW_SESSION", false);
       //application.stackManager.addToBackstack(backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM,bundle);
@@ -481,7 +481,7 @@ public class PerisMain extends FragmentActivity {
 
   private void recoverBackstack() {
     Log.d("Peris", "Recovering old backstack session");
-    final BackStackManager.BackStackItem item = this.application.stackManager.getActiveItemAndRemove(this.backStackId);
+    final BackStackManager.BackStackItem item = this.application.getStackManager().getActiveItemAndRemove(this.backStackId);
 
     switch (item.getType()) {
       case BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM:
@@ -519,7 +519,7 @@ public class PerisMain extends FragmentActivity {
       editor.putBoolean("ff_clean_close", true);
       editor.commit();
     }
-    this.application.appActive = false;
+    this.application.setActive(false);
 
     try {
       super.onDestroy();
@@ -530,7 +530,7 @@ public class PerisMain extends FragmentActivity {
 
   public final void onResume() {
     if (!this.initialLoad) {
-      if (this.application.appActive) {
+      if (this.application.isActive()) {
         this.application.getSession().setSessionListener(null);
         this.application.getSession().refreshLogin();
       }
@@ -827,9 +827,9 @@ public class PerisMain extends FragmentActivity {
       } else if (dl.isDrawerOpen(flDrawer)) {
         dl.closeDrawer(flDrawer);
         rv = true;
-      } else if (this.application.stackManager.getBackStackSize(this.backStackId) > 1) {
-        Log.i("Peris", "Back pressed, backstack size = " + this.application.stackManager.getBackStackSize(this.backStackId));
-        final BackStackManager.BackStackItem item = this.application.stackManager.navigateBack(this.backStackId);
+      } else if (this.application.getStackManager().getBackStackSize(this.backStackId) > 1) {
+        Log.i("Peris", "Back pressed, backstack size = " + this.application.getStackManager().getBackStackSize(this.backStackId));
+        final BackStackManager.BackStackItem item = this.application.getStackManager().navigateBack(this.backStackId);
 
         this.actionBar.setSubtitle(this.screenSubtitle);
 
@@ -927,7 +927,7 @@ public class PerisMain extends FragmentActivity {
     ftZ.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
     ftZ.commit();
 
-    this.application.stackManager.addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM, bundle);
+    this.application.getStackManager().addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM, bundle);
 
     Log.i("Peris", "Loading Forum from " + sender);
   }
@@ -943,7 +943,7 @@ public class PerisMain extends FragmentActivity {
     ftZ.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
     ftZ.commit();
 
-    this.application.stackManager.addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_TOPIC, bundle);
+    this.application.getStackManager().addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_TOPIC, bundle);
   }
 
   private void loadProfile(final Bundle bundle) {
@@ -956,7 +956,7 @@ public class PerisMain extends FragmentActivity {
     ftZ.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
     ftZ.commit();
 
-    this.application.stackManager.addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_PROFILE, bundle);
+    this.application.getStackManager().addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_PROFILE, bundle);
   }
 
   private void loadSettings() {
@@ -975,7 +975,7 @@ public class PerisMain extends FragmentActivity {
       dl.closeDrawer(flDrawer);
     }
 
-    this.application.stackManager.addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_SETTINGS, null);
+    this.application.getStackManager().addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_SETTINGS, null);
   }
 
   private class CheckForumIconTask extends AsyncTask<String, Void, String> {
