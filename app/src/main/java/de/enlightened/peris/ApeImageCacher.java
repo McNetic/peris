@@ -52,9 +52,9 @@ class ApeImageCacher {
 
         if (bmImg.getHeight() < 2) {
           if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-            new FetchSubforumIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, imageURL, application);
+            new FetchSubforumIconTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, imageURL, application);
           } else {
-            new FetchSubforumIcon().execute(cacheName, ivHolder, imageURL, application);
+            new FetchSubforumIconTask().execute(cacheName, ivHolder, imageURL, application);
           }
 
           Log.d("Peris", "Downloading new copy for " + imageURL);
@@ -66,9 +66,9 @@ class ApeImageCacher {
       } catch (Exception e) {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-          new FetchSubforumIcon().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, imageURL, application);
+          new FetchSubforumIconTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, cacheName, ivHolder, imageURL, application);
         } else {
-          new FetchSubforumIcon().execute(cacheName, ivHolder, imageURL, application);
+          new FetchSubforumIconTask().execute(cacheName, ivHolder, imageURL, application);
         }
 
         Log.d("Peris", "Downloading new copy for " + imageURL);
