@@ -13,58 +13,49 @@ import java.util.ArrayList;
 
 @SuppressLint("NewApi")
 public class CategoryAdapter extends BaseAdapter {
+  private static final int DEFAULT_FONT_SIZE = 16;
 
-  Context c;
+  private Context context;
   private ArrayList<Category> data;
   private boolean useShading = false;
   private boolean useOpenSans = false;
   private boolean currentAvatarSetting = false;
-
-  @SuppressWarnings("unused")
-  private int fontSize = 20;
-
+  private int fontSize = DEFAULT_FONT_SIZE;
   private PerisApp application;
 
-  CategoryAdapter(ArrayList<Category> data, Context c, PerisApp app) {
+  CategoryAdapter(final ArrayList<Category> data, final Context context, final PerisApp app) {
     this.data = data;
-    this.c = c;
-    application = app;
+    this.context = context;
+    this.application = app;
 
-    if (c == null) {
+    if (context == null) {
       return;
     }
 
-    SharedPreferences app_preferences = c.getSharedPreferences("prefs", 0);
-
-    useShading = app_preferences.getBoolean("use_shading", false);
-    useOpenSans = app_preferences.getBoolean("use_opensans", false);
-    fontSize = app_preferences.getInt("font_size", 16);
-    currentAvatarSetting = app_preferences.getBoolean("show_images", true);
+    final SharedPreferences appPreferences = context.getSharedPreferences("prefs", 0);
+    this.useShading = appPreferences.getBoolean("use_shading", false);
+    this.useOpenSans = appPreferences.getBoolean("use_opensans", false);
+    this.fontSize = appPreferences.getInt("font_size", DEFAULT_FONT_SIZE);
+    this.currentAvatarSetting = appPreferences.getBoolean("show_images", true);
   }
 
   public int getCount() {
-    // TODO Auto-generated method stub
-    return data.size();
+    return this.data.size();
   }
 
-  public Object getItem(int arg0) {
-    // TODO Auto-generated method stub
-    return data.get(arg0);
+  public Object getItem(final int arg0) {
+    return this.data.get(arg0);
   }
 
-  public long getItemId(int arg0) {
-    // TODO Auto-generated method stub
+  public long getItemId(final int arg0) {
     return arg0;
   }
 
   @SuppressLint("InflateParams")
-  public View getView(int arg0, View arg1, ViewGroup arg2) {
-
-    Category ca = data.get(arg0);
-
+  public View getView(final int arg0, final View arg1, final ViewGroup arg2) {
+    final Category ca = this.data.get(arg0);
     View v = arg1;
-
-    LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    final LayoutInflater vi = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
     if (ca.type.contentEquals("S")) {
       v = vi.inflate(R.layout.category, null);
@@ -72,15 +63,12 @@ public class CategoryAdapter extends BaseAdapter {
       v = vi.inflate(R.layout.thread, null);
     }
 
-    ElementRenderer.renderCategory(v, application, c, useOpenSans, useShading, ca, currentAvatarSetting);
-
+    ElementRenderer.renderCategory(v, this.application, this.context, this.useOpenSans, this.useShading, ca, this.currentAvatarSetting);
     return v;
   }
 
-  public int dpToPx(int dp) {
-    DisplayMetrics displayMetrics = c.getResources().getDisplayMetrics();
-    int px = Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
-    return px;
+  public int dpToPx(final int dp) {
+    final DisplayMetrics displayMetrics = this.context.getResources().getDisplayMetrics();
+    return Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
   }
-
 }
