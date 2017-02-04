@@ -14,63 +14,51 @@ import java.util.ArrayList;
 
 @SuppressLint({"NewApi", "InflateParams"})
 public class SettingsAdapter extends BaseAdapter {
-
-
-  Context c;
+  private Context context;
   private ArrayList<Setting> data;
 
-  SettingsAdapter(ArrayList<Setting> data, Context c) {
+  SettingsAdapter(final ArrayList<Setting> data, final Context c) {
     this.data = data;
-    this.c = c;
+    this.context = c;
   }
 
   public int getCount() {
-    // TODO Auto-generated method stub
-    return data.size();
+    return this.data.size();
   }
 
-  public Object getItem(int arg0) {
-    // TODO Auto-generated method stub
-    return data.get(arg0);
+  public Object getItem(final int arg0) {
+    return this.data.get(arg0);
   }
 
-  public long getItemId(int arg0) {
-    // TODO Auto-generated method stub
+  public long getItemId(final int arg0) {
     return arg0;
   }
 
-  public View getView(int arg0, View arg1, ViewGroup arg2) {
-    View v = arg1;
-    if (v == null) {
-      LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-      v = vi.inflate(R.layout.settings_item, null);
-
-
+  public View getView(final int arg0, final View arg1, final ViewGroup arg2) {
+    View view = arg1;
+    if (view == null) {
+      final LayoutInflater vi = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+      view = vi.inflate(R.layout.settings_item, null);
     }
 
-    TextView tvSubject = (TextView) v.findViewById(R.id.settings_name);
-    ImageView ivLogo = (ImageView) v.findViewById(R.id.settings_logo);
-    TextView tvCounter = (TextView) v.findViewById(R.id.settings_counter);
+    final TextView tvSubject = (TextView) view.findViewById(R.id.settings_name);
+    final ImageView ivLogo = (ImageView) view.findViewById(R.id.settings_logo);
+    final TextView tvCounter = (TextView) view.findViewById(R.id.settings_counter);
+    final Setting setting = this.data.get(arg0);
 
-    Setting s = data.get(arg0);
+    tvSubject.setText(setting.settingName);
+    ivLogo.setImageResource(setting.settingIcon);
 
-    tvSubject.setText(s.settingName);
-    ivLogo.setImageResource(s.settingIcon);
-
-    if (s.settingColor.contains("#")) {
-      ivLogo.setColorFilter(Color.parseColor(s.settingColor));
+    if (setting.settingColor.contains("#")) {
+      ivLogo.setColorFilter(Color.parseColor(setting.settingColor));
     } else {
       ivLogo.setColorFilter(Color.parseColor("#000000"));
     }
-
-    if (s.counterItem == 0) {
+    if (setting.counterItem == 0) {
       tvCounter.setVisibility(View.GONE);
     } else {
-      tvCounter.setText(Integer.toString(s.counterItem));
+      tvCounter.setText(Integer.toString(setting.counterItem));
     }
-
-    return v;
+    return view;
   }
-
 }
