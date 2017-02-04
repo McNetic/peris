@@ -29,6 +29,7 @@
     <color name="color_theme_text">#ffffff</color>
     <color name="color_sub">#75aadf</color>
     <color name="color_bg">#acccec</color>
+    <color name="color_preview">#333333</color>
     <string name="default_theme">5</string>
     <string name="default_background">#F5F5F5</string>
     <string name="default_element_background">#F5F5F5</string>

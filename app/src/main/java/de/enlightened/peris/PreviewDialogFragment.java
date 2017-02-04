@@ -4,22 +4,24 @@ import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
+import de.enlightened.peris.support.Style;
+
 
 public class PreviewDialogFragment extends DialogFragment {
 
-  private LinearLayout preview_dialog_linear_layout;
+  private static final int DEFAULT_FONT_SIZE = 16;
 
+  private LinearLayout previewDialogLinearLayout;
   private boolean useShading = false;
   private boolean useOpenSans = false;
-  private int fontSize = 20;
-
+  private int fontSize = DEFAULT_FONT_SIZE;
   private String previewText;
-
   private Typeface opensans;
 
   static PreviewDialogFragment newInstance() {
@@ -27,43 +29,36 @@ public class PreviewDialogFragment extends DialogFragment {
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(final Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-
-    opensans = Typeface.createFromAsset(getActivity().getAssets(), "fonts/opensans.ttf");
-
-    SharedPreferences app_preferences = getActivity().getSharedPreferences("prefs", 0);
-
-    useShading = app_preferences.getBoolean("use_shading", false);
-    useOpenSans = app_preferences.getBoolean("use_opensans", true);
-    fontSize = app_preferences.getInt("font_size", 16);
-
+    this.opensans = Typeface.createFromAsset(getActivity().getAssets(), "fonts/opensans.ttf");
+    final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+    this.useShading = appPreferences.getBoolean("use_shading", false);
+    this.useOpenSans = appPreferences.getBoolean("use_opensans", true);
+    this.fontSize = appPreferences.getInt("font_size", DEFAULT_FONT_SIZE);
     this.setStyle(DialogFragment.STYLE_NORMAL, getTheme());
-
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    View v = inflater.inflate(R.layout.preview_dialog_layout, container, false);
-
-    setupDialog(v);
-
-    return v;
+  public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+    final View view = inflater.inflate(R.layout.preview_dialog_layout, container, false);
+    this.setupDialog(view);
+    return view;
   }
 
-  private void setupDialog(View v) {
-    preview_dialog_linear_layout = (LinearLayout) v.findViewById(R.id.preview_dialog_linear_layout);
-
-    Bundle bundle = getArguments();
-    previewText = bundle.getString("text");
-
-    showPreview();
-
+  private void setupDialog(final View view) {
+    this.previewDialogLinearLayout = (LinearLayout) view.findViewById(R.id.preview_dialog_linear_layout);
+    final Bundle bundle = getArguments();
+    this.previewText = bundle.getString("text");
+    this.showPreview();
     this.getDialog().setTitle("Preview");
   }
 
   private void showPreview() {
-    BBCodeParser.parseCode(getActivity(), preview_dialog_linear_layout, previewText, opensans, useOpenSans, useShading, null, fontSize, false, "#333333", (PerisApp) getActivity().getApplication());
+    final String color = Style.colorToColorString(ContextCompat.getColor(this.getActivity(), R.color.color_preview));
+    BBCodeParser.parseCode(this.getActivity(), this.previewDialogLinearLayout, this.previewText,
+        this.opensans, this.useOpenSans, this.useShading, null, this.fontSize, false,
+        color, (PerisApp) getActivity().getApplication());
   }
 
 }
