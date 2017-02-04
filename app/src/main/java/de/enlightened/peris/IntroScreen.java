@@ -49,7 +49,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -800,7 +799,7 @@ public class IntroScreen extends FragmentActivity {
 
     if (server.serverColor.contains("#")) {
       connectingLayout.setBackgroundColor(Color.parseColor(server.serverColor));
-      tvServerConnectionText.setTextColor(Color.parseColor(ForegroundColorSetter.getForeground(server.serverColor)));
+      tvServerConnectionText.setTextColor(Color.parseColor(ThemeSetter.getForeground(server.serverColor)));
     }
 
     //getActionBar().hide();

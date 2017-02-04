@@ -630,7 +630,7 @@ public class PerisMain extends FragmentActivity {
     if (this.serverUserid.contentEquals("0") || !getString(R.string.subforum_id).contentEquals("0")) {
       searchView.setVisibility(View.GONE);
     } else {
-      if (ForegroundColorSetter.getForegroundDark(this.background)) {
+      if (ThemeSetter.getForegroundDark(this.background)) {
         searchMenuItem.setIcon(R.drawable.ic_action_search_dark);
       }
     }
@@ -707,7 +707,7 @@ public class PerisMain extends FragmentActivity {
       itemChat.setVisible(false);
     }
 
-    if (ForegroundColorSetter.getForegroundDark(this.background)) {
+    if (ThemeSetter.getForegroundDark(this.background)) {
       itemLogin.setIcon(R.drawable.ic_action_accounts_dark);
       itemChat.setIcon(R.drawable.ic_action_group_dark);
       newMailItem.setIcon(R.drawable.ic_action_email_dark);

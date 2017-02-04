@@ -647,7 +647,7 @@ public class CategoriesFragment extends ListFragment {
       } else {
         final MenuItem item = menu.findItem(R.id.cat_mark_read);
         if (item != null) {
-          if (ForegroundColorSetter.getForegroundDark(this.background)) {
+          if (ThemeSetter.getForegroundDark(this.background)) {
             item.setIcon(R.drawable.ic_action_read_dark);
           }
         }
@@ -665,7 +665,7 @@ public class CategoriesFragment extends ListFragment {
       } else {
         final MenuItem item2 = menu.findItem(R.id.cat_new_thread);
         if (item2 != null) {
-          if (ForegroundColorSetter.getForegroundDark(this.background)) {
+          if (ThemeSetter.getForegroundDark(this.background)) {
             item2.setIcon(R.drawable.ic_action_new_dark);
           }
         }

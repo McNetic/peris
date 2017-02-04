@@ -40,7 +40,7 @@ public class ActiveUsersActivity extends FragmentActivity {
     setTitle("Active Users");
 
     if (getString(R.string.server_location).contentEquals("0")) {
-      if (ForegroundColorSetter.getForegroundDark(backgroundColor)) {
+      if (ThemeSetter.getForegroundDark(backgroundColor)) {
         getActionBar().setIcon(R.drawable.ic_ab_main_black);
       } else {
         getActionBar().setIcon(R.drawable.ic_ab_main_white);

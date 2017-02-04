@@ -568,7 +568,7 @@ public class PostsFragment extends Fragment {
     final MenuItem itemRefresh = menu.findItem(R.id.menu_refresh);
     final MenuItem itemNew = menu.findItem(R.id.menu_newpost);
 
-    if (ForegroundColorSetter.getForegroundDark(this.background)) {
+    if (ThemeSetter.getForegroundDark(this.background)) {
       itemRefresh.setIcon(R.drawable.ic_action_refresh_dark);
       itemNew.setIcon(R.drawable.ic_action_new_dark);
     }

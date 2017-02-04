@@ -140,7 +140,7 @@ public class Conversation extends FragmentActivity {
     }
 
     if (getString(R.string.server_location).contentEquals("0")) {
-      if (ForegroundColorSetter.getForegroundDark(this.mailSession.getServer().serverColor)) {
+      if (ThemeSetter.getForegroundDark(this.mailSession.getServer().serverColor)) {
         getActionBar().setIcon(R.drawable.ic_ab_main_black);
       } else {
         getActionBar().setIcon(R.drawable.ic_ab_main_white);
@@ -171,7 +171,7 @@ public class Conversation extends FragmentActivity {
     final MenuInflater inflater = getMenuInflater();
     inflater.inflate(R.menu.conversation_menu, menu);
 
-    if (ForegroundColorSetter.getForegroundDark(this.accent)) {
+    if (ThemeSetter.getForegroundDark(this.accent)) {
       final MenuItem itemReply = menu.findItem(R.id.convo_menu_reply);
       final MenuItem itemDelete = menu.findItem(R.id.convo_menu_delete);
 

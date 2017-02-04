@@ -252,7 +252,7 @@ public class SocialFragment extends Fragment {
       if(getString(R.string.chat_forum).contentEquals("0")) {
         inflater.inflate(R.menu.chat_menu, menu);
 
-        if(ForegroundColorSetter.getForegroundDark(background)) {
+        if(ThemeSetter.getForegroundDark(background)) {
           MenuItem removeItem = menu.findItem(R.id.menu_chat_remove);
           removeItem.setIcon(R.drawable.ic_action_remove_dark);
         }

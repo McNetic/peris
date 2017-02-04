@@ -152,7 +152,7 @@ public class ProfileFragment extends Fragment {
   @Override
   public void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
     inflater.inflate(R.menu.profile_menu, menu);
-    if (ForegroundColorSetter.getForegroundDark(this.application.getSession().getServer().serverColor)) {
+    if (ThemeSetter.getForegroundDark(this.application.getSession().getServer().serverColor)) {
       final MenuItem item = menu.findItem(R.id.profile_menu_message);
       item.setIcon(R.drawable.ic_action_new_email_dark);
     }
