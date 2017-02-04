@@ -86,9 +86,9 @@ public class MailFragment extends ListFragment {
   private void loadConversation(final InboxItem sender) {
     final Intent myIntent = new Intent(getActivity(), Conversation.class);
     final Bundle bundle = new Bundle();
-    bundle.putString("id", (String) sender.sender_id);
+    bundle.putString("id", (String) sender.senderId);
     bundle.putString("boxid", (String) this.ourInboxId);
-    bundle.putString("name", (String) sender.inbox_sender);
+    bundle.putString("name", (String) sender.sender);
     bundle.putString("moderator", (String) sender.moderatorId);
     bundle.putString("background", (String) this.accent);
     myIntent.putExtras(bundle);
@@ -182,18 +182,18 @@ public class MailFragment extends ListFragment {
                     }
                   }
 
-                  ii.inbox_unread = timestamp.toString();
-                  ii.inbox_sender = new String((byte[]) topicMap.get("msg_subject"));
-                  ii.sender_id = (String) topicMap.get("msg_id");
-                  ii.inbox_moderator = new String((byte[]) topicMap.get("msg_from"));
+                  ii.unread = timestamp.toString();
+                  ii.sender = new String((byte[]) topicMap.get("msg_subject"));
+                  ii.senderId = (String) topicMap.get("msg_id");
+                  ii.moderator = new String((byte[]) topicMap.get("msg_from"));
                   ii.moderatorId = (String) topicMap.get("msg_from_id");
-                  ii.inboxId = ourInboxId;
+                  ii.id = ourInboxId;
 
                   if (topicMap.containsKey("icon_url")) {
                     ii.senderAvatar = (String) topicMap.get("icon_url");
                   }
 
-                  ii.inbox_sender_color = accent;
+                  ii.senderColor = accent;
                   inboxList.add(ii);
                 }
               }
@@ -225,7 +225,7 @@ public class MailFragment extends ListFragment {
       final Object[] result = new Object[MAX_ITEM_COUNT];
       try {
         final Vector paramz = new Vector();
-        paramz.addElement(selectedItem.sender_id);
+        paramz.addElement(selectedItem.senderId);
         paramz.addElement(ourInboxId);
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
       } catch (Exception e) {

@@ -126,7 +126,7 @@ public class MailService extends Service {
 
   //See if notification previously sent.  If not, make a new notification
   private void processUnreadMessage(final InboxItem ii, final String server) {
-    if (this.checkIfAlreadyNotified(server, Integer.parseInt(ii.sender_id))) {
+    if (this.checkIfAlreadyNotified(server, Integer.parseInt(ii.senderId))) {
       return;
     }
     String notificationColor = getString(R.string.default_color);
@@ -142,8 +142,8 @@ public class MailService extends Service {
     final NotificationCompat.Builder mBuilder =
         new NotificationCompat.Builder(MailService.this)
             .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle("New Message From " + ii.inbox_moderator)
-            .setContentText(ii.inbox_sender)
+            .setContentTitle("New Message From " + ii.moderator)
+            .setContentText(ii.sender)
             .setSound(alarmSound)
             .setLights(Color.parseColor(notificationColor), LED_ON_MS, LED_OFF_MS)
             .setVibrate(pattern)
@@ -151,9 +151,9 @@ public class MailService extends Service {
 
     final Intent resultIntent = new Intent(MailService.this, Conversation.class);
     final Bundle bundle = new Bundle();
-    bundle.putString("id", (String) ii.sender_id);
+    bundle.putString("id", (String) ii.senderId);
     bundle.putString("boxid", (String) "0");
-    bundle.putString("name", (String) ii.inbox_sender);
+    bundle.putString("name", (String) ii.sender);
     bundle.putString("moderator", (String) ii.moderatorId);
     bundle.putString("background", (String) notificationColor);
     bundle.putString("server", this.mailSession.getServer().serverId);
@@ -163,7 +163,7 @@ public class MailService extends Service {
     stackBuilder.addParentStack(Conversation.class);
     stackBuilder.addNextIntent(resultIntent);
 
-    String flag = ii.sender_id;
+    String flag = ii.senderId;
     if (flag.length() > 5) {
       flag = flag.substring(flag.length() - 5, flag.length());
     }
@@ -172,9 +172,9 @@ public class MailService extends Service {
     mBuilder.setContentIntent(resultPendingIntent);
 
     final NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    mNotificationManager.notify(Integer.parseInt(ii.sender_id), mBuilder.build());
+    mNotificationManager.notify(Integer.parseInt(ii.senderId), mBuilder.build());
 
-    this.insertNotificationIntoDatabase(server, Integer.parseInt(ii.sender_id));
+    this.insertNotificationIntoDatabase(server, Integer.parseInt(ii.senderId));
   }
 
   private void initDatabase() {
@@ -307,10 +307,10 @@ public class MailService extends Service {
                     }
                   }
 
-                  ii.inbox_unread = timestamp.toString();
-                  ii.inbox_sender = new String((byte[]) topicMap.get("msg_subject"));
-                  ii.sender_id = (String) topicMap.get("msg_id");
-                  ii.inbox_moderator = new String((byte[]) topicMap.get("msg_from"));
+                  ii.unread = timestamp.toString();
+                  ii.sender = new String((byte[]) topicMap.get("msg_subject"));
+                  ii.senderId = (String) topicMap.get("msg_id");
+                  ii.moderator = new String((byte[]) topicMap.get("msg_from"));
                   ii.moderatorId = (String) topicMap.get("msg_from_id");
                   inboxList.add(ii);
 

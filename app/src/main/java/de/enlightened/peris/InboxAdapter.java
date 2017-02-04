@@ -160,14 +160,14 @@ public class InboxAdapter extends BaseAdapter {
       tvTimestamp.setShadowLayer(2, 0, 0, Color.parseColor(textColor.replace("#", "#66")));
     }
 
-    tvSubject.setText(ii.inbox_sender);
-    tvUpdated.setText(ii.inbox_moderator);
+    tvSubject.setText(ii.sender);
+    tvUpdated.setText(ii.moderator);
 
     if (ii.isUnread) {
-      if (ii.inbox_sender_color.contains("#")) {
-        tvSubject.setTextColor(Color.parseColor(ii.inbox_sender_color));
+      if (ii.senderColor.contains("#")) {
+        tvSubject.setTextColor(Color.parseColor(ii.senderColor));
         if (this.useShading) {
-          tvSubject.setShadowLayer(2, 0, 0, Color.parseColor(ii.inbox_sender_color.replace("#", "#66")));
+          tvSubject.setShadowLayer(2, 0, 0, Color.parseColor(ii.senderColor.replace("#", "#66")));
         }
       } else {
         tvSubject.setTextColor(Color.RED);
@@ -186,7 +186,7 @@ public class InboxAdapter extends BaseAdapter {
     }
 
     try {
-      tvTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(ii.inbox_unread)));
+      tvTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(ii.unread)));
     } catch (IllegalArgumentException | ParseException ex) {
       tvTimestamp.setVisibility(View.GONE);
     }
@@ -208,8 +208,8 @@ public class InboxAdapter extends BaseAdapter {
 
       try {
         final Vector paramz = new Vector();
-        paramz.addElement(item.sender_id);
-        paramz.addElement(item.inboxId);
+        paramz.addElement(item.senderId);
+        paramz.addElement(item.id);
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
       } catch (Exception e) {
         Log.w("Peris", e.getMessage());
