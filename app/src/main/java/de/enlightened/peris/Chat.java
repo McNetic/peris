@@ -10,58 +10,58 @@ public class Chat {
   private String displaycolor;
 
   public String getPostid() {
-    return postid;
+    return this.postid;
   }
 
-  public void setPostid(String value) {
-    postid = value;
+  public void setPostid(final String value) {
+    this.postid = value;
   }
 
   public String getChatid() {
-    return chatid;
+    return this.chatid;
   }
 
-  public void setChatid(String value) {
-    chatid = value;
+  public void setChatid(final String value) {
+    this.chatid = value;
   }
 
   public String getTimestamp() {
-    return timestamp;
+    return this.timestamp;
   }
 
-  public void setTimestamp(String value) {
-    timestamp = value;
+  public void setTimestamp(final String value) {
+    this.timestamp = value;
   }
 
   public String getDisplayname() {
-    return displayname;
+    return this.displayname;
   }
 
-  public void setDisplayname(String value) {
-    displayname = value;
+  public void setDisplayname(final String value) {
+    this.displayname = value;
   }
 
   public String getDisplayavatar() {
-    return displayavatar;
+    return this.displayavatar;
   }
 
-  public void setDisplayavatar(String value) {
-    displayavatar = value;
+  public void setDisplayavatar(final String value) {
+    this.displayavatar = value;
   }
 
   public String getPostbody() {
-    return postbody;
+    return this.postbody;
   }
 
-  public void setPostbody(String value) {
-    postbody = value;
+  public void setPostbody(final String value) {
+    this.postbody = value;
   }
 
   public String getDisplaycolor() {
-    return displaycolor;
+    return this.displaycolor;
   }
 
-  public void setDisplaycolor(String value) {
-    displaycolor = value;
+  public void setDisplaycolor(final String value) {
+    this.displaycolor = value;
   }
 }
