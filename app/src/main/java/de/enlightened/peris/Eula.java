@@ -39,6 +39,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -52,9 +53,12 @@ import java.io.InputStreamReader;
  * be shown again. If the user refuses, {@link android.app.Activity#finish()} is invoked
  * on your activity.
  */
-class Eula {
+final class Eula {
   private static final String PREFERENCE_EULA_ACCEPTED = "eula.accepted";
   private static final String PREFERENCES_EULA = "eula";
+
+  private Eula() {
+  }
 
   /**
    * Displays the EULA if necessary. This method should be called from the onCreate()
@@ -70,17 +74,17 @@ class Eula {
       builder.setTitle("End User License Agreement");
       builder.setCancelable(true);
       builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
+        public void onClick(final DialogInterface dialog, final int which) {
           accept(preferences);
         }
       });
       builder.setNegativeButton("Refuse", new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int which) {
+        public void onClick(final DialogInterface dialog, final int which) {
           refuse(activity);
         }
       });
       builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-        public void onCancel(DialogInterface dialog) {
+        public void onCancel(final DialogInterface dialog) {
           refuse(activity);
         }
       });
@@ -90,15 +94,15 @@ class Eula {
     }
   }
 
-  private static void accept(SharedPreferences preferences) {
+  private static void accept(final SharedPreferences preferences) {
     preferences.edit().putBoolean(PREFERENCE_EULA_ACCEPTED, true).commit();
   }
 
-  private static void refuse(Activity activity) {
+  private static void refuse(final Activity activity) {
     activity.finish();
   }
 
-  static void showDisclaimer(Activity activity) {
+  static void showDisclaimer(final Activity activity) {
     final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
     builder.setMessage(readFile(activity, R.raw.eula));
     builder.setCancelable(true);
@@ -107,14 +111,16 @@ class Eula {
     builder.create().show();
   }
 
-  private static CharSequence readFile(Activity activity, int id) {
+  private static CharSequence readFile(final Activity activity, final int id) {
     BufferedReader in = null;
     try {
       in = new BufferedReader(new InputStreamReader(
           activity.getResources().openRawResource(id)));
       String line;
-      StringBuilder buffer = new StringBuilder();
-      while ((line = in.readLine()) != null) buffer.append(line).append('\n');
+      final StringBuilder buffer = new StringBuilder();
+      while ((line = in.readLine()) != null) {
+        buffer.append(line).append('\n');
+      }
       return buffer;
     } catch (IOException e) {
       return "";
@@ -128,12 +134,12 @@ class Eula {
    *
    * @param stream The stream to close.
    */
-  private static void closeStream(Closeable stream) {
+  private static void closeStream(final   Closeable stream) {
     if (stream != null) {
       try {
         stream.close();
       } catch (IOException e) {
-        // Ignore
+        Log.d("Peri", e.getMessage());
       }
     }
   }
