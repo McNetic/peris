@@ -147,7 +147,7 @@ public class ForumSettingsFragment extends Fragment {
     forumSettingCache.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(final View v) {
-        CacheNuker.NukeCache(getActivity());
+        CacheNuker.nukeCache(getActivity());
         final Intent intro = new Intent(getActivity(), IntroScreen.class);
 
         getActivity().finish();

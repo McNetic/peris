@@ -1,5 +1,6 @@
 package de.enlightened.peris;
 
+@SuppressWarnings("checkstyle:visibilitymodifier")
 public class Setting {
   public String settingName = "Setting";
   public String settingColor = "0";

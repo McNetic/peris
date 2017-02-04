@@ -887,7 +887,7 @@ public class IntroScreen extends FragmentActivity {
   }
 
   private void createHomescreenShortcut(final Server server) {
-    new iconMaker().execute(server);
+    new IconMakerTask().execute(server);
   }
 
   private void askAboutWebview() {
@@ -1194,27 +1194,25 @@ public class IntroScreen extends FragmentActivity {
     }
   }
 
-  private class iconMaker extends AsyncTask<Server, Void, Bitmap> {
-
+  private class IconMakerTask extends AsyncTask<Server, Void, Bitmap> {
     private Server server;
 
     @Override
-    protected Bitmap doInBackground(Server... params) {
+    protected Bitmap doInBackground(final Server... params) {
       server = params[0];
-
-      Bitmap bitmap = null;
+      final Bitmap bitmap;
 
       if (server.serverIcon.contains("png") || server.serverIcon.contains("ico")) {
-        bitmap = getBitmapFromURL(server.serverIcon);
-        int size = (int) getResources().getDimension(android.R.dimen.app_icon_size);
-        bitmap = Bitmap.createScaledBitmap(bitmap, size, size, true);
+        final int size = (int) getResources().getDimension(android.R.dimen.app_icon_size);
+        bitmap = Bitmap.createScaledBitmap(getBitmapFromURL(server.serverIcon), size, size, true);
+      } else {
+        bitmap = null;
       }
 
       return bitmap;
     }
 
-    protected void onPostExecute(Bitmap result) {
-
+    protected void onPostExecute(final Bitmap result) {
       final Intent shortcutIntent = new Intent(IntroScreen.this, IntroScreen.class);
       shortcutIntent.putExtra("server_id", server.serverId);
 
@@ -1239,7 +1237,7 @@ public class IntroScreen extends FragmentActivity {
       intent.setAction("com.android.launcher.action.INSTALL_SHORTCUT");
       sendBroadcast(intent);
 
-      Toast toast = Toast.makeText(IntroScreen.this, "Homescren Icon Created!", Toast.LENGTH_LONG);
+      final Toast toast = Toast.makeText(IntroScreen.this, "Homescren Icon Created!", Toast.LENGTH_LONG);
       toast.show();
     }
 

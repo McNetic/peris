@@ -11,6 +11,9 @@ import java.net.URL;
  */
 
 public final class Net {
+  private Net() {
+  }
+
   public static boolean checkURL(final String urlString) {
     try {
       final URL url = new URL(urlString);

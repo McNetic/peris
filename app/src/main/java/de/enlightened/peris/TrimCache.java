@@ -6,18 +6,17 @@ import android.util.Log;
 import java.io.File;
 
 public class TrimCache {
-
   private Context context;
 
-  public TrimCache(Context context) {
+  public TrimCache(final Context context) {
     this.context = context;
   }
 
-  public static boolean deleteDir(File dir) {
+  public static boolean deleteDir(final File dir) {
     if (dir != null && dir.isDirectory()) {
-      String[] children = dir.list();
+      final String[] children = dir.list();
       for (int i = 0; i < children.length; i++) {
-        boolean success = deleteDir(new File(dir, children[i]));
+        final boolean success = deleteDir(new File(dir, children[i]));
         if (!success) {
           return false;
         }
@@ -27,12 +26,12 @@ public class TrimCache {
   }
 
   public void trim() {
-    File cache = context.getCacheDir();
-    File appDir = new File(cache.getParent());
+    final File cache = this.context.getCacheDir();
+    final File appDir = new File(cache.getParent());
     if (appDir.exists()) {
-      String[] children = appDir.list();
+      final String[] children = appDir.list();
       for (String s : children) {
-        if (!s.equals("lib")) {
+        if (!"lib".equals(s)) {
           deleteDir(new File(appDir, s));
           Log.i("TAG", "**************** File /data/data/APP_PACKAGE/" + s + " DELETED *******************");
         }

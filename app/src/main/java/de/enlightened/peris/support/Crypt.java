@@ -10,6 +10,8 @@ import java.util.Formatter;
  */
 
 public final class Crypt {
+  private Crypt() {
+  }
 
   private static String byteToHex(final byte[] hash) {
     final Formatter formatter = new Formatter();

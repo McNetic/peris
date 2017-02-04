@@ -1,5 +1,6 @@
 package de.enlightened.peris;
 
+@SuppressWarnings("checkstyle:visibilitymodifier")
 public class IgnoreItem {
   public String ignoreItemUsername;
   public String ignoreItemAvatar;

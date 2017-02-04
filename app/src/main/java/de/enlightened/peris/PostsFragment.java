@@ -748,7 +748,7 @@ public class PostsFragment extends Fragment {
                       }
                       if (attachmentType != null && attachmentUrl != null && attachmentName != null) {
                         final PostAttachment pa = new PostAttachment();
-                        pa.content_type = attachmentType;
+                        pa.contentType = attachmentType;
                         pa.url = attachmentUrl;
                         pa.filename = attachmentName;
                         po.attachmentList.add(pa);

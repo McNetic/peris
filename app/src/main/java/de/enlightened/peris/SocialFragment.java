@@ -172,7 +172,7 @@ public class SocialFragment extends Fragment {
 
         if(!(cached_social.contentEquals("n/a"))) {
           try {
-          Object[] forumObject = GsonHelper.customGson.fromJson(cached_social, Object[].class);
+          Object[] forumObject = GsonHelper.CUSTOM_GSON.fromJson(cached_social, Object[].class);
             parseCachedSocial(forumObject);
           } catch(Exception ex) {
             //don't do anything
@@ -375,7 +375,7 @@ public class SocialFragment extends Fragment {
         final Toast toast = Toast.makeText(getActivity(), "Cannot connect to chat!", Toast.LENGTH_SHORT);
         toast.show();
       } else {
-        final String objectString = GsonHelper.customGson.toJson(result);
+        final String objectString = GsonHelper.CUSTOM_GSON.toJson(result);
         final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
         final String cachedForum = appPreferences.getString("social_list", "n/a");
 

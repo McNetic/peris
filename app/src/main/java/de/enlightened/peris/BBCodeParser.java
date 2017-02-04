@@ -206,7 +206,7 @@ public class BBCodeParser {
 
       for (PostAttachment pa : attachmentList) {
 
-        if (pa.content_type.contentEquals("image") || pa.content_type.contains("ImageUploadedByTapatalk")) {
+        if (pa.contentType.contentEquals("image") || pa.contentType.contains("ImageUploadedByTapatalk")) {
           final ImageView ivNewPic = new ImageView(c);
           final String inlineImageUrl = pa.url;
           layout.addView(ivNewPic);

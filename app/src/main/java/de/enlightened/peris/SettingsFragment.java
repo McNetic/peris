@@ -116,7 +116,7 @@ public class SettingsFragment extends Fragment {
   }
 
   private void clearCache() {
-    CacheNuker.NukeCache(this.getActivity());
+    CacheNuker.nukeCache(this.getActivity());
     final Intent intro = new Intent(this.getActivity(), IntroScreen.class);
     this.getActivity().finish();
 

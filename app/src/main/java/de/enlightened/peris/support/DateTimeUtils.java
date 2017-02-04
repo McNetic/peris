@@ -14,6 +14,9 @@ public final class DateTimeUtils {
   private static final int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
   private static final int SECONDS_PER_DAY = SECONDS_PER_HOUR * HOURS_PER_DAY;
 
+  private DateTimeUtils() {
+  }
+
   public static String getTimeAgo(final Date date) throws IllegalArgumentException {
     final String timeAgo;
     final long seconds = (new Date().getTime() - date.getTime()) / MILLIS_PER_SECOND;

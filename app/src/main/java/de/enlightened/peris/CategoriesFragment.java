@@ -219,7 +219,7 @@ public class CategoriesFragment extends ListFragment {
 
     if (!(cachedForum.contentEquals("n/a"))) {
       try {
-        final Object[][] forumObject = GsonHelper.customGson.fromJson(cachedForum, Object[][].class);
+        final Object[][] forumObject = GsonHelper.CUSTOM_GSON.fromJson(cachedForum, Object[][].class);
         this.parseCachedForums(forumObject);
         Log.d("Peris", "Forum cache available, using it");
       } catch (Exception ex) {
@@ -916,7 +916,7 @@ public class CategoriesFragment extends ListFragment {
           initialLoadComplete = true;
           isLoading = false;
 
-          final String objectString = GsonHelper.customGson.toJson(result);
+          final String objectString = GsonHelper.CUSTOM_GSON.toJson(result);
           final SharedPreferences appPreferences = activity.getSharedPreferences("prefs", 0);
           final String cachedForum = appPreferences.getString(storagePrefix + "forum" + subforumId, "n/a");
 
@@ -927,7 +927,7 @@ public class CategoriesFragment extends ListFragment {
               editor.commit();
             }
 
-            final Object[][] forumObject = GsonHelper.customGson.fromJson(objectString, Object[][].class);
+            final Object[][] forumObject = GsonHelper.CUSTOM_GSON.fromJson(objectString, Object[][].class);
             parseCachedForums(forumObject);
           }
         }

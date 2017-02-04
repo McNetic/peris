@@ -7,6 +7,9 @@ import android.graphics.Color;
  */
 
 public final class Style {
+  private Style() {
+  }
+
   public static String colorToColorString(final int color) {
     return String.format("%x%x%x", Color.red(color), Color.green(color), Color.blue(color));
   }

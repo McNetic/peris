@@ -1,7 +1,8 @@
 package de.enlightened.peris;
 
+@SuppressWarnings("checkstyle:visibilitymodifier")
 public class PostBreadcrumb {
-  public String forum_id;
-  public byte[] forum_name;
-  public boolean sub_only;
+  public String forumId;
+  public byte[] forumName;
+  public boolean subOnly;
 }
