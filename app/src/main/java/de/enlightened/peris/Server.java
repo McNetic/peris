@@ -1,5 +1,6 @@
 package de.enlightened.peris;
 
+@SuppressWarnings("checkstyle:visibilitymodifier")
 public class Server {
   public String serverId = "0";
   public String serverAddress = "0";
