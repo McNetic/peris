@@ -17,79 +17,73 @@ import java.util.ArrayList;
 
 @SuppressLint("ViewHolder")
 public class ServerAdapter extends BaseAdapter {
-
-  Context c;
+  private Context context;
   private ArrayList<Server> data;
 
-  ServerAdapter(ArrayList<Server> data, Context c) {
+  ServerAdapter(final ArrayList<Server> data, final Context context) {
     this.data = data;
-    this.c = c;
+    this.context = context;
   }
 
   public int getCount() {
-    return data.size();
+    return this.data.size();
   }
 
-  public Object getItem(int arg0) {
-    return data.get(arg0);
+  public Object getItem(final int arg0) {
+    return this.data.get(arg0);
   }
 
-  public long getItemId(int arg0) {
+  public long getItemId(final int arg0) {
     return arg0;
   }
 
-  public View getView(int arg0, View arg1, ViewGroup arg2) {
+  public View getView(final int arg0, final View arg1, final ViewGroup arg2) {
     View v = arg1;
-    LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    final LayoutInflater vi = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     v = vi.inflate(R.layout.server, null);
 
-    TextView serverAddress = (TextView) v.findViewById(R.id.server_address);
-    TextView serverUsername = (TextView) v.findViewById(R.id.server_username);
-    ImageView serverUserAvater = (ImageView) v.findViewById(R.id.server_user_avatar);
-    RelativeLayout serverTabColor = (RelativeLayout) v.findViewById(R.id.server_tab_color);
+    final TextView serverAddress = (TextView) v.findViewById(R.id.server_address);
+    final TextView serverUsername = (TextView) v.findViewById(R.id.server_username);
+    final ImageView serverUserAvater = (ImageView) v.findViewById(R.id.server_user_avatar);
+    final RelativeLayout serverTabColor = (RelativeLayout) v.findViewById(R.id.server_tab_color);
 
-    Server s = data.get(arg0);
-
-    if (s.serverName.contentEquals("0")) {
-      serverAddress.setText(s.serverAddress.replace("http://", ""));
+    final Server server = this.data.get(arg0);
+    if (server.serverName.contentEquals("0")) {
+      serverAddress.setText(server.serverAddress.replace("http://", ""));
     } else {
-      serverAddress.setText(s.serverName);
+      serverAddress.setText(server.serverName);
     }
 
 
-    if (s.serverUserName.contentEquals("0")) {
+    if (server.serverUserName.contentEquals("0")) {
       serverUsername.setText("Guest");
     } else {
-      serverUsername.setText(s.serverUserName);
+      serverUsername.setText(server.serverUserName);
     }
 
-    if (s.serverAvatar.contains("http")) {
-      ImageLoader.getInstance().displayImage(s.serverAvatar, serverUserAvater);
+    if (server.serverAvatar.contains("http")) {
+      ImageLoader.getInstance().displayImage(server.serverAvatar, serverUserAvater);
     } else {
-      if (s.serverTagline.contentEquals("[*WEBVIEW*]")) {
+      if (server.serverTagline.contentEquals("[*WEBVIEW*]")) {
         serverUserAvater.setImageResource(R.drawable.webview_forum);
       } else {
         serverUserAvater.setImageResource(R.drawable.no_avatar);
       }
     }
 
-    if (s.serverColor.contains("#")) {
-      serverTabColor.setBackgroundColor(Color.parseColor(s.serverColor));
+    if (server.serverColor.contains("#")) {
+      serverTabColor.setBackgroundColor(Color.parseColor(server.serverColor));
     } else {
-      serverTabColor.setBackgroundColor(Color.parseColor(c.getString(R.string.default_color)));
+      serverTabColor.setBackgroundColor(Color.parseColor(this.context.getString(R.string.default_color)));
     }
 
-
-    ImageView serverIcon = (ImageView) v.findViewById(R.id.server_server_icon);
-
-    if (s.serverIcon.contains("http")) {
+    final ImageView serverIcon = (ImageView) v.findViewById(R.id.server_server_icon);
+    if (server.serverIcon.contains("http")) {
       serverIcon.setVisibility(View.VISIBLE);
-      ImageLoader.getInstance().displayImage(s.serverIcon, serverIcon);
+      ImageLoader.getInstance().displayImage(server.serverIcon, serverIcon);
     } else {
       serverIcon.setVisibility(View.GONE);
     }
-
     return v;
   }
-
 }
