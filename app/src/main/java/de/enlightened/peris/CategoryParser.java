@@ -6,93 +6,68 @@ import com.google.gson.internal.LinkedTreeMap;
 
 import java.util.ArrayList;
 
-public class CategoryParser {
+public final class CategoryParser {
+
+  private CategoryParser() {
+  }
 
   @SuppressWarnings("rawtypes")
-  public static final ArrayList<Category> parseCategories(Object[] data, String subforum_id, String background) {
-    ArrayList<Category> categories = new ArrayList<Category>();
+  public static ArrayList<Category> parseCategories(final Object[] data, final String subforumId, final String background) {
+    final ArrayList<Category> categories = new ArrayList<Category>();
 
     for (Object o : data) {
       if (o != null) {
-        LinkedTreeMap map = (LinkedTreeMap) o;
-
-        Category ca = new Category();
+        final LinkedTreeMap map = (LinkedTreeMap) o;
+        final Category ca = new Category();
         ca.name = (String) map.get("forum_name");
-        ca.subforumId = subforum_id;
+        ca.subforumId = subforumId;
         ca.id = (String) map.get("forum_id");
         ca.type = "S";
         ca.color = background;
 
-        if (map.containsKey("logo_url")) {
-          if (map.get("logo_url") != null) {
-            ca.icon = (String) map.get("logo_url");
-          }
+        if (map.get("logo_url") != null) {
+          ca.icon = (String) map.get("logo_url");
         }
-
-        if (map.containsKey("url")) {
-          if (map.get("url") != null) {
-            ca.url = (String) map.get("url");
-          }
+        if (map.get("url") != null) {
+          ca.url = (String) map.get("url");
         }
-
         if (map.get("is_subscribed") != null) {
           ca.isSubscribed = (Boolean) map.get("is_subscribed");
         }
-
         if (map.get("can_subscribe") != null) {
           ca.canSubscribe = (Boolean) map.get("can_subscribe");
         }
-
         if (map.get("new_post") != null) {
           ca.hasNewTopic = (Boolean) map.get("new_post");
         }
 
         Boolean subOnly = false;
-
-        if (map.containsKey("sub_only")) {
-          if (map.get("sub_only") != null) {
-            subOnly = (Boolean) map.get("sub_only");
-            ca.hasChildren = true;
-            if (ca.hasChildren) {
-              Log.v("Peris", "aaa sub only on " + ca.id);
-            }
+        if (map.get("sub_only") != null) {
+          subOnly = (Boolean) map.get("sub_only");
+          ca.hasChildren = true;
+          if (ca.hasChildren) {
+            Log.v("Peris", "aaa sub only on " + ca.id);
           }
         }
-
         if (subOnly) {
-
-          if (map.containsKey("child")) {
-
-            if (map.get("child") != null) {
-
-              ca.id = subforum_id + "###" + (String) map.get("forum_id");
-
-              ArrayList childArray = (ArrayList) map.get("child");
-
-              Object[] objArray = new Object[childArray.size()];
-
-              int i = 0;
-
-              for (Object childForum : childArray) {
-
-                if (childForum != null) {
-                  LinkedTreeMap childMap = (LinkedTreeMap) childForum;
-                  objArray[i] = childMap;
-                }
-                i++;
+          if (map.get("child") != null) {
+            ca.id = subforumId + "###" + (String) map.get("forum_id");
+            final ArrayList childArray = (ArrayList) map.get("child");
+            final Object[] objArray = new Object[childArray.size()];
+            int i = 0;
+            for (Object childForum : childArray) {
+              if (childForum != null) {
+                final LinkedTreeMap childMap = (LinkedTreeMap) childForum;
+                objArray[i] = childMap;
               }
-
-              ca.children = parseCategories(objArray, ca.id, background);
-
+              i++;
             }
+            ca.children = parseCategories(objArray, ca.id, background);
           }
         }
-
         categories.add(ca);
       }
     }
-
     return categories;
   }
-
 }
