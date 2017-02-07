@@ -180,7 +180,7 @@ public class MailService extends Service {
   private void initDatabase() {
     this.notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
     this.sql = "create table if not exists notifications(_id integer primary key,server varchar,message integer);";
-    this.notetasticDB.setVersion(4);
+    this.notetasticDB.setVersion(5);
     this.notetasticDB.execSQL(this.sql);
     this.notetasticDB.close();
   }

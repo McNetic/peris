@@ -18,6 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import de.enlightened.peris.support.DateTimeUtils;
+import de.enlightened.peris.support.Net;
 
 final class ElementRenderer {
 
@@ -172,7 +173,7 @@ final class ElementRenderer {
     }
 
     if (currentAvatarSetting) {
-      if (po.avatar != null && po.avatar.contains("http://")) {
+      if (Net.isUrl(po.avatar)) {
         final String imageUrl = po.avatar;
         ImageLoader.getInstance().displayImage(imageUrl, poAvatar);
       } else {
@@ -324,7 +325,7 @@ final class ElementRenderer {
       }
     }
 
-    if (ca.url.contains("http")) {
+    if (Net.isUrl(ca.url)) {
       tvCategoryUpdate.setVisibility(View.VISIBLE);
       tvCategoryUpdate.setText(ca.url);
     }
@@ -343,11 +344,11 @@ final class ElementRenderer {
         if (ivSubforumIndicator != null) {
           ivSubforumIndicator.setVisibility(View.VISIBLE);
 
-          if (ca.icon.contains("http")) {
+          if (Net.isUrl(ca.icon)) {
             final String imageUrl = ca.icon;
             ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
           } else {
-            if (ca.url.contains("http")) {
+            if (Net.isUrl(ca.url)) {
               ivSubforumIndicator.setImageResource(R.drawable.social_global_on);
             } else {
 
@@ -385,7 +386,7 @@ final class ElementRenderer {
         }
       } else {
         if (ivSubforumIndicator != null) {
-          if (ca.icon.contains("http")) {
+          if (Net.isUrl(ca.icon)) {
             final String imageUrl = ca.icon;
             ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
           } else {

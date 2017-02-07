@@ -140,6 +140,10 @@ public class IntroScreen extends FragmentActivity {
       parsedServer.serverWallpaper = c.getString(c.getColumnIndex("wallpaper"));
     }
 
+    if (c.getColumnIndex("https") > -1) {
+      parsedServer.serverHttps = c.getInt(c.getColumnIndex("https")) == 1;
+    }
+
     return parsedServer;
   }
 
@@ -393,7 +397,7 @@ public class IntroScreen extends FragmentActivity {
 
 
     super.onCreateContextMenu(menu, v, menuInfo);
-    menu.setHeaderTitle(selectedServer.serverAddress);
+    menu.setHeaderTitle(selectedServer.getUrlString());
     final MenuInflater inflater = getMenuInflater();
 
     inflater.inflate(R.menu.intro_context, menu);
@@ -417,48 +421,48 @@ public class IntroScreen extends FragmentActivity {
     return rv;
   }
 
+  @SuppressWarnings("checkstyle:nestedfordepth")
   private String checkForTapatalk(final String enteredURL) {
     final Pattern pattern = Pattern.compile(
         "^(?:(http(?:s)?)://)?"
             + "((?:www|forum[s]?|board|community|discussions).)?"
-            + "([^/]+/?)"
-            + "(forum[s]?|board|community|discussions)?"
+            + "([^/]+)"
+            + "(/(:?forum[s]?|board|community|discussions))?"
             + "(?:(/(mobiquo(/(mobiquo.php)?)?)?)?)?$");
     final Matcher matcher = pattern.matcher(enteredURL);
     if (matcher.matches()) {
-      String protocol = matcher.group(1);
+      //String protocol = matcher.group(1);
       String givenSubdomain = matcher.group(2);
       final String domain = matcher.group(3);
       String givenDirectory = matcher.group(4);
-      if (protocol == null) {
-        protocol = "http";
-      }
       if (givenSubdomain == null) {
         givenSubdomain = "";
       }
       if (givenDirectory == null) {
         givenDirectory = "";
-      } else if (!givenDirectory.endsWith("/")) {
-        givenDirectory = givenDirectory + "/";
+      } else if (givenDirectory.endsWith("/")) {
+        givenDirectory = givenDirectory.substring(0, givenDirectory.length() - 1);
       }
-      //TODO: https
+
       final ArrayList<String> subdomains = new ArrayList(Arrays.asList("", "www.", "forum.", "forums.", "board.", "community.", "discussions."));
       subdomains.remove(givenSubdomain);
       subdomains.add(0, givenSubdomain);
-      final ArrayList<String> directories = new ArrayList(Arrays.asList("", "forum/", "forums/", "board/", "community/", "discussions/"));
+      final ArrayList<String> directories = new ArrayList(Arrays.asList("", "/forum", "/forums", "/board", "/community", "/discussions"));
       directories.remove(givenDirectory);
       directories.add(0, givenDirectory);
-      for (String subdomain : subdomains) {
-        for (String directory : directories) {
-          final String url = String.format("%s://%s%s/%s", protocol, subdomain, domain, directory);
-          Log.d("Peris", "Checking: " + url);
-          if (Net.checkURL(url + "/mobiquo/mobiquo.php")) {
-            return url;
+      for (final String protocol : new String[]{"https", "http"}) {
+        for (final String subdomain : subdomains) {
+          for (final String directory : directories) {
+            final String url = String.format("%s://%s%s%s", protocol, subdomain, domain, directory);
+            Log.d("Peris", "Checking: " + url);
+            if (Net.checkURL(url + "/mobiquo/mobiquo.php")) {
+              return url;
+            }
           }
         }
       }
     }
-    return "none";
+    return null;
   }
 
   private void stealTapatalkLink(final String link) {
@@ -520,7 +524,7 @@ public class IntroScreen extends FragmentActivity {
       notetasticDB.close();
 
       if (selectedServer != null) {
-        if (!selectedServer.serverAddress.contentEquals("0")) {
+        if (selectedServer.serverAddress != null) {
           connectToServer(selectedServer);
           return;
         }
@@ -541,16 +545,17 @@ public class IntroScreen extends FragmentActivity {
     final String uTextColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_text_color));
     final String uDividerColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_divider_color));
     final String uWallpaper = DatabaseUtils.sqlEscapeString(getString(R.string.default_wallpaper_url));
-
     final String uFFChat = DatabaseUtils.sqlEscapeString(getString(R.string.new_chat_id));
     final String uAnalytics = DatabaseUtils.sqlEscapeString("0");
     final String uMobfox = DatabaseUtils.sqlEscapeString("0");
+    final String uHttps = DatabaseUtils.sqlEscapeString("1");
 
     notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
 
     Log.d("Peris", "Opening database version " + notetasticDB.getVersion());
 
-    sql = "create table if not exists accountlist(_id integer primary key,server varchar,icon varchar,color varchar,servername varchar,username varchar,password varchar,userid varchar,avatar varchar,postcount varchar,themeInt varchar,cookieCount varchar,lastTab varchar,tagline varchar,chatThread varchar,chatForum varchar,chatName varchar,background varchar default " + uvalue + ",boxcolor varchar default " + uBoxColor + ",boxborder varchar default " + uBoxBorder + ",textcolor varchar default " + uTextColor + ",dividercolor varchar default " + uDividerColor + ",wallpaper varchar default " + uWallpaper + ",ffchat varchar default " + uFFChat + ",analytics varchar default " + uAnalytics + ",mobfox varchar default " + uMobfox + ");";
+    sql = "create table if not exists accountlist(_id integer primary key,server varchar,icon varchar,color varchar,servername varchar,username varchar,password varchar,userid varchar,avatar varchar,postcount varchar,themeInt varchar,cookieCount varchar,lastTab varchar,tagline varchar,chatThread varchar,chatForum varchar,chatName varchar,background varchar default " + uvalue + ",boxcolor varchar default " + uBoxColor + ",boxborder varchar default " + uBoxBorder + ",textcolor varchar default " + uTextColor + ",dividercolor varchar default " + uDividerColor + ",wallpaper varchar default " + uWallpaper + ",ffchat varchar default " + uFFChat + ",analytics varchar default " + uAnalytics + ",mobfox varchar default " + uMobfox + ",https boolean not null check (https IN (0,1)) default " + uHttps + ");";
+    notetasticDB.execSQL(sql);
 
     //conduct upgrade from initial database
     if (notetasticDB.getVersion() == 1) {
@@ -579,8 +584,12 @@ public class IntroScreen extends FragmentActivity {
       notetasticDB.execSQL(sql);
 
       sql = "alter table accountlist add column mobfox varchar default " + uMobfox + ";";
+      notetasticDB.execSQL(sql);
 
-      Log.d("Peris", "Database upgraded to v4...");
+      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
+      notetasticDB.execSQL(sql);
+
+      Log.d("Peris", "Database upgraded to v5...");
     }
 
     if (notetasticDB.getVersion() == 2) {
@@ -594,8 +603,12 @@ public class IntroScreen extends FragmentActivity {
       notetasticDB.execSQL(sql);
 
       sql = "alter table accountlist add column mobfox varchar default " + uMobfox + ";";
+      notetasticDB.execSQL(sql);
 
-      Log.d("Peris", "Database upgraded to v4...");
+      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
+      notetasticDB.execSQL(sql);
+
+      Log.d("Peris", "Database upgraded to v5...");
     }
 
     if (notetasticDB.getVersion() == 3) {
@@ -603,16 +616,24 @@ public class IntroScreen extends FragmentActivity {
       notetasticDB.execSQL(sql);
 
       sql = "alter table accountlist add column mobfox varchar default " + uMobfox + ";";
+      notetasticDB.execSQL(sql);
 
-      Log.d("Peris", "Database upgraded to v4...");
+      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
+      notetasticDB.execSQL(sql);
+
+      Log.d("Peris", "Database upgraded to v5...");
     }
 
-    notetasticDB.setVersion(4);
+    if (notetasticDB.getVersion() == 4) {
+      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
+      notetasticDB.execSQL(sql);
 
-    notetasticDB.execSQL(sql);
+      Log.d("Peris", "Database upgraded to v5...");
+    }
+
+    notetasticDB.setVersion(5);
+
     notetasticDB.close();
-
-    upgradeToDatabase();
 
     //Juice up the server for stand alone app
     if (!getString(R.string.server_location).contentEquals("0") || incomingShortcut) {
@@ -625,116 +646,25 @@ public class IntroScreen extends FragmentActivity {
         sql = "select * from accountlist limit 1;";
       }
 
-      final Cursor c = notetasticDB.rawQuery(sql, null);
+      final Cursor c = this.notetasticDB.rawQuery(sql, null);
 
       if (c == null) {
         return;
       }
 
       while (c.moveToNext()) {
-        selectedServer = parseServerData(c);
+        this.selectedServer = parseServerData(c);
       }
 
-      notetasticDB.close();
+      this.notetasticDB.close();
     }
-  }
-
-  private void upgradeToDatabase() {
-
-    String[] serverListing;
-
-    final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
-    final boolean dbCreated = appPreferences.getBoolean("dbInit", false);
-
-    if (!dbCreated) {
-      notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-      String storagePrefix = "";
-
-      if (getString(R.string.server_location).contentEquals("0")) {
-        final String rawServers = appPreferences.getString("serverListing", preinstalledServers);
-        serverListing = rawServers.split(",");
-      } else {
-        serverListing = new String[1];
-        serverListing[0] = getString(R.string.server_location);
-      }
-
-      for (String server : serverListing) {
-
-        String raw = server;
-
-        if (!raw.contains("http")) {
-          raw = "http://" + raw;
-        }
-
-        storagePrefix = raw + "_";
-
-        if (getString(R.string.server_location).contentEquals("0")) {
-          storagePrefix = "";
-        }
-
-        final String userid = appPreferences.getString(storagePrefix + "logged_userid", "0");
-        final String username = appPreferences.getString(storagePrefix + "logged_username", "0");
-        final String password = appPreferences.getString(storagePrefix + "logged_password", "0");
-        final String tagline = appPreferences.getString(storagePrefix + "logged_tagline", "null");
-
-        final String avatar = appPreferences.getString(storagePrefix + "logged_avatar", "0");
-        final String postcount = appPreferences.getString(storagePrefix + "logged_postcount", "0");
-        final String color = appPreferences.getString(storagePrefix + "logged_bgColor", getString(R.string.default_color));
-
-        final int cookies = appPreferences.getInt(storagePrefix + "cookie_count", 0);
-        final int theme = appPreferences.getInt(storagePrefix + "loggedThemeInt", Integer.parseInt(getString(R.string.default_theme)));
-        final int tab = appPreferences.getInt(storagePrefix + "last_main_tab", 0);
-
-        final String chatThread = appPreferences.getString(storagePrefix + "_custom_chat_thread", getString(R.string.chat_thread));
-        final String chatForum = appPreferences.getString(storagePrefix + "_custom_chat_forum", getString(R.string.chat_forum));
-        final String chatName = appPreferences.getString(storagePrefix + "_custom_chat_name", getString(R.string.chat_name));
-
-        final String cleanServer = DatabaseUtils.sqlEscapeString(raw);
-        final String cleanUserid = DatabaseUtils.sqlEscapeString(userid);
-        final String cleanUsername = DatabaseUtils.sqlEscapeString(username);
-        final String cleanPassword = DatabaseUtils.sqlEscapeString(password);
-        final String cleanTagline = DatabaseUtils.sqlEscapeString(tagline);
-        final String cleanAvatar = DatabaseUtils.sqlEscapeString(avatar);
-        final String cleanPostcount = DatabaseUtils.sqlEscapeString(postcount);
-        final String cleanColor = DatabaseUtils.sqlEscapeString(color);
-        final String cleanCookies = DatabaseUtils.sqlEscapeString(Integer.toString(cookies));
-        final String cleanTheme = DatabaseUtils.sqlEscapeString(Integer.toString(theme));
-        final String cleanTab = DatabaseUtils.sqlEscapeString(Integer.toString(tab));
-        final String cleanChatThread = DatabaseUtils.sqlEscapeString(chatThread);
-        final String cleanChatForum = DatabaseUtils.sqlEscapeString(chatForum);
-        final String cleanChatName = DatabaseUtils.sqlEscapeString(chatName);
-
-        final String cleanBackground = DatabaseUtils.sqlEscapeString(getString(R.string.default_background));
-        final String cleanBoxColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_background));
-        final String cleanBoxBorder = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_border));
-        final String cleanTextColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_text_color));
-        final String cleanDividerColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_divider_color));
-        final String cleanWallpaper = DatabaseUtils.sqlEscapeString(getString(R.string.default_wallpaper_url));
-
-        sql = "insert into accountlist(server,icon,color,servername,username,password,userid,avatar,postcount,themeInt,cookieCount,lastTab,tagline,chatThread,chatForum,chatName,background,boxcolor,boxborder,textcolor,dividercolor,wallpaper) values(" + cleanServer + ",'0'," + cleanColor + ",'0'," + cleanUsername + "," + cleanPassword + "," + cleanUserid + "," + cleanAvatar + "," + cleanPostcount + "," + cleanTheme + "," + cleanCookies + "," + cleanTab + "," + cleanTagline + "," + cleanChatThread + "," + cleanChatForum + "," + cleanChatName + "," + cleanBackground + "," + cleanBoxColor + "," + cleanBoxBorder + "," + cleanTextColor + "," + cleanDividerColor + "," + cleanWallpaper + ");";
-        notetasticDB.execSQL(sql);
-      }
-
-      notetasticDB.close();
-    }
-
-    final SharedPreferences.Editor editor = appPreferences.edit();
-    editor.putBoolean("dbInit", true);
-    editor.commit();
   }
 
   private void addNewServer(final String server) {
+    this.notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
 
-    String raw = server;
-
-    if (!raw.contains("http")) {
-      raw = "http://" + raw;
-    }
-
-    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-    final String cleanServer = DatabaseUtils.sqlEscapeString(raw);
+    final String cleanServer = DatabaseUtils.sqlEscapeString(Net.removeProtocol(server));
+    final String cleanHttps = DatabaseUtils.sqlEscapeString(server.startsWith("https://") ? "1" : "0");
     final String cleanUserid = DatabaseUtils.sqlEscapeString("0");
     final String cleanUsername = DatabaseUtils.sqlEscapeString("0");
     final String cleanPassword = DatabaseUtils.sqlEscapeString("0");
@@ -749,16 +679,15 @@ public class IntroScreen extends FragmentActivity {
     final String cleanChatThread = DatabaseUtils.sqlEscapeString(getString(R.string.chat_thread));
     final String cleanChatForum = DatabaseUtils.sqlEscapeString(getString(R.string.chat_forum));
     final String cleanChatName = DatabaseUtils.sqlEscapeString(getString(R.string.chat_name));
-
     final String cleanBoxColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_background));
     final String cleanBoxBorder = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_border));
     final String cleanTextColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_text_color));
     final String cleanDividerColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_divider_color));
     final String cleanWallpaper = DatabaseUtils.sqlEscapeString(getString(R.string.default_wallpaper_url));
 
-    sql = "insert into accountlist(server,icon,color,servername,username,password,userid,avatar,postcount,themeInt,cookieCount,lastTab,tagline,chatThread,chatForum,chatName,background,boxcolor,boxborder,textcolor,dividercolor,wallpaper) values(" + cleanServer + ",'0'," + cleanColor + ",'0'," + cleanUsername + "," + cleanPassword + "," + cleanUserid + "," + cleanAvatar + "," + cleanPostcount + "," + cleanTheme + "," + cleanCookies + "," + cleanTab + "," + cleanTagline + "," + cleanChatThread + "," + cleanChatForum + "," + cleanChatName + "," + cleanBackground + "," + cleanBoxColor + "," + cleanBoxBorder + "," + cleanTextColor + "," + cleanDividerColor + "," + cleanWallpaper + ");";
+    sql = "insert into accountlist(server,https,icon,color,servername,username,password,userid,avatar,postcount,themeInt,cookieCount,lastTab,tagline,chatThread,chatForum,chatName,background,boxcolor,boxborder,textcolor,dividercolor,wallpaper) "
+        + "values(" + cleanServer + "," + cleanHttps + ",'0'," + cleanColor + ",'0'," + cleanUsername + "," + cleanPassword + "," + cleanUserid + "," + cleanAvatar + "," + cleanPostcount + "," + cleanTheme + "," + cleanCookies + "," + cleanTab + "," + cleanTagline + "," + cleanChatThread + "," + cleanChatForum + "," + cleanChatName + "," + cleanBackground + "," + cleanBoxColor + "," + cleanBoxBorder + "," + cleanTextColor + "," + cleanDividerColor + "," + cleanWallpaper + ");";
     notetasticDB.execSQL(sql);
-
     notetasticDB.close();
   }
 
@@ -795,7 +724,7 @@ public class IntroScreen extends FragmentActivity {
     connectingLayout.setVisibility(View.VISIBLE);
 
     final TextView tvServerConnectionText = (TextView) findViewById(R.id.intro_connecting_text);
-    tvServerConnectionText.setText("Logging in to\n" + server.serverAddress);
+    tvServerConnectionText.setText("Logging in to\n" + server.getUrlString());
 
     if (server.serverColor.contains("#")) {
       connectingLayout.setBackgroundColor(Color.parseColor(server.serverColor));
@@ -803,7 +732,6 @@ public class IntroScreen extends FragmentActivity {
     }
 
     //getActionBar().hide();
-
 
     app.getSession().setSessionListener(new Session.SessionListener() {
 
@@ -923,17 +851,11 @@ public class IntroScreen extends FragmentActivity {
     return;
   }
 
-  private void addWebViewServer(final String url) {
-
-    String raw = url;
-
-    if (!raw.contains("http")) {
-      raw = "http://" + raw;
-    }
-
+  private void addWebViewServer(final String server) {
     notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
 
-    final String cleanServer = DatabaseUtils.sqlEscapeString(raw);
+    final String cleanServer = DatabaseUtils.sqlEscapeString(Net.removeProtocol(server));
+    final String cleanHttps = DatabaseUtils.sqlEscapeString(server.startsWith("https://") ? "1" : "0");
     final String cleanUserid = DatabaseUtils.sqlEscapeString("0");
     final String cleanUsername = DatabaseUtils.sqlEscapeString("WebView Forum");
     final String cleanPassword = DatabaseUtils.sqlEscapeString("0");
@@ -948,16 +870,15 @@ public class IntroScreen extends FragmentActivity {
     final String cleanChatThread = DatabaseUtils.sqlEscapeString(getString(R.string.chat_thread));
     final String cleanChatForum = DatabaseUtils.sqlEscapeString(getString(R.string.chat_forum));
     final String cleanChatName = DatabaseUtils.sqlEscapeString(getString(R.string.chat_name));
-
     final String cleanBoxColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_background));
     final String cleanBoxBorder = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_border));
     final String cleanTextColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_text_color));
     final String cleanDividerColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_divider_color));
     final String cleanWallpaper = DatabaseUtils.sqlEscapeString(getString(R.string.default_wallpaper_url));
 
-    sql = "insert into accountlist(server,icon,color,servername,username,password,userid,avatar,postcount,themeInt,cookieCount,lastTab,tagline,chatThread,chatForum,chatName,background,boxcolor,boxborder,textcolor,dividercolor,wallpaper) values(" + cleanServer + ",'0'," + cleanColor + ",'0'," + cleanUsername + "," + cleanPassword + "," + cleanUserid + "," + cleanAvatar + "," + cleanPostcount + "," + cleanTheme + "," + cleanCookies + "," + cleanTab + "," + cleanTagline + "," + cleanChatThread + "," + cleanChatForum + "," + cleanChatName + "," + cleanBackground + "," + cleanBoxColor + "," + cleanBoxBorder + "," + cleanTextColor + "," + cleanDividerColor + "," + cleanWallpaper + ");";
+    sql = "insert into accountlist(server,https,icon,color,servername,username,password,userid,avatar,postcount,themeInt,cookieCount,lastTab,tagline,chatThread,chatForum,chatName,background,boxcolor,boxborder,textcolor,dividercolor,wallpaper) "
+        + "values(" + cleanServer + "," + cleanHttps + ",'0'," + cleanColor + ",'0'," + cleanUsername + "," + cleanPassword + "," + cleanUserid + "," + cleanAvatar + "," + cleanPostcount + "," + cleanTheme + "," + cleanCookies + "," + cleanTab + "," + cleanTagline + "," + cleanChatThread + "," + cleanChatForum + "," + cleanChatName + "," + cleanBackground + "," + cleanBoxColor + "," + cleanBoxBorder + "," + cleanTextColor + "," + cleanDividerColor + "," + cleanWallpaper + ");";
     notetasticDB.execSQL(sql);
-
     notetasticDB.close();
   }
 
@@ -972,7 +893,7 @@ public class IntroScreen extends FragmentActivity {
     String oldName = server.serverName;
 
     if (oldName.contentEquals("0")) {
-      oldName = server.serverAddress;
+      oldName = server.getUrlString();
     }
 
     final EditText input = new EditText(this);
@@ -1034,40 +955,40 @@ public class IntroScreen extends FragmentActivity {
         Log.d("Peris", ex.getMessage());
       }
 
-      if (result.contentEquals("none")) {
+      if (result == null) {
         if (isStealingLink) {
           finish();
         } else {
           askAboutWebview();
         }
         return;
-      }
+      } else {
 
-      addNewServer(result);
-      refreshList();
+        addNewServer(result);
+        refreshList();
 
-      serverInputter.setText("");
+        serverInputter.setText("");
 
-      final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-      imm.hideSoftInputFromWindow(serverInputter.getWindowToken(), 0);
+        final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(serverInputter.getWindowToken(), 0);
 
-      if (isStealingLink) {
+        if (isStealingLink) {
+          final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
+          final SharedPreferences.Editor editor = appPreferences.edit();
 
-        final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
-        final SharedPreferences.Editor editor = appPreferences.edit();
+          String url = result;
 
-        String url = result;
+          if (!url.contains("http")) {
+            url = "http://" + url;
+          }
 
-        if (!url.contains("http")) {
-          url = "http://" + url;
+          editor.putString("server_address", url);
+          editor.putString(url + "_forumScrollPosition0", "0");
+          editor.commit();
+
+          final Intent myIntent = new Intent(IntroScreen.this, PerisMain.class);
+          startActivity(myIntent);
         }
-
-        editor.putString("server_address", url);
-        editor.putString(url + "_forumScrollPosition0", "0");
-        editor.commit();
-
-        final Intent myIntent = new Intent(IntroScreen.this, PerisMain.class);
-        startActivity(myIntent);
       }
     }
   }
@@ -1081,13 +1002,13 @@ public class IntroScreen extends FragmentActivity {
 
       passedServer = params[0];
 
-      final String manifestUrl = passedServer.serverAddress + "/peris.json";
+      final URL manifestUrl = passedServer.getURL("peris.json");
 
       if (Net.checkURL(manifestUrl)) {
 
         try {
           final HttpClient httpclient = new DefaultHttpClient();
-          final HttpGet httpget = new HttpGet(manifestUrl);
+          final HttpGet httpget = new HttpGet(manifestUrl.toURI());
           httpget.setHeader("User-Agent", "Peris");
           final ResponseHandler<String> responseHandler = new BasicResponseHandler();
           final String responseBody = httpclient.execute(httpget, responseHandler);
@@ -1223,7 +1144,7 @@ public class IntroScreen extends FragmentActivity {
       shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
       if (server.serverName.contentEquals("0")) {
-        intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, server.serverAddress.replace("http://", ""));
+        intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, server.serverAddress);
       } else {
         intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, server.serverName);
       }

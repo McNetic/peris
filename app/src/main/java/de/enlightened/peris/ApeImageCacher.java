@@ -24,11 +24,7 @@ class ApeImageCacher {
   public static final void downloadImage(final String imageURL, final ImageView ivHolder, final PerisApp application, final Context context) {
 
     Log.d("Peris", "Downloading " + imageURL + " with the ApeImageCacher");
-
-    String cacheName = application.getSession().getServer().serverAddress.replace("http", "").replace("/", "").replace(".", "").replace("https", "").replace(":", "");
-
-    cacheName = cacheName + "_" + imageURL.substring((imageURL.lastIndexOf("?")) + 1, imageURL.length());
-    cacheName = cacheName + ".jpg";
+    final String cacheName = application.getSession().getServer().serverAddress + "_" + imageURL.substring((imageURL.lastIndexOf("?")) + 1, imageURL.length()) + ".jpg";
 
     if (ivHolder == null) {
       return;

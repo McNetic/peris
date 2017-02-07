@@ -84,7 +84,7 @@ public class NewAccount extends FragmentActivity {
     final TextView disclaimer = (TextView) findViewById(R.id.tv_new_account_disclaimer);
 
     disclaimer.setText(disclaimer.getText().toString().replace("SERVERNAME",
-        this.serverAddress.replace("http://", "")));
+        this.serverAddress));
 
     final CheckBox cbAge = (CheckBox) findViewById(R.id.cb_new_account_age);
     cbAge.setOnCheckedChangeListener(this.agreementChangedListener);

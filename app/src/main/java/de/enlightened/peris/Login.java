@@ -17,6 +17,8 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import de.enlightened.peris.support.Net;
+
 public class Login extends Fragment {
   private TextView tvUsername;
   private TextView tvPassword;
@@ -55,9 +57,8 @@ public class Login extends Fragment {
 
             @Override
             public void onClick(final DialogInterface dialog, final int which) {
-              final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(application.getSession().getServer().serverAddress));
+              final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Net.uriFromURL(application.getSession().getServer().getURL()));
               startActivity(browserIntent);
-
               dialog.dismiss();
             }
           });
@@ -153,7 +154,7 @@ public class Login extends Fragment {
     final TextView disclaimer = (TextView) getActivity().findViewById(R.id.tv_login_disclaimer);
 
     this.cbAgreement.setText(this.cbAgreement.getText().toString().replace("SERVERNAME",
-        this.serverAddress.replace("http://", "")));
+        this.serverAddress));
     this.btnLogin.setEnabled(false);
     this.cbAgreement.setOnCheckedChangeListener(this.agreementChangedListener);
     this.cbAge.setOnCheckedChangeListener(this.agreementChangedListener);

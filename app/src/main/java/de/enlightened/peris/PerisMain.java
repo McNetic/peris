@@ -35,6 +35,7 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import java.net.URL;
 import java.util.ArrayList;
 
 import de.enlightened.peris.support.Net;
@@ -297,7 +298,7 @@ public class PerisMain extends FragmentActivity {
 
     if (getString(R.string.server_location).contentEquals("0")) {
       this.storagePrefix = this.serverAddress + "_";
-      this.screenSubtitle = this.serverAddress.replace("http://", "").replace("https://", "");
+      this.screenSubtitle = this.serverAddress;
     } else {
       this.screenSubtitle = this.screenTitle;
     }
@@ -359,7 +360,7 @@ public class PerisMain extends FragmentActivity {
 
     //Send tracking data for parsed analytics from peris.json
     this.serverAddress = this.application.getSession().getServer().analyticsId;
-    if (this.serverAddress != null && !this.serverAddress.contentEquals("0")) {
+    if (this.serverAddress != null) {
       this.ah.trackCustomScreen(this.serverAddress, "Peris Forum Reader v" + getString(R.string.app_version) + " for Android");
     }
     setContentView(R.layout.main_swipe);
@@ -984,10 +985,10 @@ public class PerisMain extends FragmentActivity {
     protected String doInBackground(final String... params) {
 
       if (!application.getSession().getServer().serverIcon.contains("http")) {
-        final String forumIconUrl = application.getSession().getServer().serverAddress + "/favicon.ico";
+        final URL forumIconUrl = application.getSession().getServer().getURL("/favicon.ico");
 
         if (Net.checkURL(forumIconUrl)) {
-          return forumIconUrl;
+          return forumIconUrl.toExternalForm();
         }
       }
       return null;

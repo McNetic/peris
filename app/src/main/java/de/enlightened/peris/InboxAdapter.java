@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Vector;
 
 import de.enlightened.peris.support.DateTimeUtils;
+import de.enlightened.peris.support.Net;
 
 @SuppressLint({"NewApi", "InflateParams"})
 public class InboxAdapter extends BaseAdapter {
@@ -135,8 +136,7 @@ public class InboxAdapter extends BaseAdapter {
     }
 
     final InboxItem ii = this.data.get(arg0);
-
-    if (ii.senderAvatar.contains("http")) {
+    if (Net.isUrl(ii.senderAvatar)) {
       ImageLoader.getInstance().displayImage(ii.senderAvatar, ivSubforumIndicator);
     } else {
       ivSubforumIndicator.setImageResource(R.drawable.no_avatar);

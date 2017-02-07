@@ -1,5 +1,6 @@
 package de.enlightened.peris.support;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.net.HttpURLConnection;
@@ -16,7 +17,15 @@ public final class Net {
 
   public static boolean checkURL(final String urlString) {
     try {
-      final URL url = new URL(urlString);
+      return checkURL(new URL(urlString));
+    } catch (MalformedURLException e) {
+      Log.d("Peris", "Bad URL " + urlString);
+    }
+    return false;
+  }
+
+  public static boolean checkURL(final URL url) {
+    try {
       final HttpURLConnection huc = (HttpURLConnection) url.openConnection();
       huc.setRequestMethod("GET");
       huc.setInstanceFollowRedirects(false);
@@ -24,8 +33,6 @@ public final class Net {
       if (huc.getResponseCode() == HttpURLConnection.HTTP_OK) {
         return true;
       }
-    } catch (MalformedURLException e) {
-      Log.d("Peris", "Bad URL " + urlString);
     } catch (Exception e) {
       if (e.getMessage() != null) {
         Log.d("Peris", e.getMessage());
@@ -34,5 +41,30 @@ public final class Net {
       }
     }
     return false;
+  }
+
+  public static boolean isUrl(final String urlString) {
+    return urlString != null && urlString.startsWith("http://") || urlString.startsWith("https://");
+  }
+
+  public static String removeProtocol(final String urlString) {
+    final String rv;
+
+    if (urlString.startsWith("http://")) {
+      rv = urlString.substring(7);
+    } else if (urlString.startsWith("https://")) {
+      rv = urlString.substring(8);
+    } else {
+      rv = urlString;
+    }
+    return rv;
+  }
+
+  public static Uri uriFromURL(final URL url) {
+    return new Uri.Builder()
+        .scheme(url.getProtocol())
+        .authority(url.getAuthority())
+        .appendPath(url.getPath())
+        .build();
   }
 }

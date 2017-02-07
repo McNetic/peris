@@ -17,6 +17,8 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
 
+import de.enlightened.peris.support.Net;
+
 @SuppressLint("NewApi")
 public class ChatAdapter extends BaseAdapter {
   private Context context;
@@ -128,7 +130,7 @@ public class ChatAdapter extends BaseAdapter {
 
 
     if (this.currentAvatarSetting) {
-      if (ch.getDisplayavatar().contains("http://")) {
+      if (Net.isUrl(ch.getDisplayavatar())) {
         final String imageUrl = ch.getDisplayavatar();
         ImageLoader.getInstance().displayImage(imageUrl, avatar);
       } else {

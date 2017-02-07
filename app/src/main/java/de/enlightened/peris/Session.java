@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.HashMap;
@@ -216,7 +215,7 @@ public class Session {
   @SuppressWarnings("rawtypes")
   public final Object performNewSynchronousCall(final String method, final Vector parms) {
 
-    Log.d("Peris", "Performing New Server Call: Method = " + method);
+    Log.d("Peris", "Performing New Server Call: Method = " + method + " (URL: " + this.currentServer.getTapatalkURL() + ")");
     try {
       final Object[] parmsobject = new Object[parms.size()];
       for (int i = 0; i < parms.size(); i++) {
@@ -225,13 +224,13 @@ public class Session {
 
       if (this.newClient == null) {
 
-        if (this.currentServer.serverAddress.contains("https")) {
+        if (this.currentServer.serverHttps) {
           this.sc = SSLContext.getInstance("SSL");
           this.sc.init(null, this.trustAllCerts, new java.security.SecureRandom());
           HttpsURLConnection.setDefaultSSLSocketFactory(this.sc.getSocketFactory());
           HttpsURLConnection.setDefaultHostnameVerifier(this.hv);
         }
-        this.newClient = new XMLRPCClient(new URL(this.currentServer.serverAddress + "/mobiquo/mobiquo.php"), XMLRPCClient.FLAGS_ENABLE_COOKIES);
+        this.newClient = new XMLRPCClient(this.currentServer.getTapatalkURL(), XMLRPCClient.FLAGS_ENABLE_COOKIES);
       }
 
       return this.newClient.call(method, parmsobject);

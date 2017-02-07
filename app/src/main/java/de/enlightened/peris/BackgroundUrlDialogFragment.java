@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import de.enlightened.peris.support.Net;
+
 public class BackgroundUrlDialogFragment extends DialogFragment {
 
   private EditText etUrl;
@@ -35,7 +37,7 @@ public class BackgroundUrlDialogFragment extends DialogFragment {
 
     @Override
     public void onClick(final View v) {
-      if (etUrl.getText().toString().trim().contains("http")) {
+      if (Net.isUrl(etUrl.getText().toString().trim())) {
         currentURL = etUrl.getText().toString().trim();
         application.getSession().getServer().serverWallpaper = currentURL;
         application.getSession().updateServer();
@@ -54,7 +56,7 @@ public class BackgroundUrlDialogFragment extends DialogFragment {
 
     @Override
     public void onClick(final View v) {
-      if (etUrl.getText().toString().trim().contains("http")) {
+      if (Net.isUrl(etUrl.getText().toString().trim())) {
         currentURL = "0";
         application.getSession().getServer().serverWallpaper = currentURL;
         application.getSession().updateServer();
@@ -113,7 +115,7 @@ public class BackgroundUrlDialogFragment extends DialogFragment {
 
     });
 
-    if (currentURL.contains("http")) {
+    if (Net.isUrl(currentURL)) {
       etUrl.setText(currentURL);
     }
 

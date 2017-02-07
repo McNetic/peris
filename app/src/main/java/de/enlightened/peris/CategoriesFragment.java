@@ -3,7 +3,6 @@ package de.enlightened.peris;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
@@ -26,8 +25,11 @@ import android.widget.Toast;
 
 import com.google.gson.internal.LinkedTreeMap;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Vector;
+
+import de.enlightened.peris.support.Net;
 
 @SuppressLint("NewApi")
 public class CategoriesFragment extends ListFragment {
@@ -60,7 +62,7 @@ public class CategoriesFragment extends ListFragment {
   private boolean initialLoadComplete = false;
 
   private String[] subforumParts;
-  private String shareURL = "0";
+  private URL shareURL = null;
   private FragmentActivity activity;
   private String totalHash;
   private ArrayList<Category> categoryList;
@@ -164,22 +166,14 @@ public class CategoriesFragment extends ListFragment {
     this.username = this.application.getSession().getServer().serverPassword;
 
     final String shareId = this.subforumId;
-    //if(hashId != "0") {
-    //  shareId = hashId;
-    //}
-
     if (shareId.contentEquals("0")) {
-      this.shareURL = this.application.getSession().getServer().serverAddress;
+      this.shareURL = this.application.getSession().getServer().getURL();
     } else {
       if (this.application.getSession().getForumSystem() == 1) {
-        this.shareURL = this.application.getSession().getServer().serverAddress + "/viewforum.php?f=" + shareId;
+        this.shareURL = this.application.getSession().getServer().getURL("viewforum.php?f=" + shareId);
       }
     }
-
-
     getListView().setOnScrollListener(this.listScrolled);
-
-    //Log.d("Peris","CF OnStart Completed");
   }
 
   @Override
@@ -673,7 +667,7 @@ public class CategoriesFragment extends ListFragment {
 
       final MenuItem browserItem = menu.findItem(R.id.cat_open_browser);
 
-      if (this.shareURL.contentEquals("0")) {
+      if (this.shareURL == null) {
         browserItem.setVisible(false);
       } else {
         browserItem.setVisible(true);
@@ -691,7 +685,7 @@ public class CategoriesFragment extends ListFragment {
         this.markAsRead();
         break;
       case R.id.cat_open_browser:
-        final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(this.shareURL));
+        final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Net.uriFromURL(this.shareURL));
         this.startActivity(browserIntent);
         break;
       default:

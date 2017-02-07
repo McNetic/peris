@@ -1,9 +1,15 @@
 package de.enlightened.peris;
 
+import android.util.Log;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
 @SuppressWarnings("checkstyle:visibilitymodifier")
 public class Server {
   public String serverId = "0";
-  public String serverAddress = "0";
+  public String serverAddress = null;
+  public boolean serverHttps = true;
   public String serverUserId = "0";
   public String serverUserName = "0";
   public String serverPassword = "0";
@@ -28,4 +34,33 @@ public class Server {
   public String ffChatId = "0";
   public String analyticsId = "0";
   public String mobfoxId = "0";
+
+  public String getScheme() {
+    return this.serverHttps ? "https" : "http";
+  }
+
+  public URL getTapatalkURL() {
+    return this.getURL("mobiquo/mobiquo.php");
+  }
+
+  public URL getUploadURL() {
+    return this.getURL("mobiquo/upload.php");
+  }
+
+  public URL getURL() {
+    return this.getURL("");
+  }
+
+  public URL getURL(final String path) {
+    try {
+      return new URL(this.getScheme(), this.serverAddress, path);
+    } catch (MalformedURLException e) {
+      Log.d("Peris", e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
+
+  public String getUrlString() {
+    return String.format("%s://%s", this.getScheme(), this.serverAddress);
+  }
 }

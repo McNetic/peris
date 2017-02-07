@@ -27,12 +27,13 @@ import java.io.InputStreamReader;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
+import java.net.URL;
 
 public class AvatarUploader {
 
   private static final int JPEG_COMPRESSION_QUALITY = 75;
 
-  public final String uploadBitmap(final Context context, final String url, final Bitmap bitmap, final PerisApp application) {
+  public final String uploadBitmap(final Context context, final URL url, final Bitmap bitmap, final PerisApp application) {
 
     String result = "fail";
 
@@ -63,7 +64,7 @@ public class AvatarUploader {
 
       localContext.setAttribute(ClientContext.COOKIE_STORE, cStore);
 
-      final HttpPost httpPost = new HttpPost(url);
+      final HttpPost httpPost = new HttpPost(url.toURI());
 
       //httpPost.setHeader("User-Agent", "Peris");
       httpPost.setHeader("Cookie", cookieString);

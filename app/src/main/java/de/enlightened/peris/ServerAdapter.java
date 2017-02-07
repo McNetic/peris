@@ -49,7 +49,7 @@ public class ServerAdapter extends BaseAdapter {
 
     final Server server = this.data.get(arg0);
     if (server.serverName.contentEquals("0")) {
-      serverAddress.setText(server.serverAddress.replace("http://", ""));
+      serverAddress.setText(server.serverAddress);
     } else {
       serverAddress.setText(server.serverName);
     }

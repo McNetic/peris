@@ -33,6 +33,7 @@ import android.widget.Toast;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -437,8 +438,7 @@ public class ProfileFragment extends Fragment {
 
     //This method that is done in the background thread.
     protected String doInBackground(final String... args) {
-      final String serverAddress = application.getSession().getServer().serverAddress;
-      final String uploadURL = serverAddress + "/mobiquo/upload.php";
+      final URL uploadURL = application.getSession().getServer().getUploadURL();
       final String result = new AvatarUploader().uploadBitmap(activity, uploadURL, uploadPic, application);
 
       return result;

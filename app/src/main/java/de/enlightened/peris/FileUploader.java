@@ -36,7 +36,7 @@ public class FileUploader {
       bitmap.compress(CompressFormat.JPEG, BITMAP_JPEG_QUALITY, bos);
       final byte[] data = bos.toByteArray();
       entity.addPart("uploadedfile", new ByteArrayBody(data, "temp.jpg"));
-      entity.addPart("server_address", new StringBody(application.getSession().getServer().serverAddress));
+      entity.addPart("server_address", new StringBody(application.getSession().getServer().getUrlString()));
       entity.addPart("id", new StringBody(application.getSession().getServer().serverUserName));
       httpPost.setEntity(entity);
 

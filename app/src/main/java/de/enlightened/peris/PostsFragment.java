@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
@@ -33,10 +32,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
+
+import de.enlightened.peris.support.Net;
 
 @SuppressLint("NewApi")
 @SuppressWarnings("deprecation")
@@ -60,7 +62,7 @@ public class PostsFragment extends Fragment {
   private String postCount;
   private String background;
   private String currentThreadSubject;
-  private String shareURL = "0";
+  private URL shareURL;
   private int scrollLocation = 0;
   private int curMinPost = 0;
   private int curMaxPost = POSTS_PER_PAGE - 1;
@@ -214,7 +216,7 @@ public class PostsFragment extends Fragment {
     this.currentThreadSubject = bundle.getString("subject");
 
     if (this.application.getSession().getForumSystem() == 1) {
-      this.shareURL = this.application.getSession().getServer().serverAddress + "/viewtopic.php?f=" + this.subforumId + "&t=" + this.threadId;
+      this.shareURL = this.application.getSession().getServer().getURL("/viewtopic.php?f=" + this.subforumId + "&t=" + this.threadId);
     }
 
     this.background = this.application.getSession().getServer().serverColor;
@@ -581,7 +583,7 @@ public class PostsFragment extends Fragment {
     final MenuItem browserItem = menu.findItem(R.id.posts_menu_browser);
     final MenuItem shareItem = menu.findItem(R.id.posts_menu_share);
 
-    if (this.shareURL.contentEquals("0")) {
+    if (this.shareURL != null) {
       browserItem.setVisible(false);
       shareItem.setVisible(false);
     } else {
@@ -595,12 +597,12 @@ public class PostsFragment extends Fragment {
   public final boolean onOptionsItemSelected(final MenuItem item) {
     final int itemId = item.getItemId();
     if (itemId == R.id.posts_menu_browser) {
-      final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(this.shareURL));
+      final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Net.uriFromURL(this.shareURL));
       startActivity(browserIntent);
     } else if (itemId == R.id.posts_menu_share) {
       final Intent sendIntent = new Intent(Intent.ACTION_SEND);
       sendIntent.putExtra(Intent.EXTRA_SUBJECT, this.currentThreadSubject);
-      sendIntent.putExtra(Intent.EXTRA_TEXT, this.shareURL);
+      sendIntent.putExtra(Intent.EXTRA_TEXT, this.shareURL.toExternalForm());
       sendIntent.setType("text/plain");
       startActivity(sendIntent);
     } else if (itemId == R.id.menu_newpost) {

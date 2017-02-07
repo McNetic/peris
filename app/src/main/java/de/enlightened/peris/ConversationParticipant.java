@@ -11,6 +11,8 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 
+import de.enlightened.peris.support.Net;
+
 public class ConversationParticipant extends ImageView {
   private static final float AVATAR_MARGIN = 6F;
   private static final float AVATAR_SIZE = 48F;
@@ -84,7 +86,7 @@ public class ConversationParticipant extends ImageView {
   }
 
   public void setImage(final String imageURL) {
-    if (imageURL.contains("http://")) {
+    if (Net.isUrl(imageURL)) {
       this.imageLoader.displayImage(imageURL, this);
     } else {
       this.setImageResource(R.drawable.no_avatar);

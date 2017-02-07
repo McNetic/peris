@@ -104,7 +104,7 @@ public class PerisApp extends Application {
   }
 
   public void sendLoginStat(final String address) {
-    //new sendLoginStat().execute(address);
+    //new SendLoginStatTask().execute(address);
   }
 
   public boolean getForceRefresh() {

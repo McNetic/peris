@@ -12,6 +12,8 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.net.URL;
+
 import de.enlightened.peris.support.Net;
 
 
@@ -31,7 +33,6 @@ public class WebViewer extends FragmentActivity {
   public void onCreate(final Bundle savedInstanceState) {
 
     this.application = (PerisApp) getApplication();
-    final String url = this.application.getSession().getServer().serverAddress;
     this.background = this.application.getSession().getServer().serverColor;
     ThemeSetter.setTheme(this, this.background);
     super.onCreate(savedInstanceState);
@@ -40,7 +41,7 @@ public class WebViewer extends FragmentActivity {
     //actionBar.setDisplayHomeAsUpEnabled(true);
     //actionBar.setHomeButtonEnabled(true);
     //actionBar.setTitle(screenTitle);
-    this.actionBar.setSubtitle(url);
+    this.actionBar.setSubtitle(this.application.getSession().getServer().serverAddress);
 
     //Track app analytics
     this.ah = this.application.getAnalyticsHelper();
@@ -49,7 +50,7 @@ public class WebViewer extends FragmentActivity {
     setContentView(R.layout.web_viewer);
     this.wvMain = (WebView) findViewById(R.id.web_viewer_webview);
     this.wvMain.setWebViewClient(new HelloWebViewClient());
-    this.wvMain.loadUrl(url);
+    this.wvMain.loadUrl(this.application.getSession().getServer().getUrlString());
 
     new CheckForumIconTask().execute();
   }
@@ -124,10 +125,11 @@ public class WebViewer extends FragmentActivity {
 
     @SuppressWarnings("checkstyle:requirethis")
     protected String doInBackground(final String... params) {
-      if (!application.getSession().getServer().serverIcon.contains("http")) {
-        final String forumIconUrl = application.getSession().getServer().serverAddress + "/favicon.ico";
+      if (!application.getSession().getServer().serverIcon.startsWith("http://")
+          && !application.getSession().getServer().serverIcon.startsWith("http://")) {
+        final URL forumIconUrl = application.getSession().getServer().getURL("/favicon.ico");
         if (Net.checkURL(forumIconUrl)) {
-          return forumIconUrl;
+          return forumIconUrl.toExternalForm();
         }
       }
       return null;
