@@ -437,6 +437,7 @@ public class CategoriesFragment extends ListFragment {
       //}
     }
     ca.id = (String) topicMap.get("topic_id");
+    Log.d("Peris", "LAST_REPLY_TIME: " + (String) topicMap.get("last_reply_time"));
     ca.lastUpdate = (String) topicMap.get("last_reply_time");
     if (!subforum || topicMap.get("topic_author_name") != null) {
       ca.lastThread = (String) topicMap.get("topic_author_name");

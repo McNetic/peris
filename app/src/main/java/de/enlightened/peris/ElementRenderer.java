@@ -266,12 +266,17 @@ final class ElementRenderer {
       tvCategoryName.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
     }
 
-    String timeAgo = ca.lastUpdate;
-    if (ca.type.contentEquals("C")) {
-      try {
-        timeAgo = DateTimeUtils.getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.lastUpdate));
-      } catch (IllegalArgumentException | ParseException e) {
-        timeAgo = ca.lastUpdate;
+    String timeAgo;
+    if (ca.lastUpdate == null) {
+      timeAgo = "never";
+    } else {
+      timeAgo = ca.lastUpdate;
+      if (ca.type.contentEquals("C")) {
+        try {
+          timeAgo = DateTimeUtils.getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.lastUpdate));
+        } catch (IllegalArgumentException | ParseException e) {
+          timeAgo = ca.lastUpdate;
+        }
       }
     }
 

@@ -12,7 +12,7 @@ public class Category {
   public String name = "Category Name";
   public String id = "0";
   public String subforumId = "0";
-  public String lastUpdate = "00-00-0000";
+  public String lastUpdate = null;
   public String lastThread = "Thread Name";
   public String threadCount = "0";
   public String viewCount = "0";
