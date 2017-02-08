@@ -76,8 +76,9 @@
 
         <activity android:name=".WebViewer"></activity>
 
-        <service android:name=".MailService"></service>
+        <activity android:name=".ThemeEditor"></activity>
 
+        <service android:name=".MailService"></service>
 
     </application>
 
