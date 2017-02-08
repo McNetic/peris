@@ -2,7 +2,6 @@ package de.enlightened.peris;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
@@ -11,10 +10,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
-import java.net.URL;
-
-import de.enlightened.peris.support.Net;
 
 
 public class WebViewer extends FragmentActivity {
@@ -52,7 +47,7 @@ public class WebViewer extends FragmentActivity {
     this.wvMain.setWebViewClient(new HelloWebViewClient());
     this.wvMain.loadUrl(this.application.getSession().getServer().getUrlString());
 
-    new CheckForumIconTask().execute();
+    new CheckForumIconTask(this.application.getSession()).execute();
   }
 
   @Override
@@ -119,30 +114,6 @@ public class WebViewer extends FragmentActivity {
     this.application.getSession().updateServer();
     this.finish();
     this.startActivity(getIntent());
-  }
-
-  private class CheckForumIconTask extends AsyncTask<String, Void, String> {
-
-    @SuppressWarnings("checkstyle:requirethis")
-    protected String doInBackground(final String... params) {
-      if (!application.getSession().getServer().serverIcon.startsWith("http://")
-          && !application.getSession().getServer().serverIcon.startsWith("http://")) {
-        final URL forumIconUrl = application.getSession().getServer().getURL("/favicon.ico");
-        if (Net.checkURL(forumIconUrl)) {
-          return forumIconUrl.toExternalForm();
-        }
-      }
-      return null;
-    }
-
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (result == null) {
-        return;
-      }
-      application.getSession().getServer().serverIcon = result;
-      application.getSession().updateServer();
-    }
   }
 
   private class HelloWebViewClient extends WebViewClient {

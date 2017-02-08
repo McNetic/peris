@@ -23,7 +23,7 @@ public class Server {
   public String chatForum = "0";
   public String chatThread = "0";
   public String chatName = "0";
-  public String serverIcon = "0";
+  public String serverIcon = null;
   public String serverName = "0";
   public String serverBackground = "0";
   public String serverWallpaper = "0";

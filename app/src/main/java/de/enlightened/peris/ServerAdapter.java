@@ -78,7 +78,7 @@ public class ServerAdapter extends BaseAdapter {
     }
 
     final ImageView serverIcon = (ImageView) v.findViewById(R.id.server_server_icon);
-    if (server.serverIcon.contains("http")) {
+    if (server.serverIcon != null) {
       serverIcon.setVisibility(View.VISIBLE);
       ImageLoader.getInstance().displayImage(server.serverIcon, serverIcon);
     } else {

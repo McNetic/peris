@@ -35,10 +35,7 @@ import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.net.URL;
 import java.util.ArrayList;
-
-import de.enlightened.peris.support.Net;
 
 @SuppressWarnings("deprecation")
 @SuppressLint("NewApi")
@@ -284,11 +281,11 @@ public class PerisMain extends FragmentActivity {
     this.backStackId = this.application.getBackStackId();
     this.ah = this.application.getAnalyticsHelper();
 
-    if (this.application.getSession().getServer().serverIcon.contentEquals("0")) {
+    if (this.application.getSession().getServer().serverIcon == null) {
       if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-        new CheckForumIconTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new CheckForumIconTask(this.application.getSession()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
       } else {
-        new CheckForumIconTask().execute();
+        new CheckForumIconTask(this.application.getSession()).execute();
       }
     }
     final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
@@ -977,31 +974,5 @@ public class PerisMain extends FragmentActivity {
     }
 
     this.application.getStackManager().addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_SETTINGS, null);
-  }
-
-  private class CheckForumIconTask extends AsyncTask<String, Void, String> {
-
-    @SuppressWarnings("checkstyle:requirethis")
-    protected String doInBackground(final String... params) {
-
-      if (!application.getSession().getServer().serverIcon.contains("http")) {
-        final URL forumIconUrl = application.getSession().getServer().getURL("/favicon.ico");
-
-        if (Net.checkURL(forumIconUrl)) {
-          return forumIconUrl.toExternalForm();
-        }
-      }
-      return null;
-    }
-
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (result == null) {
-        return;
-      }
-
-      application.getSession().getServer().serverIcon = result;
-      application.getSession().updateServer();
-    }
   }
 }
