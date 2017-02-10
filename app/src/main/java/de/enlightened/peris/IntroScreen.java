@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -52,9 +51,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.enlightened.peris.db.PerisDBHelper;
+import de.enlightened.peris.db.ServerRepository;
 import de.enlightened.peris.support.Net;
 
 
@@ -76,9 +78,8 @@ public class IntroScreen extends FragmentActivity {
 
 
   private String preinstalledServers = "http://forum.xda-developers.com";
-  private SQLiteDatabase notetasticDB;
-  private String sql;
-  private ArrayList<Server> serverList;
+  private PerisDBHelper dbHelper;
+  private List<Server> serverList;
 
   private boolean incomingShortcut;
   private String shortcutServerId = "0";
@@ -164,12 +165,10 @@ public class IntroScreen extends FragmentActivity {
 
   @SuppressLint("NewApi")
   public final void onCreate(final Bundle savedInstanceState) {
-
+    this.dbHelper = new PerisDBHelper(this);
     final Bundle bundle = getIntent().getExtras();
     if (bundle != null) {
-
       if (bundle.containsKey("server_id")) {
-
         if (bundle.getString("server_id") != null) {
 
           this.incomingShortcut = true;
@@ -339,50 +338,31 @@ public class IntroScreen extends FragmentActivity {
 
   @Override
   public final void onDestroy() {
-
     if (getString(R.string.server_location).contentEquals("0")) {
       final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
       final Editor editor = appPreferences.edit();
       editor.putBoolean("ff_clean_close", true);
       editor.commit();
     }
-
+    dbHelper.close();
     super.onDestroy();
   }
 
   private void refreshList() {
-
     runningManifestChecks = new ArrayList<ForumManifestCheckerTask>();
+    serverList = ServerRepository.findAll(dbHelper.getReadableDatabase());
 
-    serverList = new ArrayList<Server>();
-
-    notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-
-    sql = "select * from accountlist;";
-
-    final Cursor c = notetasticDB.rawQuery(sql, null);
-
-    if (c == null) {
-      return;
-    }
-
-    while (c.moveToNext()) {
-      final Server server = parseServerData(c);
+    for (final Server server : serverList) {
       final ForumManifestCheckerTask manifestCheck = new ForumManifestCheckerTask();
       runningManifestChecks.add(manifestCheck);
       manifestCheck.execute(server);
-      serverList.add(server);
     }
-
-    notetasticDB.close();
 
     if (lvServers == null) {
       gvServers.setAdapter(new ServerAdapter(serverList, this));
     } else {
       lvServers.setAdapter(new ServerAdapter(serverList, this));
     }
-
-
   }
 
   public final void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
@@ -507,22 +487,7 @@ public class IntroScreen extends FragmentActivity {
         builder.create().show();
       }
     } else {
-      final String cleanServer = DatabaseUtils.sqlEscapeString(queryLink);
-
-      notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-
-      sql = "select * from accountlist where server = " + cleanServer + " limit 1;";
-
-      final Cursor c = notetasticDB.rawQuery(sql, null);
-
-      if (c != null) {
-        while (c.moveToNext()) {
-          selectedServer = parseServerData(c);
-        }
-      }
-
-      notetasticDB.close();
-
+      selectedServer = ServerRepository.findOneByAddress(dbHelper.getReadableDatabase(), queryLink);
       if (selectedServer != null) {
         if (selectedServer.serverAddress != null) {
           connectToServer(selectedServer);
@@ -539,156 +504,39 @@ public class IntroScreen extends FragmentActivity {
   }
 
   private void initDatabase() {
-    final String uvalue = DatabaseUtils.sqlEscapeString(getString(R.string.default_background));
-    final String uBoxColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_background));
-    final String uBoxBorder = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_border));
-    final String uTextColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_text_color));
-    final String uDividerColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_divider_color));
-    final String uWallpaper = DatabaseUtils.sqlEscapeString(getString(R.string.default_wallpaper_url));
-    final String uFFChat = DatabaseUtils.sqlEscapeString(getString(R.string.new_chat_id));
-    final String uAnalytics = DatabaseUtils.sqlEscapeString("0");
-    final String uMobfox = DatabaseUtils.sqlEscapeString("0");
-    final String uHttps = DatabaseUtils.sqlEscapeString("1");
-
-    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-    Log.d("Peris", "Opening database version " + notetasticDB.getVersion());
-
-    sql = "create table if not exists accountlist(_id integer primary key,server varchar,icon varchar,color varchar,servername varchar,username varchar,password varchar,userid varchar,avatar varchar,postcount varchar,themeInt varchar,cookieCount varchar,lastTab varchar,tagline varchar,chatThread varchar,chatForum varchar,chatName varchar,background varchar default " + uvalue + ",boxcolor varchar default " + uBoxColor + ",boxborder varchar default " + uBoxBorder + ",textcolor varchar default " + uTextColor + ",dividercolor varchar default " + uDividerColor + ",wallpaper varchar default " + uWallpaper + ",ffchat varchar default " + uFFChat + ",analytics varchar default " + uAnalytics + ",mobfox varchar default " + uMobfox + ",https boolean not null check (https IN (0,1)) default " + uHttps + ");";
-    notetasticDB.execSQL(sql);
-
-    //conduct upgrade from initial database
-    if (notetasticDB.getVersion() == 1) {
-      sql = "alter table accountlist add column background varchar default " + uvalue + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column boxcolor varchar default " + uBoxColor + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column boxborder varchar default " + uBoxBorder + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column textcolor varchar default " + uTextColor + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column dividercolor varchar default " + uDividerColor + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column wallpaper varchar default " + uWallpaper + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column ffchat varchar default " + uFFChat + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column analytics varchar default " + uAnalytics + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column mobfox varchar default " + uMobfox + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
-      notetasticDB.execSQL(sql);
-
-      Log.d("Peris", "Database upgraded to v5...");
-    }
-
-    if (notetasticDB.getVersion() == 2) {
-      try {
-        sql = "alter table accountlist add column ffchat varchar default " + uFFChat + ";";
-        notetasticDB.execSQL(sql);
-      } catch (Exception ex) {
-        Log.d("Peris", ex.getMessage());
-      }
-      sql = "alter table accountlist add column analytics varchar default " + uAnalytics + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column mobfox varchar default " + uMobfox + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
-      notetasticDB.execSQL(sql);
-
-      Log.d("Peris", "Database upgraded to v5...");
-    }
-
-    if (notetasticDB.getVersion() == 3) {
-      sql = "alter table accountlist add column analytics varchar default " + uAnalytics + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column mobfox varchar default " + uMobfox + ";";
-      notetasticDB.execSQL(sql);
-
-      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
-      notetasticDB.execSQL(sql);
-
-      Log.d("Peris", "Database upgraded to v5...");
-    }
-
-    if (notetasticDB.getVersion() == 4) {
-      sql = "alter table accountlist add column https boolean not null check (https IN (0,1)) default " + uHttps + ";";
-      notetasticDB.execSQL(sql);
-
-      Log.d("Peris", "Database upgraded to v5...");
-    }
-
-    notetasticDB.setVersion(5);
-
-    notetasticDB.close();
-
-    //Juice up the server for stand alone app
-    if (!getString(R.string.server_location).contentEquals("0") || incomingShortcut) {
-      notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-
+    //Juice up the server for standalone app
+    if (!"0".equals(this.getString(R.string.server_location)) || incomingShortcut) {
+      final SQLiteDatabase db = dbHelper.getReadableDatabase();
       if (incomingShortcut) {
-        final String cleanServer = DatabaseUtils.sqlEscapeString(shortcutServerId);
-        sql = "select * from accountlist where _id = " + cleanServer + "limit 1;";
+        this.selectedServer = ServerRepository.findOne(db, Long.parseLong(this.shortcutServerId));
       } else {
-        sql = "select * from accountlist limit 1;";
+        this.selectedServer = ServerRepository.findOneByAddress(db, this.getString(R.string.server_location));
       }
-
-      final Cursor c = this.notetasticDB.rawQuery(sql, null);
-
-      if (c == null) {
-        return;
-      }
-
-      while (c.moveToNext()) {
-        this.selectedServer = parseServerData(c);
-      }
-
-      this.notetasticDB.close();
     }
   }
 
-  private void addNewServer(final String server) {
-    this.notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
+  private Server createDefaultServer(final String serverUrl) {
+    final Server server = new Server();
+    server.serverAddress = Net.removeProtocol(serverUrl);
+    server.serverHttps = serverUrl.startsWith("https://");
+    server.serverColor = getString(R.string.default_color);
+    server.serverBackground = getString(R.string.default_background);
+    server.serverTheme = getString(R.string.default_theme);
+    server.chatThread = getString(R.string.chat_thread);
+    server.chatForum = getString(R.string.chat_forum);
+    server.chatName = getString(R.string.chat_name);
+    server.serverBoxColor = getString(R.string.default_element_background);
+    server.serverBoxBorder = getString(R.string.default_element_border);
+    server.serverTextColor = getString(R.string.default_text_color);
+    server.serverDividerColor = getString(R.string.default_divider_color);
+    server.serverWallpaper = getString(R.string.default_wallpaper_url);
+    return server;
+  }
 
-    final String cleanServer = DatabaseUtils.sqlEscapeString(Net.removeProtocol(server));
-    final String cleanHttps = DatabaseUtils.sqlEscapeString(server.startsWith("https://") ? "1" : "0");
-    final String cleanUserid = DatabaseUtils.sqlEscapeString("0");
-    final String cleanUsername = DatabaseUtils.sqlEscapeString("0");
-    final String cleanPassword = DatabaseUtils.sqlEscapeString("0");
-    final String cleanTagline = DatabaseUtils.sqlEscapeString("null");
-    final String cleanAvatar = DatabaseUtils.sqlEscapeString("0");
-    final String cleanPostcount = DatabaseUtils.sqlEscapeString("0");
-    final String cleanColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_color));
-    final String cleanBackground = DatabaseUtils.sqlEscapeString(getString(R.string.default_background));
-    final String cleanCookies = DatabaseUtils.sqlEscapeString(Integer.toString(0));
-    final String cleanTheme = DatabaseUtils.sqlEscapeString(getString(R.string.default_theme));
-    final String cleanTab = DatabaseUtils.sqlEscapeString(Integer.toString(0));
-    final String cleanChatThread = DatabaseUtils.sqlEscapeString(getString(R.string.chat_thread));
-    final String cleanChatForum = DatabaseUtils.sqlEscapeString(getString(R.string.chat_forum));
-    final String cleanChatName = DatabaseUtils.sqlEscapeString(getString(R.string.chat_name));
-    final String cleanBoxColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_background));
-    final String cleanBoxBorder = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_border));
-    final String cleanTextColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_text_color));
-    final String cleanDividerColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_divider_color));
-    final String cleanWallpaper = DatabaseUtils.sqlEscapeString(getString(R.string.default_wallpaper_url));
-
-    sql = "insert into accountlist(server,https,icon,color,servername,username,password,userid,avatar,postcount,themeInt,cookieCount,lastTab,tagline,chatThread,chatForum,chatName,background,boxcolor,boxborder,textcolor,dividercolor,wallpaper) "
-        + "values(" + cleanServer + "," + cleanHttps + ",'0'," + cleanColor + ",'0'," + cleanUsername + "," + cleanPassword + "," + cleanUserid + "," + cleanAvatar + "," + cleanPostcount + "," + cleanTheme + "," + cleanCookies + "," + cleanTab + "," + cleanTagline + "," + cleanChatThread + "," + cleanChatForum + "," + cleanChatName + "," + cleanBackground + "," + cleanBoxColor + "," + cleanBoxBorder + "," + cleanTextColor + "," + cleanDividerColor + "," + cleanWallpaper + ");";
-    notetasticDB.execSQL(sql);
-    notetasticDB.close();
+  private void addNewServer(final String serverUrl) {
+    final SQLiteDatabase db = dbHelper.getWritableDatabase();
+    final Server server = this.createDefaultServer(serverUrl);
+    ServerRepository.add(db, server);
   }
 
   private void connectToServer(final Server server) {
@@ -779,15 +627,7 @@ public class IntroScreen extends FragmentActivity {
   }
 
   private void removeServer(final Server server) {
-    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-    final String cleanServerId = DatabaseUtils.sqlEscapeString(server.serverId);
-
-    sql = "delete from accountlist where _id = " + cleanServerId + ";";
-    notetasticDB.execSQL(sql);
-
-    notetasticDB.close();
-
+    ServerRepository.delete(dbHelper.getWritableDatabase(), server);
     refreshList();
   }
 
@@ -851,35 +691,12 @@ public class IntroScreen extends FragmentActivity {
     return;
   }
 
-  private void addWebViewServer(final String server) {
-    notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-    final String cleanServer = DatabaseUtils.sqlEscapeString(Net.removeProtocol(server));
-    final String cleanHttps = DatabaseUtils.sqlEscapeString(server.startsWith("https://") ? "1" : "0");
-    final String cleanUserid = DatabaseUtils.sqlEscapeString("0");
-    final String cleanUsername = DatabaseUtils.sqlEscapeString("WebView Forum");
-    final String cleanPassword = DatabaseUtils.sqlEscapeString("0");
-    final String cleanTagline = DatabaseUtils.sqlEscapeString("[*WEBVIEW*]");
-    final String cleanAvatar = DatabaseUtils.sqlEscapeString("0");
-    final String cleanPostcount = DatabaseUtils.sqlEscapeString("0");
-    final String cleanColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_color));
-    final String cleanBackground = DatabaseUtils.sqlEscapeString(getString(R.string.default_background));
-    final String cleanCookies = DatabaseUtils.sqlEscapeString(Integer.toString(0));
-    final String cleanTheme = DatabaseUtils.sqlEscapeString(getString(R.string.default_theme));
-    final String cleanTab = DatabaseUtils.sqlEscapeString(Integer.toString(0));
-    final String cleanChatThread = DatabaseUtils.sqlEscapeString(getString(R.string.chat_thread));
-    final String cleanChatForum = DatabaseUtils.sqlEscapeString(getString(R.string.chat_forum));
-    final String cleanChatName = DatabaseUtils.sqlEscapeString(getString(R.string.chat_name));
-    final String cleanBoxColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_background));
-    final String cleanBoxBorder = DatabaseUtils.sqlEscapeString(getString(R.string.default_element_border));
-    final String cleanTextColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_text_color));
-    final String cleanDividerColor = DatabaseUtils.sqlEscapeString(getString(R.string.default_divider_color));
-    final String cleanWallpaper = DatabaseUtils.sqlEscapeString(getString(R.string.default_wallpaper_url));
-
-    sql = "insert into accountlist(server,https,icon,color,servername,username,password,userid,avatar,postcount,themeInt,cookieCount,lastTab,tagline,chatThread,chatForum,chatName,background,boxcolor,boxborder,textcolor,dividercolor,wallpaper) "
-        + "values(" + cleanServer + "," + cleanHttps + ",'0'," + cleanColor + ",'0'," + cleanUsername + "," + cleanPassword + "," + cleanUserid + "," + cleanAvatar + "," + cleanPostcount + "," + cleanTheme + "," + cleanCookies + "," + cleanTab + "," + cleanTagline + "," + cleanChatThread + "," + cleanChatForum + "," + cleanChatName + "," + cleanBackground + "," + cleanBoxColor + "," + cleanBoxBorder + "," + cleanTextColor + "," + cleanDividerColor + "," + cleanWallpaper + ");";
-    notetasticDB.execSQL(sql);
-    notetasticDB.close();
+  private void addWebViewServer(final String serverUrl) {
+    final SQLiteDatabase db = dbHelper.getWritableDatabase();
+    final Server server = this.createDefaultServer(serverUrl);
+    server.serverUserName = "WebView Forum";
+    server.serverTagline = "[*WEBVIEW*]";
+    ServerRepository.add(db, server);
   }
 
   @Override
@@ -907,24 +724,14 @@ public class IntroScreen extends FragmentActivity {
           public void onClick(final DialogInterface dialog, final int whichButton) {
             runOnUiThread(new Runnable() {
               public void run() {
-                notetasticDB = openOrCreateDatabase("peris", MODE_PRIVATE, null);
-
-                final String cleanServerId = DatabaseUtils.sqlEscapeString(server.serverId);
-                final String cleanName = DatabaseUtils.sqlEscapeString(input.getText().toString().trim());
-
-                if (cleanName.length() == 0) {
-                  return;
+                final String trimmedName = input.getText().toString().trim();
+                if (trimmedName.length() > 0) {
+                  server.serverName = trimmedName;
+                  ServerRepository.update(dbHelper.getWritableDatabase(), server);
+                  refreshList();
                 }
-
-                sql = "update accountlist set servername = " + cleanName + " where _id = " + cleanServerId + ";";
-                notetasticDB.execSQL(sql);
-
-                notetasticDB.close();
-
-                refreshList();
               }
             });
-
             dialog.dismiss();
           }
         }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

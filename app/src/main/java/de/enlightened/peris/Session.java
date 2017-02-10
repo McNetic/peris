@@ -2,8 +2,6 @@ package de.enlightened.peris;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -20,6 +18,8 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import de.enlightened.peris.db.PerisDBHelper;
+import de.enlightened.peris.db.ServerRepository;
 import de.timroes.axmlrpc.XMLRPCClient;
 import de.timroes.axmlrpc.XMLRPCException;
 import de.timroes.axmlrpc.XMLRPCServerException;
@@ -28,6 +28,7 @@ import de.timroes.axmlrpc.XMLRPCServerException;
 public class Session {
 
   private static final int MAX_ITEM_COUNT = 50;
+  private final PerisDBHelper borrowedDbHelper;
   /*
      *  Forum System Reference
      *  ----------------------
@@ -61,16 +62,15 @@ public class Session {
   };
   private Context context;
   private Server currentServer;
-  private SQLiteDatabase notetasticDB;
-  private String sql;
   private String avatarSubmissionName = "uploadfile";
   private boolean allowRegistration = false;
   private XMLRPCClient newClient;
   private PerisApp application;
   private SessionListener sessionListener = null;
 
-  public Session(final Context c, final PerisApp app) {
+  public Session(final Context c, final PerisApp app, final PerisDBHelper dbHelper) {
     this.context = c;
+    this.borrowedDbHelper = dbHelper;
     this.application = app;
     this.sessionId = new Date().getTime();
 
@@ -152,54 +152,13 @@ public class Session {
   }
 
   public final void updateSpecificServer(final Server server) {
-
-    this.notetasticDB = this.context.openOrCreateDatabase("peris", Context.MODE_PRIVATE, null);
-
-    final String cleanId = DatabaseUtils.sqlEscapeString(server.serverId);
-    final String cleanUserid = DatabaseUtils.sqlEscapeString(server.serverUserId);
-    final String cleanUsername = DatabaseUtils.sqlEscapeString(server.serverUserName);
-    final String cleanPassword = DatabaseUtils.sqlEscapeString(server.serverPassword);
-    final String cleanTagline = DatabaseUtils.sqlEscapeString(server.serverTagline);
-    final String cleanAvatar = DatabaseUtils.sqlEscapeString(server.serverAvatar);
-    final String cleanPostcount = DatabaseUtils.sqlEscapeString(server.serverPostcount);
-    final String cleanColor = DatabaseUtils.sqlEscapeString(server.serverColor);
-    final String cleanCookies = DatabaseUtils.sqlEscapeString(server.serverCookies);
-    final String cleanTheme = DatabaseUtils.sqlEscapeString(server.serverTheme);
-    final String cleanTab = DatabaseUtils.sqlEscapeString(server.serverTab);
-    final String cleanChatThread = DatabaseUtils.sqlEscapeString(server.chatThread);
-    final String cleanChatForum = DatabaseUtils.sqlEscapeString(server.chatForum);
-    final String cleanChatName = DatabaseUtils.sqlEscapeString(server.chatName);
-    final String cleanIcon = DatabaseUtils.sqlEscapeString(server.serverIcon);
-    final String cleanname = DatabaseUtils.sqlEscapeString(server.serverName);
-    final String cleanBackground = DatabaseUtils.sqlEscapeString(server.serverBackground);
-
-    final String cleanBoxColor = DatabaseUtils.sqlEscapeString(server.serverBoxColor);
-    final String cleanBoxBorder = DatabaseUtils.sqlEscapeString(server.serverBoxBorder);
-    final String cleanTextColor = DatabaseUtils.sqlEscapeString(server.serverTextColor);
-    final String cleanDividerColor = DatabaseUtils.sqlEscapeString(server.serverDividerColor);
-    final String cleanWallpaper = DatabaseUtils.sqlEscapeString(server.serverWallpaper);
-
-    final String cleanFFChat = DatabaseUtils.sqlEscapeString(server.ffChatId);
-
-    final String cleanAnalytics = DatabaseUtils.sqlEscapeString(server.analyticsId);
-    final String cleanMobfox = DatabaseUtils.sqlEscapeString(server.mobfoxId);
-
-    this.sql = "update accountlist set color = " + cleanColor + ", username = " + cleanUsername + ", password = " + cleanPassword + ", userid = " + cleanUserid + ", avatar = " + cleanAvatar + ", postcount = " + cleanPostcount + ", themeInt = " + cleanTheme + ", cookieCount = " + cleanCookies + ", lastTab = " + cleanTab + ", tagline = " + cleanTagline + ", chatThread = " + cleanChatThread + ", chatForum = " + cleanChatForum + ", chatName = " + cleanChatName + ", icon = " + cleanIcon + ", servername = " + cleanname + ", background = " + cleanBackground + ", boxcolor = " + cleanBoxColor + ", boxborder = " + cleanBoxBorder + ", textcolor = " + cleanTextColor + ", dividercolor = " + cleanDividerColor + ", wallpaper = " + cleanWallpaper + ", ffchat = " + cleanFFChat + ", analytics = " + cleanAnalytics + ", mobfox = " + cleanMobfox + " where _id = " + cleanId + ";";
-
-    try {
-      this.notetasticDB.execSQL(this.sql);
-    } catch (Exception ex) {
-      Log.d("Peris", ex.getMessage());
-      //fuck it for now
-    }
-    this.notetasticDB.close();
+    ServerRepository.update(this.borrowedDbHelper.getWritableDatabase(), server);
   }
 
   public final void updateServer() {
-    if (this.currentServer == null) {
-      return;
+    if (this.currentServer != null) {
+      this.updateSpecificServer(this.currentServer);
     }
-    this.updateSpecificServer(this.currentServer);
   }
 
   public final void setSessionListener(final SessionListener l) {

@@ -2,9 +2,6 @@ package de.enlightened.peris;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -22,6 +19,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
+import de.enlightened.peris.db.PerisDBHelper;
+import de.enlightened.peris.db.ServerRepository;
+
 public class Conversation extends FragmentActivity {
 
   private static final int MAX_ITEM_COUNT = 50;
@@ -31,13 +31,12 @@ public class Conversation extends FragmentActivity {
   private String boxId = "0";
   private String senderName = "";
   private String conversationModerator;
-  private SQLiteDatabase notetasticDB;
-  private String sql;
   private String accent = "";
   private PerisApp application;
   private String externalServer = "0";
   private Session mailSession;
   private AnalyticsHelper ah;
+  private PerisDBHelper dbHelper;
 
   /**
    * Called when the activity is first created.
@@ -45,9 +44,8 @@ public class Conversation extends FragmentActivity {
   @SuppressLint("NewApi")
   @Override
   public void onCreate(final Bundle savedInstanceState) {
-
+    this.dbHelper = new PerisDBHelper(this);
     this.application = (PerisApp) getApplication();
-
     final Bundle bundle = getIntent().getExtras();
     this.partner = bundle.getString("id");
     this.partnerName = bundle.getString("name");
@@ -95,28 +93,12 @@ public class Conversation extends FragmentActivity {
     if (bundle.containsKey("server")) {
       this.externalServer = bundle.getString("server");
       Log.i("Peris", "Mail bundle contains server!");
-      this.notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-      final String cleanServer = DatabaseUtils.sqlEscapeString(bundle.getString("server"));
-      this.sql = "select * from accountlist where _id = " + cleanServer + ";";
-      final Cursor c = this.notetasticDB.rawQuery(this.sql, null);
-
-      if (c == null) {
-        this.notetasticDB.close();
-        return;
-      }
-      Server server = null;
-
-      while (c.moveToNext()) {
-        server = IntroScreen.parseServerData(c);
-      }
-
-      this.notetasticDB.close();
-
+      final Server server = ServerRepository.findOne(this.dbHelper.getWritableDatabase(), Long.parseLong(this.externalServer));
       if (server == null) {
-        Log.i("Peris", "Conversaion Server is null!");
+        Log.i("Peris", "Conversation Server is null!");
         return;
       }
-      this.mailSession = new Session(this, (PerisApp) getApplication());
+      this.mailSession = new Session(this, (PerisApp) getApplication(), this.dbHelper);
       this.mailSession.setSessionListener(new Session.SessionListener() {
 
         @Override
@@ -146,8 +128,12 @@ public class Conversation extends FragmentActivity {
         getActionBar().setIcon(R.drawable.ic_ab_main_white);
       }
     }
+  }
 
-
+  @Override
+  protected void onDestroy() {
+    this.dbHelper.close();
+    super.onDestroy();
   }
 
   @Override

@@ -13,14 +13,14 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @SuppressLint("ViewHolder")
 public class ServerAdapter extends BaseAdapter {
   private Context context;
-  private ArrayList<Server> data;
+  private List<Server> data;
 
-  ServerAdapter(final ArrayList<Server> data, final Context context) {
+  ServerAdapter(final List<Server> data, final Context context) {
     this.data = data;
     this.context = context;
   }

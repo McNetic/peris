@@ -9,9 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ResolveInfo;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -30,6 +27,9 @@ import android.widget.Toast;
 
 import java.util.List;
 import java.util.Vector;
+
+import de.enlightened.peris.db.PerisDBHelper;
+import de.enlightened.peris.db.ServerRepository;
 
 @SuppressLint("NewApi")
 public class NewPost extends FragmentActivity {
@@ -55,10 +55,10 @@ public class NewPost extends FragmentActivity {
   private PerisApp application;
   private boolean colorPickerOpen = false;
   private boolean postSubmitted = false;
-  private SQLiteDatabase notetasticDB;
-  private String sql;
   private Session mailSession;
   private AnalyticsHelper ah;
+  private PerisDBHelper dbHelper;
+
   private View.OnClickListener clickListener = new View.OnClickListener() {
     @SuppressWarnings("checkstyle:requirethis")
     public void onClick(final View v) {
@@ -189,6 +189,7 @@ public class NewPost extends FragmentActivity {
 
   public final void onCreate(final Bundle savedInstanceState) {
     this.application = (PerisApp) getApplication();
+    this.dbHelper = new PerisDBHelper(this);
 
     final Bundle bundle = getIntent().getExtras();
     this.subforum = bundle.getString("subforum_id");
@@ -207,28 +208,14 @@ public class NewPost extends FragmentActivity {
 
     if (bundle.containsKey("server")) {
       Log.i("Peris", "Mail bundle contains server!");
-      this.notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-      final String cleanServer = DatabaseUtils.sqlEscapeString(bundle.getString("server"));
-      this.sql = "select * from accountlist where _id = " + cleanServer + ";";
-      final Cursor c = this.notetasticDB.rawQuery(this.sql, null);
-
-      if (c == null) {
-        this.notetasticDB.close();
-        return;
-      }
-
-      Server server = null;
-      while (c.moveToNext()) {
-        server = IntroScreen.parseServerData(c);
-      }
-
-      this.notetasticDB.close();
+      final Server server = ServerRepository.findOneByAddress(
+          this.dbHelper.getReadableDatabase(), bundle.getString("server"));
       if (server == null) {
-        Log.i("Peris", "Conversaion Server is null!");
+        Log.i("Peris", "Conversation Server is null!");
         return;
       }
 
-      this.mailSession = new Session(this, (PerisApp) getApplication());
+      this.mailSession = new Session(this, (PerisApp) getApplication(), this.dbHelper);
       this.mailSession.setSessionListener(new Session.SessionListener() {
 
         @Override
@@ -316,6 +303,12 @@ public class NewPost extends FragmentActivity {
     } else if (this.postType == 2 && this.originalText.length() > 0) {
       this.bodyInputter.setSelection(this.originalText.length() - 1);
     }
+  }
+
+  @Override
+  protected void onDestroy() {
+    this.dbHelper.close();
+    super.onDestroy();
   }
 
   @Override

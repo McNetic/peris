@@ -22,7 +22,11 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
+
+import de.enlightened.peris.db.PerisDBHelper;
+import de.enlightened.peris.db.ServerRepository;
 
 
 public class MailService extends Service {
@@ -36,7 +40,8 @@ public class MailService extends Service {
   private SQLiteDatabase notetasticDB;
   private String sql;
   private Session mailSession;
-  private ArrayList<Server> serverList;
+  private List<Server> serverList;
+  private PerisDBHelper dbHelper;
 
   @Override
   public IBinder onBind(final Intent intent) {
@@ -46,12 +51,14 @@ public class MailService extends Service {
   @Override
   public void onCreate() {
     super.onCreate();
+    this.dbHelper = new PerisDBHelper(this);
     this.initDatabase();
     this.startservice();
   }
 
   @Override
   public void onDestroy() {
+    this.dbHelper.close();
     super.onDestroy();
     this.stopservice();
 
@@ -68,32 +75,19 @@ public class MailService extends Service {
   }
 
   private void routineMailCheck() {
-    this.mailSession = new Session(this, (PerisApp) this.getApplication());
-    this.serverList = new ArrayList<Server>();
-    this.notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-    this.sql = "select * from accountlist;";
+    this.mailSession = new Session(this, (PerisApp) this.getApplication(), this.dbHelper);
+    final List<Server> servers = ServerRepository.findAll(this.dbHelper.getReadableDatabase());
+    this.serverList = new ArrayList<>();
 
-    final Cursor c = this.notetasticDB.rawQuery(this.sql, null);
-
-    if (c == null) {
-      this.notetasticDB.close();
-      return;
-    }
-
-    while (c.moveToNext()) {
-      final Server server = IntroScreen.parseServerData(c);
+    for (final Server server : servers) {
       Log.i("Peris", "Checking login data for server " + server.serverAddress);
-
       if (!server.serverUserId.contentEquals("0")) {
         this.serverList.add(server);
       }
     }
-    this.notetasticDB.close();
-
     if (this.serverList.size() == 0) {
       Log.d("Peris", "No servers found, ending check.");
     }
-
     this.currentServer = 0;
     this.nextServer();
   }
@@ -102,9 +96,7 @@ public class MailService extends Service {
     if ((this.currentServer + 1) > this.serverList.size()) {
       return;
     }
-
     Log.d("Peris", "MailService Tick - Checking " + this.serverList.get(this.currentServer).serverAddress);
-
     this.mailSession.setSessionListener(new Session.SessionListener() {
 
       @Override

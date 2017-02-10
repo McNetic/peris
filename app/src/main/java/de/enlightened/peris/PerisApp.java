@@ -22,6 +22,8 @@ import org.apache.http.message.BasicNameValuePair;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.enlightened.peris.db.PerisDBHelper;
+
 
 public class PerisApp extends Application {
   private boolean active = false;
@@ -30,11 +32,12 @@ public class PerisApp extends Application {
   private Session session;
   private int backStackid;
   private boolean forceRefresh = false;
+  private PerisDBHelper dbHelper;
 
   @Override
   public void onCreate() {
     super.onCreate();
-
+    this.dbHelper = new PerisDBHelper(this);
     this.stackManager = new BackStackManager();
     this.backStackid = this.stackManager.createBackstack();
     final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
@@ -59,6 +62,12 @@ public class PerisApp extends Application {
     final Editor editor = appPreferences.edit();
     editor.putBoolean("ff_clean_close", false);
     editor.commit();
+  }
+
+  @Override
+  public void onTerminate() {
+    this.dbHelper.close();
+    super.onTerminate();
   }
 
   public boolean isActive() {
@@ -87,12 +96,12 @@ public class PerisApp extends Application {
   }
 
   public void initSession() {
-    this.session = new Session(this, this);
+    this.session = new Session(this, this, this.dbHelper);
   }
 
   public Session getSession() {
     if (this.session == null) {
-      this.session = new Session(this, this);
+      this.session = new Session(this, this, this.dbHelper);
     }
     return this.session;
   }

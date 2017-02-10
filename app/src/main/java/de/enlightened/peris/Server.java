@@ -5,8 +5,10 @@ import android.util.Log;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import de.enlightened.peris.db.DBEntity;
+
 @SuppressWarnings("checkstyle:visibilitymodifier")
-public class Server {
+public class Server extends DBEntity {
   public String serverId = "0";
   public String serverAddress = null;
   public boolean serverHttps = true;
@@ -34,6 +36,17 @@ public class Server {
   public String ffChatId = "0";
   public String analyticsId = "0";
   public String mobfoxId = "0";
+
+  @Override
+  public long getId() {
+    return Long.parseLong(this.serverId);
+  }
+
+  @Override
+  public void setId(final long id) {
+    super.setId(id);
+    this.serverId = Long.toString(id);
+  }
 
   public String getScheme() {
     return this.serverHttps ? "https" : "http";
