@@ -166,8 +166,12 @@ public final class ServerRepository {
         null,
         null,
         null);
-    cursor.moveToFirst();
-    final Server server = constructEntityFrom(cursor);
+    final Server server;
+    if (cursor.moveToFirst()) {
+      server = constructEntityFrom(cursor);
+    } else {
+      server = null;
+    }
     cursor.close();
     return server;
   }

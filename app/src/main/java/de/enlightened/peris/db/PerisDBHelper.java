@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import de.enlightened.peris.db.PerisDBContract.MessageNotificationEntry;
 import de.enlightened.peris.db.PerisDBContract.ServerEntry;
 
 /**
@@ -46,6 +47,12 @@ public class PerisDBHelper extends SQLiteOpenHelper {
         + ServerEntry.COLUMN_FFCHAT       + " TEXT, "
         + ServerEntry.COLUMN_ANALYTICS    + " TEXT, "
         + ServerEntry.COLUMN_MOBFOX       + " TEXT "
+        + ")");
+
+    db.execSQL("CREATE TABLE " + MessageNotificationEntry.TABLE_NAME + " ("
+            + MessageNotificationEntry._ID                 + " INTEGER PRIMARY KEY, "
+            + MessageNotificationEntry.COLUMN_ID_SERVER + " TEXT, "
+            + MessageNotificationEntry.COLUMN_MESSAGE_ID + " INTEGER "
         + ")");
   }
 

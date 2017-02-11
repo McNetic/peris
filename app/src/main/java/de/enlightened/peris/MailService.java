@@ -5,8 +5,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.media.RingtoneManager;
@@ -25,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
+import de.enlightened.peris.db.MessageNotificationRepository;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
 
@@ -37,8 +36,6 @@ public class MailService extends Service {
   private static final int LED_OFF_MS = 500;
 
   private int currentServer = 0;
-  private SQLiteDatabase notetasticDB;
-  private String sql;
   private Session mailSession;
   private List<Server> serverList;
   private PerisDBHelper dbHelper;
@@ -52,7 +49,6 @@ public class MailService extends Service {
   public void onCreate() {
     super.onCreate();
     this.dbHelper = new PerisDBHelper(this);
-    this.initDatabase();
     this.startservice();
   }
 
@@ -117,95 +113,57 @@ public class MailService extends Service {
   }
 
   //See if notification previously sent.  If not, make a new notification
-  private void processUnreadMessage(final InboxItem ii, final String server) {
-    if (this.checkIfAlreadyNotified(server, Integer.parseInt(ii.senderId))) {
-      return;
+  private void processUnreadMessage(final InboxItem ii, final long idServer) {
+    final SQLiteDatabase db = this.dbHelper.getWritableDatabase();
+    if (MessageNotificationRepository.findOneByServerAndMessage(
+        db, idServer, Integer.parseInt(ii.senderId)) == null) {
+      String notificationColor = getString(R.string.default_color);
+      final String customColor = this.mailSession.getServer().serverColor;
+
+      if (customColor.contains("#")) {
+        notificationColor = customColor;
+      }
+
+      final Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+      final long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500};
+
+      final NotificationCompat.Builder mBuilder =
+          new NotificationCompat.Builder(MailService.this)
+              .setSmallIcon(R.drawable.ic_launcher)
+              .setContentTitle("New Message From " + ii.moderator)
+              .setContentText(ii.sender)
+              .setSound(alarmSound)
+              .setLights(Color.parseColor(notificationColor), LED_ON_MS, LED_OFF_MS)
+              .setVibrate(pattern)
+              .setAutoCancel(true);
+
+      final Intent resultIntent = new Intent(MailService.this, Conversation.class);
+      final Bundle bundle = new Bundle();
+      bundle.putString("id", (String) ii.senderId);
+      bundle.putString("boxid", (String) "0");
+      bundle.putString("name", (String) ii.sender);
+      bundle.putString("moderator", (String) ii.moderatorId);
+      bundle.putString("background", (String) notificationColor);
+      bundle.putString("server", this.mailSession.getServer().serverId);
+      resultIntent.putExtras(bundle);
+
+      final TaskStackBuilder stackBuilder = TaskStackBuilder.create(MailService.this);
+      stackBuilder.addParentStack(Conversation.class);
+      stackBuilder.addNextIntent(resultIntent);
+
+      String flag = ii.senderId;
+      if (flag.length() > 5) {
+        flag = flag.substring(flag.length() - 5, flag.length());
+      }
+
+      final PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(flag), PendingIntent.FLAG_UPDATE_CURRENT);
+      mBuilder.setContentIntent(resultPendingIntent);
+
+      final NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+      mNotificationManager.notify(Integer.parseInt(ii.senderId), mBuilder.build());
+
+      MessageNotificationRepository.add(db, new MessageNotification(idServer, Integer.parseInt(ii.senderId)));
     }
-    String notificationColor = getString(R.string.default_color);
-    final String customColor = this.mailSession.getServer().serverColor;
-
-    if (customColor.contains("#")) {
-      notificationColor = customColor;
-    }
-
-    final Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-    final long[] pattern = {500, 500, 500, 500, 500, 500, 500, 500, 500};
-
-    final NotificationCompat.Builder mBuilder =
-        new NotificationCompat.Builder(MailService.this)
-            .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle("New Message From " + ii.moderator)
-            .setContentText(ii.sender)
-            .setSound(alarmSound)
-            .setLights(Color.parseColor(notificationColor), LED_ON_MS, LED_OFF_MS)
-            .setVibrate(pattern)
-            .setAutoCancel(true);
-
-    final Intent resultIntent = new Intent(MailService.this, Conversation.class);
-    final Bundle bundle = new Bundle();
-    bundle.putString("id", (String) ii.senderId);
-    bundle.putString("boxid", (String) "0");
-    bundle.putString("name", (String) ii.sender);
-    bundle.putString("moderator", (String) ii.moderatorId);
-    bundle.putString("background", (String) notificationColor);
-    bundle.putString("server", this.mailSession.getServer().serverId);
-    resultIntent.putExtras(bundle);
-
-    final TaskStackBuilder stackBuilder = TaskStackBuilder.create(MailService.this);
-    stackBuilder.addParentStack(Conversation.class);
-    stackBuilder.addNextIntent(resultIntent);
-
-    String flag = ii.senderId;
-    if (flag.length() > 5) {
-      flag = flag.substring(flag.length() - 5, flag.length());
-    }
-
-    final PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(Integer.parseInt(flag), PendingIntent.FLAG_UPDATE_CURRENT);
-    mBuilder.setContentIntent(resultPendingIntent);
-
-    final NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    mNotificationManager.notify(Integer.parseInt(ii.senderId), mBuilder.build());
-
-    this.insertNotificationIntoDatabase(server, Integer.parseInt(ii.senderId));
-  }
-
-  private void initDatabase() {
-    this.notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-    this.sql = "create table if not exists notifications(_id integer primary key,server varchar,message integer);";
-    this.notetasticDB.setVersion(5);
-    this.notetasticDB.execSQL(this.sql);
-    this.notetasticDB.close();
-  }
-
-  private void insertNotificationIntoDatabase(final String server, final int notification) {
-    final String cleanServer = DatabaseUtils.sqlEscapeString(server);
-
-    this.notetasticDB = this.openOrCreateDatabase("peris", MODE_PRIVATE, null);
-    this.sql = "insert into notifications(server,message) values(" + cleanServer + "," + notification + ");";
-    this.notetasticDB.execSQL(this.sql);
-    this.notetasticDB.close();
-  }
-
-  private boolean checkIfAlreadyNotified(final String server, final int notification) {
-    final String cleanServer = DatabaseUtils.sqlEscapeString(server);
-
-    this.notetasticDB = this.openOrCreateDatabase("peris", 0, null);
-    this.sql = "select _id "
-        + "from notifications "
-        + "where server = " + cleanServer + " "
-        + "and message = " + notification + ";";
-
-    final Cursor c = this.notetasticDB.rawQuery(this.sql, null);
-
-    if (c == null) {
-      this.notetasticDB.close();
-    } else if (c.getCount() == 0) {
-      this.notetasticDB.close();
-    } else {
-      this.notetasticDB.close();
-      return true;
-    }
-    return false;
   }
 
   public class MyCount extends CountDownTimer {
@@ -232,12 +190,12 @@ public class MailService extends Service {
   }
 
   private class CheckMailTask extends AsyncTask<Server, Void, Object[]> {
-    private String currentServerAddress;
+    private long serverId;
 
     @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
     protected Object[] doInBackground(final Server... params) {
-      currentServerAddress = params[0].serverAddress;
+      serverId = params[0].getId();
       final Object[] result = new Object[MAX_ITEM_COUNT];
 
       try {
@@ -307,7 +265,7 @@ public class MailService extends Service {
                   inboxList.add(ii);
 
                   if (ii.isUnread) {
-                    processUnreadMessage(ii, currentServerAddress);
+                    processUnreadMessage(ii, this.serverId);
                   }
 
                 }
