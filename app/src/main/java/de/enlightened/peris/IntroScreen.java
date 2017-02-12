@@ -61,7 +61,6 @@ import de.enlightened.peris.support.Net;
 
 
 @SuppressLint("NewApi")
-@SuppressWarnings("checkstyle:requirethis")
 public class IntroScreen extends FragmentActivity {
 
   private AnalyticsHelper ah;
@@ -212,6 +211,7 @@ public class IntroScreen extends FragmentActivity {
 
     serverAdder.setOnClickListener(new View.OnClickListener() {
 
+      @SuppressWarnings("checkstyle:requirethis")
       public void onClick(final View v) {
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
@@ -229,6 +229,7 @@ public class IntroScreen extends FragmentActivity {
     if (this.lvServers == null) {
       registerForContextMenu(this.gvServers);
       this.gvServers.setOnItemClickListener(new OnItemClickListener() {
+        @SuppressWarnings("checkstyle:requirethis")
         public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
           final Server server = serverList.get(position);
           connectToServer(server);
@@ -237,7 +238,9 @@ public class IntroScreen extends FragmentActivity {
     } else {
       this.lvServers.setDivider(null);
       registerForContextMenu(this.lvServers);
+
       this.lvServers.setOnItemClickListener(new OnItemClickListener() {
+        @SuppressWarnings("checkstyle:requirethis")
         public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
           final Server server = serverList.get(position);
           connectToServer(server);
@@ -312,14 +315,14 @@ public class IntroScreen extends FragmentActivity {
     getActionBar().show();
 
     if (this.stealingLink) {
-      stealTapatalkLink(this.linkToSteal);
+      this.stealTapatalkLink(this.linkToSteal);
       return;
     }
 
     if (getString(R.string.server_location).contentEquals("0") && !this.incomingShortcut) {
-      refreshList();
+      this.refreshList();
     } else {
-      connectToServer(this.selectedServer);
+      this.connectToServer(this.selectedServer);
     }
 
     final TextView tvUpgrade = (TextView) findViewById(R.id.intro_screen_remove_ads);
@@ -344,24 +347,24 @@ public class IntroScreen extends FragmentActivity {
       editor.putBoolean("ff_clean_close", true);
       editor.commit();
     }
-    dbHelper.close();
+    this.dbHelper.close();
     super.onDestroy();
   }
 
   private void refreshList() {
-    runningManifestChecks = new ArrayList<ForumManifestCheckerTask>();
-    serverList = ServerRepository.findAll(dbHelper.getReadableDatabase());
+    this.runningManifestChecks = new ArrayList<ForumManifestCheckerTask>();
+    this.serverList = ServerRepository.findAll(this.dbHelper.getReadableDatabase());
 
-    for (final Server server : serverList) {
+    for (final Server server : this.serverList) {
       final ForumManifestCheckerTask manifestCheck = new ForumManifestCheckerTask();
-      runningManifestChecks.add(manifestCheck);
+      this.runningManifestChecks.add(manifestCheck);
       manifestCheck.execute(server);
     }
 
-    if (lvServers == null) {
-      gvServers.setAdapter(new ServerAdapter(serverList, this));
+    if (this.lvServers == null) {
+      this.gvServers.setAdapter(new ServerAdapter(this.serverList, this));
     } else {
-      lvServers.setAdapter(new ServerAdapter(serverList, this));
+      this.lvServers.setAdapter(new ServerAdapter(this.serverList, this));
     }
   }
 
@@ -369,15 +372,15 @@ public class IntroScreen extends FragmentActivity {
 
     final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
 
-    if (lvServers == null) {
-      selectedServer = (Server) gvServers.getAdapter().getItem(info.position);
+    if (this.lvServers == null) {
+      this.selectedServer = (Server) this.gvServers.getAdapter().getItem(info.position);
     } else {
-      selectedServer = (Server) lvServers.getAdapter().getItem(info.position);
+      this.selectedServer = (Server) this.lvServers.getAdapter().getItem(info.position);
     }
 
 
     super.onCreateContextMenu(menu, v, menuInfo);
-    menu.setHeaderTitle(selectedServer.getUrlString());
+    menu.setHeaderTitle(this.selectedServer.getUrlString());
     final MenuInflater inflater = getMenuInflater();
 
     inflater.inflate(R.menu.intro_context, menu);
@@ -387,13 +390,13 @@ public class IntroScreen extends FragmentActivity {
     final int itemId = item.getItemId();
     final boolean rv;
     if (itemId == R.id.intro_context_remove) {
-      removeServer(selectedServer);
+      this.removeServer(this.selectedServer);
       rv = true;
     } else if (itemId == R.id.intro_shortcut) {
-      createHomescreenShortcut(selectedServer);
+      this.createHomescreenShortcut(this.selectedServer);
       rv = true;
     } else if (itemId == R.id.intro_context_rename) {
-      renameServer(selectedServer);
+      this.renameServer(this.selectedServer);
       rv = true;
     } else {
       rv = super.onContextItemSelected(item);
@@ -456,7 +459,7 @@ public class IntroScreen extends FragmentActivity {
 
     if (!getString(R.string.server_location).contentEquals("0")) {
       if (queryLink.contentEquals(getString(R.string.server_location))) {
-        connectToServer(selectedServer);
+        this.connectToServer(this.selectedServer);
       } else {
         final AlertDialog.Builder builder = new AlertDialog.Builder(IntroScreen.this);
         builder.setTitle("Download Peris");
@@ -487,10 +490,10 @@ public class IntroScreen extends FragmentActivity {
         builder.create().show();
       }
     } else {
-      selectedServer = ServerRepository.findOneByAddress(dbHelper.getReadableDatabase(), queryLink);
-      if (selectedServer != null) {
-        if (selectedServer.serverAddress != null) {
-          connectToServer(selectedServer);
+      this.selectedServer = ServerRepository.findOneByAddress(this.dbHelper.getReadableDatabase(), queryLink);
+      if (this.selectedServer != null) {
+        if (this.selectedServer.serverAddress != null) {
+          this.connectToServer(this.selectedServer);
           return;
         }
       }
@@ -505,9 +508,9 @@ public class IntroScreen extends FragmentActivity {
 
   private void initDatabase() {
     //Juice up the server for standalone app
-    if (!"0".equals(this.getString(R.string.server_location)) || incomingShortcut) {
-      final SQLiteDatabase db = dbHelper.getReadableDatabase();
-      if (incomingShortcut) {
+    if (!"0".equals(this.getString(R.string.server_location)) || this.incomingShortcut) {
+      final SQLiteDatabase db = this.dbHelper.getReadableDatabase();
+      if (this.incomingShortcut) {
         this.selectedServer = ServerRepository.findOne(db, Long.parseLong(this.shortcutServerId));
       } else {
         this.selectedServer = ServerRepository.findOneByAddress(db, this.getString(R.string.server_location));
@@ -534,17 +537,17 @@ public class IntroScreen extends FragmentActivity {
   }
 
   private void addNewServer(final String serverUrl) {
-    final SQLiteDatabase db = dbHelper.getWritableDatabase();
+    final SQLiteDatabase db = this.dbHelper.getWritableDatabase();
     final Server server = this.createDefaultServer(serverUrl);
     ServerRepository.add(db, server);
   }
 
   private void connectToServer(final Server server) {
 
-    if (runningManifestChecks != null) {
+    if (this.runningManifestChecks != null) {
       int killedManifests = 0;
 
-      for (ForumManifestCheckerTask cfm : runningManifestChecks) {
+      for (ForumManifestCheckerTask cfm : this.runningManifestChecks) {
         if (cfm.getStatus() == Status.RUNNING) {
           cfm.cancel(true);
           killedManifests++;
@@ -584,18 +587,18 @@ public class IntroScreen extends FragmentActivity {
     app.getSession().setSessionListener(new Session.SessionListener() {
 
       @Override
+      @SuppressWarnings("checkstyle:requirethis")
       public void onSessionConnected() {
         loadForum();
       }
 
       @Override
+      @SuppressWarnings("checkstyle:requirethis")
       public void onSessionConnectionFailed(final String reason) {
         final Toast toast = Toast.makeText(IntroScreen.this, "Unable to log in: " + reason, Toast.LENGTH_LONG);
         toast.show();
-
         loadForum();
       }
-
     });
     app.getSession().setServer(server);
   }
@@ -606,29 +609,29 @@ public class IntroScreen extends FragmentActivity {
     app.freshBackstack();
 
     final Bundle bundle = new Bundle();
-    if (stealingLink) {
+    if (this.stealingLink) {
       bundle.putBoolean("stealing", true);
-      bundle.putString("stealing_type", stealingType);
-      bundle.putString("stealing_location", stealingLocation);
+      bundle.putString("stealing_type", this.stealingType);
+      bundle.putString("stealing_location", this.stealingLocation);
     } else {
       bundle.putBoolean("stealing", false);
     }
 
-    stealingLink = false;
+    this.stealingLink = false;
 
     final Intent myIntent = new Intent(IntroScreen.this, PerisMain.class);
     myIntent.putExtras(bundle);
     startActivity(myIntent);
 
     //Close the intro screen on stand alone apps
-    if (!getString(R.string.server_location).contentEquals("0") || incomingShortcut) {
+    if (!getString(R.string.server_location).contentEquals("0") || this.incomingShortcut) {
       finish();
     }
   }
 
   private void removeServer(final Server server) {
-    ServerRepository.delete(dbHelper.getWritableDatabase(), server);
-    refreshList();
+    ServerRepository.delete(this.dbHelper.getWritableDatabase(), server);
+    this.refreshList();
   }
 
   @Override
@@ -663,6 +666,8 @@ public class IntroScreen extends FragmentActivity {
     builder.setTitle("Tapatalk API Not Found");
     builder.setCancelable(true);
     builder.setPositiveButton("Try WebView", new DialogInterface.OnClickListener() {
+
+      @SuppressWarnings("checkstyle:requirethis")
       public void onClick(final DialogInterface dialog, final int which) {
         addWebViewServer(serverInputter.getText().toString().trim());
 
@@ -692,7 +697,7 @@ public class IntroScreen extends FragmentActivity {
   }
 
   private void addWebViewServer(final String serverUrl) {
-    final SQLiteDatabase db = dbHelper.getWritableDatabase();
+    final SQLiteDatabase db = this.dbHelper.getWritableDatabase();
     final Server server = this.createDefaultServer(serverUrl);
     server.serverUserName = "WebView Forum";
     server.serverTagline = "[*WEBVIEW*]";
@@ -721,6 +726,8 @@ public class IntroScreen extends FragmentActivity {
         .setMessage("Choose a new display name for this server.")
         .setView(input)
         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+
+          @SuppressWarnings("checkstyle:requirethis")
           public void onClick(final DialogInterface dialog, final int whichButton) {
             runOnUiThread(new Runnable() {
               public void run() {
@@ -743,19 +750,21 @@ public class IntroScreen extends FragmentActivity {
 
   private class ServerValidationTask extends AsyncTask<String, Void, String> {
 
+    @SuppressWarnings("checkstyle:requirethis")
     protected void onPreExecute() {
       progress = ProgressDialog.show(IntroScreen.this, "Please Wait", "Validating server information, please wait.", true);
     }
 
     @Override
+    @SuppressWarnings("checkstyle:requirethis")
     protected String doInBackground(final String... params) {
       final String validServer = checkForTapatalk(params[0]);
 
       return validServer;
     }
 
+    @SuppressWarnings("checkstyle:requirethis")
     protected void onPostExecute(final String result) {
-
       try {
         progress.dismiss();
       } catch (Exception ex) {
@@ -805,11 +814,9 @@ public class IntroScreen extends FragmentActivity {
     private Server passedServer;
 
     protected String doInBackground(final Server... params) {
+      this.passedServer = params[0];
 
-
-      passedServer = params[0];
-
-      final URL manifestUrl = passedServer.getURL("peris.json");
+      final URL manifestUrl = this.passedServer.getURL("peris.json");
 
       if (Net.checkURL(manifestUrl)) {
 
@@ -828,6 +835,7 @@ public class IntroScreen extends FragmentActivity {
       return null;
     }
 
+    @SuppressWarnings("checkstyle:requirethis")
     protected void onPostExecute(final String result) {
       if (result == null) {
         return;
@@ -849,12 +857,12 @@ public class IntroScreen extends FragmentActivity {
         int validFields = 0;
 
         if (manifestAnalytics.length() > 0) {
-          passedServer.analyticsId = manifestAnalytics;
+          this.passedServer.analyticsId = manifestAnalytics;
           validFields++;
         }
 
         if (manifestMobfox.length() > 0) {
-          passedServer.mobfoxId = manifestMobfox;
+          this.passedServer.mobfoxId = manifestMobfox;
           validFields++;
         }
 
@@ -864,21 +872,23 @@ public class IntroScreen extends FragmentActivity {
         }
 
         if (manifestName.length() > 0) {
-          passedServer.serverName = manifestName;
+          this.passedServer.serverName = manifestName;
           validFields++;
         }
 
-        if (manifestColor.length() > 0 && (passedServer.serverColor.contentEquals("0") || passedServer.serverColor.contentEquals(getString(R.string.default_color)))) {
+        if (manifestColor.length() > 0
+            && (this.passedServer.serverColor.contentEquals("0")
+            || this.passedServer.serverColor.contentEquals(getString(R.string.default_color)))) {
           if (manifestColor.length() == 7) {
             if (manifestColor.substring(0, 1).contentEquals("#")) {
-              passedServer.serverColor = manifestColor;
+              this.passedServer.serverColor = manifestColor;
             }
           }
           validFields++;
         }
 
         if (manifestIcon.length() > 0) {
-          passedServer.serverIcon = manifestIcon;
+          this.passedServer.serverIcon = manifestIcon;
           validFields++;
         }
 
@@ -888,17 +898,17 @@ public class IntroScreen extends FragmentActivity {
         }
 
         if (manifestChatForum.length() > 0 && !manifestChatForum.contentEquals("0")) {
-          passedServer.chatForum = manifestChatForum;
+          this.passedServer.chatForum = manifestChatForum;
           validFields++;
         }
 
         if (manifestChatTopic.length() > 0 && !manifestChatTopic.contentEquals("0")) {
-          passedServer.chatThread = manifestChatTopic;
+          this.passedServer.chatThread = manifestChatTopic;
           validFields++;
         }
 
         final PerisApp app = (PerisApp) getApplication();
-        app.getSession().updateSpecificServer(passedServer);
+        app.getSession().updateSpecificServer(this.passedServer);
 
         if (lvServers == null) {
           sAdapterTemp = (ServerAdapter) gvServers.getAdapter();
@@ -914,10 +924,10 @@ public class IntroScreen extends FragmentActivity {
         });
 
         if (validFields > 0) {
-          ah.trackEvent("peris manifest", "parsed", passedServer.serverAddress, false);
+          ah.trackEvent("peris manifest", "parsed", this.passedServer.serverAddress, false);
         }
       } catch (Exception ex) {
-        Log.e("Peris", passedServer.serverAddress + " ex1 - Invalid JSON Object!");
+        Log.e("Peris", this.passedServer.serverAddress + " ex1 - Invalid JSON Object!");
       }
     }
   }
@@ -927,12 +937,12 @@ public class IntroScreen extends FragmentActivity {
 
     @Override
     protected Bitmap doInBackground(final Server... params) {
-      server = params[0];
+      this.server = params[0];
       final Bitmap bitmap;
 
-      if (server.serverIcon.contains("png") || server.serverIcon.contains("ico")) {
+      if (this.server.serverIcon.contains("png") || this.server.serverIcon.contains("ico")) {
         final int size = (int) getResources().getDimension(android.R.dimen.app_icon_size);
-        bitmap = Bitmap.createScaledBitmap(getBitmapFromURL(server.serverIcon), size, size, true);
+        bitmap = Bitmap.createScaledBitmap(getBitmapFromURL(this.server.serverIcon), size, size, true);
       } else {
         bitmap = null;
       }
@@ -942,7 +952,7 @@ public class IntroScreen extends FragmentActivity {
 
     protected void onPostExecute(final Bitmap result) {
       final Intent shortcutIntent = new Intent(IntroScreen.this, IntroScreen.class);
-      shortcutIntent.putExtra("server_id", server.serverId);
+      shortcutIntent.putExtra("server_id", this.server.serverId);
 
       final Intent intent = new Intent();
       intent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent);
@@ -950,10 +960,10 @@ public class IntroScreen extends FragmentActivity {
       shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
       shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-      if (server.serverName.contentEquals("0")) {
-        intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, server.serverAddress);
+      if (this.server.serverName.contentEquals("0")) {
+        intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, this.server.serverAddress);
       } else {
-        intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, server.serverName);
+        intent.putExtra(Intent.EXTRA_SHORTCUT_NAME, this.server.serverName);
       }
 
       if (result == null) {
