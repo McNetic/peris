@@ -27,6 +27,7 @@ import de.timroes.axmlrpc.XMLRPCServerException;
 @SuppressLint({"NewApi", "TrulyRandom"})
 public class Session {
 
+  private static final String TAG = Session.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
   private final PerisDBHelper borrowedDbHelper;
   /*
@@ -74,7 +75,7 @@ public class Session {
     this.application = app;
     this.sessionId = new Date().getTime();
 
-    Log.i("Peris", "*** NEW SESSION (" + this.sessionId + ") ***");
+    Log.i(TAG, "*** NEW SESSION (" + this.sessionId + ") ***");
   }
 
   public final String getAvatarName() {
@@ -169,7 +170,7 @@ public class Session {
   @SuppressWarnings("rawtypes")
   public final Object performSynchronousCall(final String method, final Vector parms) {
 
-    Log.d("Peris", "Performing Server Call: Method = " + method + " (URL: " + this.currentServer.getTapatalkURL() + ")");
+    Log.d(TAG, "Performing Server Call: Method = " + method + " (URL: " + this.currentServer.getTapatalkURL() + ")");
     try {
       final Object[] parmsobject = new Object[parms.size()];
       for (int i = 0; i < parms.size(); i++) {
@@ -190,25 +191,25 @@ public class Session {
       return this.newClient.call(method, parmsobject);
 
     } catch (XMLRPCServerException ex) {
-      Log.e(this.context.getString(R.string.app_name), "Error with tapatalk call er1: " + method);
+      Log.e(TAG, "Error with tapatalk call er1: " + method);
       if (ex.getMessage() != null) {
-        Log.e(this.context.getString(R.string.app_name), ex.getMessage());
+        Log.e(TAG, ex.getMessage());
       } else {
-        Log.e(this.context.getString(R.string.app_name), "(no message available)");
+        Log.e(TAG, "(no message available)");
       }
     } catch (XMLRPCException ex) {
-      Log.e(this.context.getString(R.string.app_name), "Error with tapatalk call er2: " + method);
+      Log.e(TAG, "Error with tapatalk call er2: " + method);
       if (ex.getMessage() != null) {
-        Log.e(this.context.getString(R.string.app_name), ex.getMessage());
+        Log.e(TAG, ex.getMessage());
       } else {
-        Log.e(this.context.getString(R.string.app_name), "(no message available)");
+        Log.e(TAG, "(no message available)");
       }
     } catch (Exception ex) {
-      Log.e(this.context.getString(R.string.app_name), "Error with tapatalk call er3: " + method);
+      Log.e(TAG, "Error with tapatalk call er3: " + method);
       if (ex.getMessage() != null) {
-        Log.e(this.context.getString(R.string.app_name), ex.getMessage());
+        Log.e(TAG, ex.getMessage());
       } else {
-        Log.e(this.context.getString(R.string.app_name), "(no message available)");
+        Log.e(TAG, "(no message available)");
       }
     }
 
@@ -265,16 +266,16 @@ public class Session {
         }
 
         if(authenticatedSession) {
-          Log.i("Peris", "Method Success = " + method + " (Authenticated)");
+          Log.i(TAG, "Method Success = " + method + " (Authenticated)");
         } else {
-          Log.i("Peris", "Method Success = " + method + " (NOT Authenticated)");
+          Log.i(TAG, "Method Success = " + method + " (NOT Authenticated)");
         }
 
     } catch(Exception ex) {
-      Log.e("Peris", "Method Fail = " + method);
+      Log.e(TAG, "Method Fail = " + method);
 
       if(ex.getMessage() != null) {
-        Log.e("Peris", ex.getMessage());
+        Log.e(TAG, ex.getMessage());
       }
     }
 
@@ -303,7 +304,7 @@ public class Session {
 
       final Object[] result = new Object[MAX_ITEM_COUNT];
 
-      Log.i("Peris", "Attempting u:" + currentServer.serverUserName + "    " + "p:" + currentServer.serverPassword);
+      Log.i(TAG, "Attempting u:" + currentServer.serverUserName + "    " + "p:" + currentServer.serverPassword);
 
       try {
         final Vector paramz = new Vector();
@@ -313,7 +314,7 @@ public class Session {
         result[0] = performSynchronousCall("login", paramz);
 
       } catch (Exception ex) {
-        Log.d("Peris", ex.getMessage());
+        Log.d(TAG, ex.getMessage());
       }
 
       return result;
@@ -337,9 +338,9 @@ public class Session {
 
             if (map.containsKey("login_name")) {
               final String loginName = new String((byte[]) map.get("login_name"));
-              Log.i(context.getString(R.string.app_name), "User login_name is " + loginName);
+              Log.i(TAG, "User login_name is " + loginName);
             } else {
-              Log.e(context.getString(R.string.app_name), "Server provides no login_name information!");
+              Log.e(TAG, "Server provides no login_name information!");
             }
 
             if (map.get("user_id") instanceof Integer) {
@@ -362,12 +363,12 @@ public class Session {
               final boolean canProfile = (Boolean) map.get("can_profile");
 
               if (canProfile) {
-                Log.i(context.getString(R.string.app_name), "Use can view and edit profiles!");
+                Log.i(TAG, "Use can view and edit profiles!");
               } else {
-                Log.e(context.getString(R.string.app_name), "Use can NOT view or edit profiles!");
+                Log.e(TAG, "Use can NOT view or edit profiles!");
               }
             } else {
-              Log.e(context.getString(R.string.app_name), "Server provides no profile permission information!");
+              Log.e(TAG, "Server provides no profile permission information!");
             }
 
             if (sessionListener != null) {
@@ -411,7 +412,7 @@ public class Session {
         result[0] = performSynchronousCall("get_config", paramz);
 
       } catch (Exception ex) {
-        Log.d("Peris", ex.getMessage());
+        Log.d(TAG, ex.getMessage());
       }
       return result;
     }
@@ -436,7 +437,7 @@ public class Session {
       }
 
       if (result == null) {
-        Log.e("Peris", "Fetching Configuration Failed!");
+        Log.e(TAG, "Fetching Configuration Failed!");
         return;
       }
 
@@ -453,42 +454,42 @@ public class Session {
         if (map.containsKey("version")) {
           final String system = (String) map.get("version");
 
-          Log.i(context.getString(R.string.app_name), "Forum system code is: " + system);
+          Log.i(TAG, "Forum system code is: " + system);
 
           if (system.contains("pb")) {
             forumSystem = 1;
             avatarSubmissionName = "uploadfile";
-            Log.i(context.getString(R.string.app_name), "Forum is phpBB");
+            Log.i(TAG, "Forum is phpBB");
           }
           if (system.contains("mb")) {
             forumSystem = 2;
             avatarSubmissionName = "avatarupload";
-            Log.i(context.getString(R.string.app_name), "Forum is MyBB");
+            Log.i(TAG, "Forum is MyBB");
           }
           if (system.contains("vb")) {
             forumSystem = 3;
             avatarSubmissionName = "upload";
-            Log.i(context.getString(R.string.app_name), "Forum is vBulletin");
+            Log.i(TAG, "Forum is vBulletin");
           }
 
         } else {
-          Log.e(context.getString(R.string.app_name), "Server returned no system information!");
+          Log.e(TAG, "Server returned no system information!");
           if (result[0] != null) {
-            Log.e(context.getString(R.string.app_name), result[0].toString());
+            Log.e(TAG, result[0].toString());
           }
         }
 
         // see if in-app registration is allowed
         if (map.containsKey("inappreg")) {
           final String regKey = (String) map.get("inappreg");
-          Log.i(context.getString(R.string.app_name), "Forum inappreg code is: " + regKey);
+          Log.i(TAG, "Forum inappreg code is: " + regKey);
 
           if (regKey.contentEquals("1")) {
             allowRegistration = true;
           }
         }
       } else {
-        Log.e(context.getString(R.string.app_name), "Unable to fetch configuration data!");
+        Log.e(TAG, "Unable to fetch configuration data!");
         return;
       }
     }

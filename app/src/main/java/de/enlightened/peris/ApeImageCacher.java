@@ -16,6 +16,7 @@ import java.io.FileInputStream;
 @SuppressLint("NewApi")
 class ApeImageCacher {
 
+  private static final String TAG = ApeImageCacher.class.getName();;
   public static final String CACHE_DIRECTORY = ".ff_cache";
 
   protected ApeImageCacher() {
@@ -23,7 +24,7 @@ class ApeImageCacher {
 
   public static final void downloadImage(final String imageURL, final ImageView ivHolder, final PerisApp application, final Context context) {
 
-    Log.d("Peris", "Downloading " + imageURL + " with the ApeImageCacher");
+    Log.d(TAG, "Downloading " + imageURL + " with the ApeImageCacher");
     final String cacheName = application.getSession().getServer().serverAddress + "_" + imageURL.substring((imageURL.lastIndexOf("?")) + 1, imageURL.length()) + ".jpg";
 
     if (ivHolder == null) {
@@ -33,7 +34,7 @@ class ApeImageCacher {
     final File saveDirectory = new File(Environment.getExternalStorageDirectory(), CACHE_DIRECTORY);
 
     if (!saveDirectory.exists() && !saveDirectory.mkdirs()) {
-      Log.d("Peris", "failed to create directory");
+      Log.d(TAG, "failed to create directory");
     } else {
 
       try {
@@ -53,11 +54,11 @@ class ApeImageCacher {
             new FetchSubforumIconTask().execute(cacheName, ivHolder, imageURL, application);
           }
 
-          Log.d("Peris", "Downloading new copy for " + imageURL);
+          Log.d(TAG, "Downloading new copy for " + imageURL);
         } else {
 
           ivHolder.setImageBitmap(bmImg);
-          Log.d("Peris", "Using cached image for " + imageURL);
+          Log.d(TAG, "Using cached image for " + imageURL);
         }
       } catch (Exception e) {
 
@@ -67,7 +68,7 @@ class ApeImageCacher {
           new FetchSubforumIconTask().execute(cacheName, ivHolder, imageURL, application);
         }
 
-        Log.d("Peris", "Downloading new copy for " + imageURL);
+        Log.d(TAG, "Downloading new copy for " + imageURL);
       }
     }
   }

@@ -24,7 +24,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class FetchSubforumIconTask extends AsyncTask<Object, Void, String> {
+
+  private static final String TAG = FetchSubforumIconTask.class.getName();
   private static final int JPEG_QUALITY = 80;
+
   private Bitmap bmImg;
   private InputStream is;
   private ImageView secureHolder;
@@ -53,7 +56,7 @@ public class FetchSubforumIconTask extends AsyncTask<Object, Void, String> {
           cStore.addCookie(aCookie);
           cookieString = cookieString + s + "=" + this.app.getSession().getCookies().get(s) + ";";
         } catch (Exception ex) {
-          Log.d("Peris", ex.getMessage());
+          Log.d(TAG, ex.getMessage());
         }
       }
 
@@ -70,9 +73,9 @@ public class FetchSubforumIconTask extends AsyncTask<Object, Void, String> {
       return "web";
     } catch (Exception e) {
       if (e.getMessage() != null) {
-        Log.e("Peris", "ApeImageCacher: Connection Exception: " + e.getMessage());
+        Log.e(TAG, "ApeImageCacher: Connection Exception: " + e.getMessage());
       } else {
-        Log.e("Peris", "ApeImageCacher: exNull Error Downloading Image!");
+        Log.e(TAG, "ApeImageCacher: exNull Error Downloading Image!");
       }
     }
     return "fail";

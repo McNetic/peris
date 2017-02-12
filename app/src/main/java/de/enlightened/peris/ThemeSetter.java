@@ -13,6 +13,7 @@ import android.widget.TextView;
 @SuppressLint("NewApi")
 public final class ThemeSetter {
 
+  private static final String TAG = ThemeSetter.class.getName();;
   private static final float TRANSPARENCY_HALF = 0.5F;
   private static final int RADIX_HEX = 16;
   private static final int DARKEN_BY_POINTS = 40;
@@ -172,7 +173,7 @@ public final class ThemeSetter {
     if (hexB.length() == 1) {
       hexB = "0" + hexB;
     }
-    Log.d("Peris", "Converted " + r + "," + g + "," + b + " to " + "#" + hexR + hexG + hexB);
+    Log.d(TAG, "Converted " + r + "," + g + "," + b + " to " + "#" + hexR + hexG + hexB);
     return "#" + hexR + hexG + hexB;
   }
 

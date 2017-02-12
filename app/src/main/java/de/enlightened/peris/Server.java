@@ -9,6 +9,9 @@ import de.enlightened.peris.db.DBEntity;
 
 @SuppressWarnings("checkstyle:visibilitymodifier")
 public class Server extends DBEntity {
+
+  private static final String TAG = Server.class.getName();;
+
   public String serverId = "0";
   public String serverAddress = null;
   public boolean serverHttps = true;
@@ -68,7 +71,7 @@ public class Server extends DBEntity {
     try {
       return new URL(this.getScheme(), this.serverAddress, path);
     } catch (MalformedURLException e) {
-      Log.d("Peris", e.getMessage());
+      Log.d(TAG, e.getMessage());
       throw new RuntimeException(e);
     }
   }

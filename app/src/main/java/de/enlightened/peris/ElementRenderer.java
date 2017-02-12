@@ -22,6 +22,7 @@ import de.enlightened.peris.support.Net;
 
 final class ElementRenderer {
 
+  private static final String TAG = ElementRenderer.class.getName();
   private static final int POSTS_PER_PAGE = 20;
 
   private ElementRenderer() {
@@ -231,7 +232,7 @@ final class ElementRenderer {
       } catch (Exception ex) {
         // Android might be old version that cannot set background
         // didn't want to research which
-        Log.d("Peris", ex.getMessage());
+        Log.d(TAG, ex.getMessage());
       }
     }
 

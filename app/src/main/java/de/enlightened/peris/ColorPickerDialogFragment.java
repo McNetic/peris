@@ -13,6 +13,7 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class ColorPickerDialogFragment extends DialogFragment {
 
+  private static final String TAG = ColorPickerDialogFragment.class.getName();
   private static final int MAX_OPACITY = 255;
 
   private boolean showOpacity = false;
@@ -70,7 +71,7 @@ public class ColorPickerDialogFragment extends DialogFragment {
           // TODO Auto-generated method stub
           opacity = progress;
           final float opacityPercent = progress / (float) MAX_OPACITY;
-          //Log.d("Color Picker",progress + "/255 = " + opacityPercent);
+          //Log.d(TAG ,progress + "/255 = " + opacityPercent);
           colorPickerColorsLayout.setAlpha(opacityPercent);
         }
 
@@ -146,7 +147,7 @@ public class ColorPickerDialogFragment extends DialogFragment {
     if (this.opacity < MAX_OPACITY) {
       final String alphaValue = String.format("%02d", Integer.toHexString(this.opacity));
       selectedColor = color.replace("#", "#" + alphaValue);
-      Log.d("Color Picker", "Alpha'd color is: " + selectedColor);
+      Log.d(TAG, "Alpha'd color is: " + selectedColor);
     } else {
       selectedColor = color;
     }

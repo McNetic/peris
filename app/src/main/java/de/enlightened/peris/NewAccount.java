@@ -20,7 +20,10 @@ import java.util.Vector;
 
 @SuppressLint("NewApi")
 public class NewAccount extends FragmentActivity {
+
+  private static final String TAG = NewAccount.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
+
   private EditText tvUsername;
   private EditText tvEmail;
   private EditText etPassword1;
@@ -113,7 +116,7 @@ public class NewAccount extends FragmentActivity {
         paramz.addElement(emailaddress.getBytes());
         result[0] = application.getSession().performSynchronousCall("register", paramz);
       } catch (Exception ex) {
-        Log.d("Peris", ex.getMessage());
+        Log.d(TAG, ex.getMessage());
       }
       return result;
     }

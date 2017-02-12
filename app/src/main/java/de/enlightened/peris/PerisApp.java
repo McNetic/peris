@@ -26,6 +26,8 @@ import de.enlightened.peris.db.PerisDBHelper;
 
 
 public class PerisApp extends Application {
+
+  private static final String TAG = PerisApp.class.getName();;
   private boolean active = false;
   private BackStackManager stackManager;
   private AnalyticsHelper ah;
@@ -54,7 +56,7 @@ public class PerisApp extends Application {
     ImageLoader.getInstance().init(config);
 
     if (!cleanClose) {
-      Log.d("Peris", "Bad shutdown detected, clearing image cache.");
+      Log.d(TAG, "Bad shutdown detected, clearing image cache.");
       ImageLoader.getInstance().clearDiskCache();
       ImageLoader.getInstance().clearMemoryCache();
     }
@@ -138,7 +140,7 @@ public class PerisApp extends Application {
 
         httpclient.execute(httppost);
       } catch (Exception e) {
-        Log.d("Peris", e.getMessage());
+        Log.d(TAG, e.getMessage());
       }
 
       return "";

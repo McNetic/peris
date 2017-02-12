@@ -24,7 +24,10 @@ import java.util.Vector;
 
 @SuppressLint("NewApi")
 public class MailFragment extends ListFragment {
+
+  private static final String TAG = MailFragment.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
+
   private String rogueTitle;
   private String ourInboxId = "0";
   private String accent;
@@ -137,7 +140,7 @@ public class MailFragment extends ListFragment {
         for (Object o : boxes) {
           final HashMap boxMap = (HashMap) o;
           final String boxType = (String) boxMap.get("box_type");
-          Log.d("Peris", "Found Mailbox: " + boxType);
+          Log.d(TAG, "Found Mailbox: " + boxType);
 
           if (boxType.contentEquals("INBOX")) {
             ourInboxId = (String) boxMap.get("box_id");
@@ -209,10 +212,10 @@ public class MailFragment extends ListFragment {
             }
           });
         } catch (Exception ex) {
-          Log.d("Peris", ex.getMessage());
+          Log.d(TAG, ex.getMessage());
         }
       } catch (Exception e) {
-        Log.d("Peris", e.getMessage());
+        Log.d(TAG, e.getMessage());
       }
     }
   }
@@ -229,7 +232,7 @@ public class MailFragment extends ListFragment {
         paramz.addElement(ourInboxId);
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
       } catch (Exception e) {
-        Log.w("Peris", e.getMessage());
+        Log.w(TAG, e.getMessage());
         return null;
       }
       return result;

@@ -30,6 +30,7 @@ import de.enlightened.peris.support.Net;
 @SuppressLint({"NewApi", "InflateParams"})
 public class InboxAdapter extends BaseAdapter {
 
+  private static final String TAG = InboxAdapter.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
   private static final int DEFAULT_FONT_SIZE = 16;
 
@@ -212,7 +213,7 @@ public class InboxAdapter extends BaseAdapter {
         paramz.addElement(item.id);
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
       } catch (Exception e) {
-        Log.w("Peris", e.getMessage());
+        Log.w(TAG, e.getMessage());
         return null;
       }
       return result;

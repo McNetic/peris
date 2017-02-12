@@ -36,6 +36,8 @@ import java.util.Vector;
 @SuppressLint("NewApi")
 public class SocialFragment extends Fragment {
 
+  private static final String TAG = SocialFragment.class.getName();
+
   private static final int MAX_ITEM_COUNT = 50;
   private static final int POSTS_PER_PAGE = 20;
   private static final int SOCIAL_RATE = 30_000;
@@ -76,7 +78,7 @@ public class SocialFragment extends Fragment {
 
     this.newChatId = this.application.getSession().getServer().ffChatId;
 
-    Log.d("Peris", "newChatId is " + this.newChatId);
+    Log.d(TAG, "newChatId is " + this.newChatId);
 
     setHasOptionsMenu(true);
   }
@@ -311,7 +313,7 @@ public class SocialFragment extends Fragment {
         paramz.addElement(comment.getBytes());
         result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
       } catch (Exception e) {
-        Log.w("Peris", e.getMessage());
+        Log.w(TAG, e.getMessage());
         return null;
       }
       return result;
@@ -360,9 +362,9 @@ public class SocialFragment extends Fragment {
         result[0] = application.getSession().performSynchronousCall("get_thread", paramz);
       } catch (Exception e) {
         if (e.getMessage() != null) {
-          Log.w(getString(R.string.app_name), e.getMessage());
+          Log.w(TAG, e.getMessage());
         } else {
-          Log.w(getString(R.string.app_name), "Chat connection error!");
+          Log.w(TAG, "Chat connection error!");
         }
         return null;
       }

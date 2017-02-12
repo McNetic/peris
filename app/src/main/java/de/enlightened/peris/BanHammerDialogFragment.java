@@ -17,6 +17,9 @@ import android.widget.TextView;
 import java.util.Vector;
 
 public class BanHammerDialogFragment extends DialogFragment {
+
+  private static final String TAG = BanHammerDialogFragment.class.getName();;
+
   private TextView tvIntro;
   private EditText etReason;
   private Button submitButton;
@@ -89,7 +92,7 @@ public class BanHammerDialogFragment extends DialogFragment {
         paramz.addElement(params[1].getBytes());
         application.getSession().performSynchronousCall("m_ban_user", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
       return "";
     }

@@ -25,7 +25,9 @@ import java.util.Vector;
 
 public class SettingsFragment extends Fragment {
 
+  private static final String TAG = SettingsFragment.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
+
   private boolean editingProfile = false;
   private String storagePrefix = "";
   private String serverAddress;
@@ -133,7 +135,7 @@ public class SettingsFragment extends Fragment {
       final Vector paramz = new Vector();
       this.application.getSession().performSynchronousCall("logout_user", paramz);
     } catch (Exception ex) {
-      Log.d("Peris", ex.getMessage());
+      Log.d(TAG, ex.getMessage());
     }
 
     final SharedPreferences.Editor editor = appPreferences.edit();
@@ -451,7 +453,7 @@ public class SettingsFragment extends Fragment {
 
         result[0] = application.getSession().performSynchronousCall("get_inbox_stat", paramz);
       } catch (Exception e) {
-        Log.w("Peris", e.getMessage());
+        Log.w(TAG, e.getMessage());
         return null;
       }
       return result;

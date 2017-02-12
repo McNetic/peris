@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 public class BackStackManager {
 
+  private static final String TAG = BackStackManager.class.getName();
+
   private ArrayList<ArrayList<BackStackItem>> backstackArray;
 
   public BackStackManager() {
@@ -28,7 +30,7 @@ public class BackStackManager {
   }
 
   public final void addToBackstack(final int backstackId, final int type, final Bundle bundle) {
-    Log.i("Peris", "Backstack Adding Item " + type);
+    Log.i(TAG, "Backstack Adding Item " + type);
     final BackStackItem item = new BackStackItem(type, bundle);
     this.backstackArray.get(backstackId).add(item);
   }

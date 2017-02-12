@@ -30,6 +30,7 @@ import de.enlightened.peris.db.ServerRepository;
 
 public class MailService extends Service {
 
+  private static final String TAG = MailService.class.getName();;
   private static final int SERVICE_TIMER = 20000000;
   private static final int MAX_ITEM_COUNT = 50;
   private static final int LED_ON_MS = 500;
@@ -63,7 +64,7 @@ public class MailService extends Service {
   private void startservice() {
     final MyCount counter = new MyCount(SERVICE_TIMER, 1000);
     counter.start();
-    Log.d("Peris", "Starting MailService");
+    Log.d(TAG, "Starting MailService");
   }
 
   private void stopservice() {
@@ -76,13 +77,13 @@ public class MailService extends Service {
     this.serverList = new ArrayList<>();
 
     for (final Server server : servers) {
-      Log.i("Peris", "Checking login data for server " + server.serverAddress);
+      Log.i(TAG, "Checking login data for server " + server.serverAddress);
       if (!server.serverUserId.contentEquals("0")) {
         this.serverList.add(server);
       }
     }
     if (this.serverList.size() == 0) {
-      Log.d("Peris", "No servers found, ending check.");
+      Log.d(TAG, "No servers found, ending check.");
     }
     this.currentServer = 0;
     this.nextServer();
@@ -92,7 +93,7 @@ public class MailService extends Service {
     if ((this.currentServer + 1) > this.serverList.size()) {
       return;
     }
-    Log.d("Peris", "MailService Tick - Checking " + this.serverList.get(this.currentServer).serverAddress);
+    Log.d(TAG, "MailService Tick - Checking " + this.serverList.get(this.currentServer).serverAddress);
     this.mailSession.setSessionListener(new Session.SessionListener() {
 
       @Override
@@ -175,7 +176,7 @@ public class MailService extends Service {
     @Override
     @SuppressWarnings("checkstyle:requirethis")
     public void onFinish() {
-      Log.d("Peris", "MailService Tick - Checking Mail");
+      Log.d(TAG, "MailService Tick - Checking Mail");
       routineMailCheck();
 
       final MyCount counter = new MyCount(SERVICE_TIMER, 1000);
@@ -273,10 +274,10 @@ public class MailService extends Service {
             }
           }
         } catch (Exception ex) {
-          Log.d("Peris", ex.getMessage());
+          Log.d(TAG, ex.getMessage());
         }
       } catch (Exception e) {
-        Log.d("Peris", e.getMessage());
+        Log.d(TAG, e.getMessage());
       }
       nextServer();
     }

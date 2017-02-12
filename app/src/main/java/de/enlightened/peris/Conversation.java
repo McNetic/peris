@@ -24,6 +24,7 @@ import de.enlightened.peris.db.ServerRepository;
 
 public class Conversation extends FragmentActivity {
 
+  private static final String TAG = Conversation.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
   private String partner;
   private String partnerName;
@@ -92,10 +93,10 @@ public class Conversation extends FragmentActivity {
 
     if (bundle.containsKey("server")) {
       this.externalServer = bundle.getString("server");
-      Log.i("Peris", "Mail bundle contains server!");
+      Log.i(TAG, "Mail bundle contains server!");
       final Server server = ServerRepository.findOne(this.dbHelper.getWritableDatabase(), Long.parseLong(this.externalServer));
       if (server == null) {
-        Log.i("Peris", "Conversation Server is null!");
+        Log.i(TAG, "Conversation Server is null!");
         return;
       }
       this.mailSession = new Session(this, (PerisApp) getApplication(), this.dbHelper);
@@ -237,7 +238,7 @@ public class Conversation extends FragmentActivity {
         result[0] = application.getSession().performSynchronousCall("get_message", paramz);
 
       } catch (Exception e) {
-        Log.w("Peris", e.getMessage());
+        Log.w(TAG, e.getMessage());
         return null;
       }
       return result;
@@ -295,7 +296,7 @@ public class Conversation extends FragmentActivity {
         paramz.addElement(boxId);
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
       } catch (Exception e) {
-        Log.w("Peris", e.getMessage());
+        Log.w(TAG, e.getMessage());
         return null;
       }
       return result;

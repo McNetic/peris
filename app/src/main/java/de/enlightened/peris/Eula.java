@@ -54,6 +54,7 @@ import java.io.InputStreamReader;
  * on your activity.
  */
 final class Eula {
+  private static final String TAG = Eula.class.getName();
   private static final String PREFERENCE_EULA_ACCEPTED = "eula.accepted";
   private static final String PREFERENCES_EULA = "eula";
 
@@ -139,7 +140,7 @@ final class Eula {
       try {
         stream.close();
       } catch (IOException e) {
-        Log.d("Peri", e.getMessage());
+        Log.d(TAG, e.getMessage());
       }
     }
   }

@@ -63,23 +63,18 @@ import de.enlightened.peris.support.Net;
 @SuppressLint("NewApi")
 public class IntroScreen extends FragmentActivity {
 
-  private AnalyticsHelper ah;
+  private static final String TAG = IntroScreen.class.getName();
 
+  private AnalyticsHelper ah;
   private EditText serverInputter;
   private ListView lvServers;
   private GridView gvServers;
-
   private boolean isStealingLink;
-
   private Server selectedServer;
-
   private ProgressDialog progress;
-
-
   private String preinstalledServers = "http://forum.xda-developers.com";
   private PerisDBHelper dbHelper;
   private List<Server> serverList;
-
   private boolean incomingShortcut;
   private String shortcutServerId = "0";
   private boolean stealingLink;
@@ -437,7 +432,7 @@ public class IntroScreen extends FragmentActivity {
         for (final String subdomain : subdomains) {
           for (final String directory : directories) {
             final String url = String.format("%s://%s%s%s", protocol, subdomain, domain, directory);
-            Log.d("Peris", "Checking: " + url);
+            Log.d(TAG, "Checking: " + url);
             if (Net.checkURL(url + "/mobiquo/mobiquo.php")) {
               return url;
             }
@@ -556,7 +551,7 @@ public class IntroScreen extends FragmentActivity {
       }
 
       if (killedManifests > 0) {
-        Log.i("Peris", "Killed " + killedManifests + " manifest checks!");
+        Log.i(TAG, "Killed " + killedManifests + " manifest checks!");
       }
     }
 
@@ -768,7 +763,7 @@ public class IntroScreen extends FragmentActivity {
       try {
         progress.dismiss();
       } catch (Exception ex) {
-        Log.d("Peris", ex.getMessage());
+        Log.d(TAG, ex.getMessage());
       }
 
       if (result == null) {
@@ -828,7 +823,7 @@ public class IntroScreen extends FragmentActivity {
           final String responseBody = httpclient.execute(httpget, responseHandler);
           return responseBody;
         } catch (Exception ex) {
-          Log.d("Peris", ex.getMessage());
+          Log.d(TAG, ex.getMessage());
         }
       }
 
@@ -927,7 +922,7 @@ public class IntroScreen extends FragmentActivity {
           ah.trackEvent("peris manifest", "parsed", this.passedServer.serverAddress, false);
         }
       } catch (Exception ex) {
-        Log.e("Peris", this.passedServer.serverAddress + " ex1 - Invalid JSON Object!");
+        Log.e(TAG, this.passedServer.serverAddress + " ex1 - Invalid JSON Object!");
       }
     }
   }

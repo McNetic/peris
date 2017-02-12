@@ -41,7 +41,7 @@ import java.util.ArrayList;
 @SuppressLint("NewApi")
 public class PerisMain extends FragmentActivity {
 
-    private static final String TAG = "com.hascode.android.gesture";
+    private static final String TAG = PerisMain.class.getName();;
     private boolean initialLoad = true;
     private ActionBarDrawerToggle mDrawerToggle;
     private ActionBar actionBar;
@@ -74,7 +74,7 @@ public class PerisMain extends FragmentActivity {
 
             getActionBar().setSubtitle(baseSubtitle);
 
-            Log.i("Peris", "Preparing fragment for profile " + userid);
+            Log.i(TAG, "Preparing fragment for profile " + userid);
 
             final Bundle bundle = new Bundle();
             bundle.putString("username", username);
@@ -184,7 +184,7 @@ public class PerisMain extends FragmentActivity {
             loadSettings();
             break;
           default:
-            Log.d("Peris", "Unknown backstack item type " + item.getType());
+            Log.d(TAG, "Unknown backstack item type " + item.getType());
         }
       } else {
         final Category ca = new Category();
@@ -427,7 +427,7 @@ public class PerisMain extends FragmentActivity {
   }
 
   private Bundle initializeNewSession(final SharedPreferences appPreferences) {
-    Log.d("Peris", "Back stack is blank, new session");
+    Log.d(TAG, "Back stack is blank, new session");
     final Bundle bundle = new Bundle();
     final String currentServerId = this.application.getSession().getServer().serverId;
     final String keyName = currentServerId + "_home_page";
@@ -462,7 +462,7 @@ public class PerisMain extends FragmentActivity {
   private void enableGestures() {
     this.gLib = GestureLibraries.fromRawResource(this, R.raw.gestures);
     if (!this.gLib.load()) {
-      Log.w(this.TAG, "could not load gesture library");
+      Log.w(TAG, "could not load gesture library");
       finish();
     }
 
@@ -478,7 +478,7 @@ public class PerisMain extends FragmentActivity {
   }
 
   private void recoverBackstack() {
-    Log.d("Peris", "Recovering old backstack session");
+    Log.d(TAG, "Recovering old backstack session");
     final BackStackManager.BackStackItem item = this.application.getStackManager().getActiveItemAndRemove(this.backStackId);
 
     switch (item.getType()) {
@@ -522,7 +522,7 @@ public class PerisMain extends FragmentActivity {
     try {
       super.onDestroy();
     } catch (RuntimeException e) {
-      Log.d("Peris", e.getMessage());
+      Log.d(TAG, e.getMessage());
     }
   }
 
@@ -797,7 +797,7 @@ public class PerisMain extends FragmentActivity {
       bundle.putString("posts", (String) ca.threadCount);
       bundle.putString("moderator", (String) ca.moderator);
 
-      Log.d("Peris", "Loading topic " + ca.id);
+      Log.d(TAG, "Loading topic " + ca.id);
 
       this.loadTopic(bundle);
     } else {
@@ -826,7 +826,7 @@ public class PerisMain extends FragmentActivity {
         dl.closeDrawer(flDrawer);
         rv = true;
       } else if (this.application.getStackManager().getBackStackSize(this.backStackId) > 1) {
-        Log.i("Peris", "Back pressed, backstack size = " + this.application.getStackManager().getBackStackSize(this.backStackId));
+        Log.i(TAG, "Back pressed, backstack size = " + this.application.getStackManager().getBackStackSize(this.backStackId));
         final BackStackManager.BackStackItem item = this.application.getStackManager().navigateBack(this.backStackId);
 
         this.actionBar.setSubtitle(this.screenSubtitle);
@@ -892,7 +892,7 @@ public class PerisMain extends FragmentActivity {
           ftZ.commit();
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
-            Log.w("Peris", ex.getMessage());
+            Log.w(TAG, ex.getMessage());
           }
         }
       } else {
@@ -927,7 +927,7 @@ public class PerisMain extends FragmentActivity {
 
     this.application.getStackManager().addToBackstack(this.backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM, bundle);
 
-    Log.i("Peris", "Loading Forum from " + sender);
+    Log.i(TAG, "Loading Forum from " + sender);
   }
 
   private void loadTopic(final Bundle bundle) {

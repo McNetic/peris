@@ -40,8 +40,8 @@ import java.util.regex.Pattern;
 @SuppressWarnings("checkstyle:returncount")
 public class BBCodeParser {
 
+  private static final String TAG = BBCodeParser.class.getName();;
   private static final Map<Pattern, Integer> EMOTICONS = new HashMap<Pattern, Integer>();
-
   private static final int JPEG_COMPRESSION_QUALITY = 80;
   private static final OnClickListener PIC_CLICK_LISTENER = new OnClickListener() {
 
@@ -59,7 +59,7 @@ public class BBCodeParser {
             final File saveDirectory = new File(Environment.getExternalStorageDirectory(), v.getContext().getString(R.string.app_name));
 
             if (!saveDirectory.exists() && !saveDirectory.mkdirs()) {
-              Log.d("Peris", "failed to create directory");
+              Log.d(TAG, "failed to create directory");
               return false;
             } else {
               final Date data = new Date();

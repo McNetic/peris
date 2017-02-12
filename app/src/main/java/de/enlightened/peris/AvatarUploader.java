@@ -31,6 +31,7 @@ import java.net.URL;
 
 public class AvatarUploader {
 
+  private static final String TAG = AvatarUploader.class.getName();;
   private static final int JPEG_COMPRESSION_QUALITY = 75;
 
   public final String uploadBitmap(final Context context, final URL url, final Bitmap bitmap, final PerisApp application) {
@@ -69,14 +70,14 @@ public class AvatarUploader {
       //httpPost.setHeader("User-Agent", "Peris");
       httpPost.setHeader("Cookie", cookieString);
 
-      Log.d(context.getString(R.string.app_name), "Cookie String: " + cookieString);
+      Log.d(TAG, "Cookie String: " + cookieString);
 
       final MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
       final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
       bitmap.compress(CompressFormat.JPEG, JPEG_COMPRESSION_QUALITY, bos);
 
-      Log.d(context.getString(R.string.app_name), "Outgoing Avatar Size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
+      Log.d(TAG, "Outgoing Avatar Size: " + bitmap.getWidth() + "x" + bitmap.getHeight());
 
 
       final byte[] data = bos.toByteArray();
@@ -98,7 +99,7 @@ public class AvatarUploader {
 
       uploadFileFieldName = application.getSession().getAvatarName();
 
-      Log.d(context.getString(R.string.app_name), "Avatar Upload Field Name: " + uploadFileFieldName);
+      Log.d(TAG, "Avatar Upload Field Name: " + uploadFileFieldName);
 
       entity.addPart(uploadFileFieldName, bin);
       entity.addPart("method_name", new StringBody(methodName));
@@ -113,14 +114,14 @@ public class AvatarUploader {
 
       while ((line = reader.readLine()) != null) {
         xml = xml + line;
-        Log.d("Peris", line);
+        Log.d(TAG, line);
       }
 
       result = reader.readLine();
 
     } catch (Exception ex) {
       //fuck it
-      Log.d("Peris", ex.getMessage());
+      Log.d(TAG, ex.getMessage());
     }
     return result;
   }

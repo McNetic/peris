@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 
 public class FileUploader {
 
+  private static final String TAG = FileUploader.class.getName();
   private static final int BITMAP_JPEG_QUALITY = 100;
 
   public String uploadBitmap(final Context context, final String url, final Bitmap bitmap, final PerisApp application) {
@@ -44,7 +45,7 @@ public class FileUploader {
       final BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
       result = reader.readLine();
     } catch (Exception ex) {
-      Log.d("Peris", ex.getMessage());
+      Log.d(TAG, ex.getMessage());
     }
     return result;
   }

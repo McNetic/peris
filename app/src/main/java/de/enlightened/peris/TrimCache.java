@@ -6,6 +6,9 @@ import android.util.Log;
 import java.io.File;
 
 public class TrimCache {
+
+  private static final String TAG = TrimCache.class.getName();
+
   private Context context;
 
   public TrimCache(final Context context) {
@@ -33,7 +36,7 @@ public class TrimCache {
       for (String s : children) {
         if (!"lib".equals(s)) {
           deleteDir(new File(appDir, s));
-          Log.i("TAG", "**************** File /data/data/APP_PACKAGE/" + s + " DELETED *******************");
+          Log.i(TAG, "**************** File /data/data/APP_PACKAGE/" + s + " DELETED *******************");
         }
       }
     }

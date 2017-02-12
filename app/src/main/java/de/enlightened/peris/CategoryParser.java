@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 public final class CategoryParser {
 
+  private static final String TAG = CategoryParser.class.getName();
+
   private CategoryParser() {
   }
 
@@ -46,7 +48,7 @@ public final class CategoryParser {
           subOnly = (Boolean) map.get("sub_only");
           ca.hasChildren = true;
           if (ca.hasChildren) {
-            Log.v("Peris", "aaa sub only on " + ca.id);
+            Log.v(TAG, "aaa sub only on " + ca.id);
           }
         }
         if (subOnly) {

@@ -33,6 +33,7 @@ import de.enlightened.peris.support.Net;
 
 @SuppressLint("NewApi")
 public class CategoriesFragment extends ListFragment {
+  private static final String TAG = CategoriesFragment.class.getName();
   private static final int CATEGORIES_PER_PAGE = 20;
   private static final int MAX_ITEM_COUNT = 50;
 
@@ -139,14 +140,14 @@ public class CategoriesFragment extends ListFragment {
       this.searchQuery = bundle.getString("query");
     }
 
-    //Log.i("Peris", "**** New CategoriesFragment Instance ****");
-    //Log.d("Peris", "Passed subforum " + this.subforumId);
+    //Log.i(TAG, "**** New CategoriesFragment Instance ****");
+    //Log.d(TAG, "Passed subforum " + this.subforumId);
 
     this.totalHash = this.subforumId;
 
     if (this.subforumId.contains("###")) {
       this.subforumParts = this.subforumId.split("###");
-      Log.d("Peris", "Subforum has " + this.subforumParts.length + " parts.");
+      Log.d(TAG, "Subforum has " + this.subforumParts.length + " parts.");
       this.subforumId = this.subforumParts[0];
       //hashId = subforumParts[1];
     } else {
@@ -154,7 +155,7 @@ public class CategoriesFragment extends ListFragment {
       this.subforumParts[0] = this.subforumId;
     }
 
-    Log.d("Peris", "Entering subforum " + this.subforumId);
+    Log.d(TAG, "Entering subforum " + this.subforumId);
 
     this.serverAddress = this.application.getSession().getServer().serverAddress;
 
@@ -200,7 +201,7 @@ public class CategoriesFragment extends ListFragment {
   @Override
   public final void onResume() {
 
-    //Log.d("Peris","CF OnResume Began");
+    //Log.d(TAG,"CF OnResume Began");
 
     this.activity.getActionBar().setTitle(this.screenTitle);
     this.activity.getActionBar().setSubtitle(this.screenSubtitle);
@@ -215,10 +216,10 @@ public class CategoriesFragment extends ListFragment {
       try {
         final Object[][] forumObject = GsonHelper.CUSTOM_GSON.fromJson(cachedForum, Object[][].class);
         this.parseCachedForums(forumObject);
-        Log.d("Peris", "Forum cache available, using it");
+        Log.d(TAG, "Forum cache available, using it");
       } catch (Exception ex) {
         if (ex.getMessage() != null) {
-          Log.e("Peris", ex.getMessage());
+          Log.e(TAG, ex.getMessage());
         }
       }
     }
@@ -229,7 +230,7 @@ public class CategoriesFragment extends ListFragment {
       this.activity.invalidateOptionsMenu();
     }
 
-    //Log.d("Peris","CF OnResume Completed");
+    //Log.d(TAG,"CF OnResume Completed");
 
     super.onResume();
   }
@@ -239,7 +240,7 @@ public class CategoriesFragment extends ListFragment {
     if (this.categoriesDownloader != null) {
       if (this.categoriesDownloader.getStatus() == Status.RUNNING) {
         this.categoriesDownloader.cancel(true);
-        Log.i("Peris", "Killed Currently Running");
+        Log.i(TAG, "Killed Currently Running");
       }
     }
   }
@@ -252,7 +253,7 @@ public class CategoriesFragment extends ListFragment {
   }
 
   private void loadCategories() {
-    Log.d("Peris", "CF Starting loadCategories");
+    Log.d(TAG, "CF Starting loadCategories");
     this.endCurrentlyRunning();
     this.categoriesDownloader = new DownloadCategoriesTask();
 
@@ -314,13 +315,13 @@ public class CategoriesFragment extends ListFragment {
       }
     }
 
-    Log.d("Peris", "Starting category parse!");
+    Log.d(TAG, "Starting category parse!");
     //Forums
     if (result[0] != null) {
       ArrayList<Category> forumz = CategoryParser.parseCategories(result[0], this.subforumId, this.background);
-      Log.d("Peris", "Forums parsed!");
+      Log.d(TAG, "Forums parsed!");
       String currentHash = this.subforumParts[0];
-      Log.d("Peris", "Hash Size: " + this.subforumParts.length);
+      Log.d(TAG, "Hash Size: " + this.subforumParts.length);
       if (this.subforumParts.length == 1) {
         for (Category c : forumz) {
           this.categoryList.add(c);
@@ -328,7 +329,7 @@ public class CategoriesFragment extends ListFragment {
       } else {
         for (int i = 1; i < this.subforumParts.length; i++) {
           currentHash = currentHash + "###" + this.subforumParts[i];
-          Log.d("Peris", "Checking hash: " + currentHash + " (total hash is " + this.totalHash + ")");
+          Log.d(TAG, "Checking hash: " + currentHash + " (total hash is " + this.totalHash + ")");
           ArrayList<Category> tempForums = null;
           for (Category c : forumz) {
             if (c.children != null && c.id.contentEquals(currentHash)) {
@@ -348,7 +349,7 @@ public class CategoriesFragment extends ListFragment {
         }
       }
     }
-    Log.d("Peris", "Finished category parse!");
+    Log.d(TAG, "Finished category parse!");
     //Non-Sticky Topics
     if (result[3] == null || result[3].length == 0) {
       this.canScrollMoreThreads = false;
@@ -368,7 +369,7 @@ public class CategoriesFragment extends ListFragment {
 
     for (Object o : result[4]) {
       if (o != null) {
-        Log.i("Peris", "We have some favs!");
+        Log.i(TAG, "We have some favs!");
 
         final LinkedTreeMap map = (LinkedTreeMap) o;
         if (map.containsKey("forums")) {
@@ -395,7 +396,7 @@ public class CategoriesFragment extends ListFragment {
             this.categoryList.add(ca);
           }
         } else {
-          Log.e("Peris", "Favs has no forums!");
+          Log.e(TAG, "Favs has no forums!");
         }
       }
     }
@@ -437,7 +438,7 @@ public class CategoriesFragment extends ListFragment {
       //}
     }
     ca.id = (String) topicMap.get("topic_id");
-    Log.d("Peris", "LAST_REPLY_TIME: " + (String) topicMap.get("last_reply_time"));
+    Log.d(TAG, "LAST_REPLY_TIME: " + (String) topicMap.get("last_reply_time"));
     ca.lastUpdate = (String) topicMap.get("last_reply_time");
     if (!subforum || topicMap.get("topic_author_name") != null) {
       ca.lastThread = (String) topicMap.get("topic_author_name");
@@ -739,7 +740,7 @@ public class CategoriesFragment extends ListFragment {
 
     @Override
     protected void onPreExecute() {
-      Log.i("Peris", "DownloadCategoriesTask onPreExecute");
+      Log.i(TAG, "DownloadCategoriesTask onPreExecute");
       super.onPreExecute();
     }
 
@@ -747,9 +748,9 @@ public class CategoriesFragment extends ListFragment {
     @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
     protected Object[][] doInBackground(final String... params) {
-      Log.i("Peris", "DownloadCategoriesTask doInBackground");
+      Log.i(TAG, "DownloadCategoriesTask doInBackground");
       if (activity == null) {
-        Log.e("Peris", "Category activity is null!");
+        Log.e(TAG, "Category activity is null!");
         return null;
       }
       isLoading = true;
@@ -763,7 +764,7 @@ public class CategoriesFragment extends ListFragment {
           result[3][0] = application.getSession().performSynchronousCall("get_subscribed_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
-            Log.w("Peris", ex.getMessage());
+            Log.w(TAG, ex.getMessage());
           }
         }
       } else if (subforumId.contentEquals("forum_favs")) {
@@ -774,7 +775,7 @@ public class CategoriesFragment extends ListFragment {
           result[4][0] = application.getSession().performSynchronousCall("get_subscribed_forum", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
-            Log.w("Peris", "Favorites Error: " + ex.getMessage());
+            Log.w(TAG, "Favorites Error: " + ex.getMessage());
           }
         }
       } else if (subforumId.contentEquals("participated")) {
@@ -789,7 +790,7 @@ public class CategoriesFragment extends ListFragment {
           result[3][0] = application.getSession().performSynchronousCall("get_participated_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
-            Log.w("Peris", ex.getMessage());
+            Log.w(TAG, ex.getMessage());
           }
         }
       } else if (subforumId.contentEquals("search")) {
@@ -802,7 +803,7 @@ public class CategoriesFragment extends ListFragment {
           result[3][0] = application.getSession().performSynchronousCall("search_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
-            Log.w("Peris", ex.getMessage());
+            Log.w(TAG, ex.getMessage());
           }
         }
       } else if (subforumId.contentEquals("timeline")) {
@@ -816,7 +817,7 @@ public class CategoriesFragment extends ListFragment {
             result[3][0] = application.getSession().performSynchronousCall("get_latest_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
-              Log.w("Peris", ex.getMessage());
+              Log.w(TAG, ex.getMessage());
             }
           }
       } else if (subforumId.contentEquals("unread")) {
@@ -827,7 +828,7 @@ public class CategoriesFragment extends ListFragment {
             result[3][0] = application.getSession().performSynchronousCall("get_unread_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
-              Log.w("Peris", ex.getMessage());
+              Log.w(TAG, ex.getMessage());
             }
           }
         }
@@ -843,11 +844,11 @@ public class CategoriesFragment extends ListFragment {
             }
             result[0] = (Object[]) application.getSession().performSynchronousCall("get_forum", paramz);
             if (result[0] == null) {
-              Log.e("Peris", "shits null on " + subforumId);
+              Log.e(TAG, "shits null on " + subforumId);
             }
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
-              Log.w("Peris", ex.getMessage());
+              Log.w(TAG, ex.getMessage());
             }
           }
           try {
@@ -861,7 +862,7 @@ public class CategoriesFragment extends ListFragment {
             result[1][0] = application.getSession().performSynchronousCall("get_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
-              Log.w("Peris", ex.getMessage());
+              Log.w(TAG, ex.getMessage());
             }
           }
           try {
@@ -875,13 +876,13 @@ public class CategoriesFragment extends ListFragment {
             result[2][0] = application.getSession().performSynchronousCall("get_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
-              Log.w("Peris", ex.getMessage());
+              Log.w(TAG, ex.getMessage());
             }
           }
         }
         try {
           //Grab the non-sticky topics
-          Log.d("Peris", "Getting topics " + startingPos + " through " + endingPos);
+          Log.d(TAG, "Getting topics " + startingPos + " through " + endingPos);
 
           final Vector paramz = new Vector();
           paramz.addElement(subforumId);
@@ -890,7 +891,7 @@ public class CategoriesFragment extends ListFragment {
           result[3][0] = application.getSession().performSynchronousCall("get_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
-            Log.w("Peris", ex.getMessage());
+            Log.w(TAG, ex.getMessage());
           }
         }
       }
@@ -899,14 +900,14 @@ public class CategoriesFragment extends ListFragment {
 
     @SuppressWarnings("checkstyle:requirethis")
     protected void onPostExecute(final Object[][] result) {
-      Log.i("Peris", "DownloadCategoriesTask onPostExecute");
+      Log.i(TAG, "DownloadCategoriesTask onPostExecute");
 
       if (activity != null) {
         if (result == null) {
           final Toast toast = Toast.makeText(activity, "Error pulling data from the server, ecCFDL", Toast.LENGTH_SHORT);
           toast.show();
         } else {
-          Log.i("Peris", "Recieved category data!");
+          Log.i(TAG, "Recieved category data!");
 
           initialLoadComplete = true;
           isLoading = false;
@@ -950,7 +951,7 @@ public class CategoriesFragment extends ListFragment {
         application.getSession().performSynchronousCall("mark_all_as_read", paramz);
 
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
 
       return result;
@@ -988,7 +989,7 @@ public class CategoriesFragment extends ListFragment {
         application.getSession().performSynchronousCall("subscribe_topic", paramz);
 
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
 
       return "";
@@ -1017,7 +1018,7 @@ public class CategoriesFragment extends ListFragment {
           application.getSession().performSynchronousCall("unsubscribe_topic", paramz);
           return "";
         } catch (Exception ex) {
-          Log.w("Peris", ex.getMessage());
+          Log.w(TAG, ex.getMessage());
         }
       }
       return null;
@@ -1049,7 +1050,7 @@ public class CategoriesFragment extends ListFragment {
         //application.getSession().performSynchronousCall("m_stick_topic", paramz);
         application.getSession().performSynchronousCall("m_stick_topic", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
 
       return "";
@@ -1084,7 +1085,7 @@ public class CategoriesFragment extends ListFragment {
         application.getSession().performSynchronousCall("m_close_topic", paramz);
 
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
 
       return "";
@@ -1117,7 +1118,7 @@ public class CategoriesFragment extends ListFragment {
         //application.getSession().performSynchronousCall("m_delete_topic", paramz);
         application.getSession().performSynchronousCall("m_delete_topic", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
 
       return "";
@@ -1147,7 +1148,7 @@ public class CategoriesFragment extends ListFragment {
         //application.getSession().performSynchronousCall("subscribe_forum", paramz);
         application.getSession().performSynchronousCall("subscribe_forum", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
       return "";
     }
@@ -1179,7 +1180,7 @@ public class CategoriesFragment extends ListFragment {
         //application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
         application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
       return "";
     }

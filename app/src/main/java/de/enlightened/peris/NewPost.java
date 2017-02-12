@@ -33,8 +33,11 @@ import de.enlightened.peris.db.ServerRepository;
 
 @SuppressLint("NewApi")
 public class NewPost extends FragmentActivity {
+
+  private static final String TAG = NewPost.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
   private static final int MAX_SUBJECT_LENGTH = 45;
+
   //1: New Thread, 2: Reply, 3: Edit Post, 4: Message, 6: Tagline, 7: Instapost
   private int postType = 1;
   //private String server_address;
@@ -207,11 +210,11 @@ public class NewPost extends FragmentActivity {
     }
 
     if (bundle.containsKey("server")) {
-      Log.i("Peris", "Mail bundle contains server!");
+      Log.i(TAG, "Mail bundle contains server!");
       final Server server = ServerRepository.findOneByAddress(
           this.dbHelper.getReadableDatabase(), bundle.getString("server"));
       if (server == null) {
-        Log.i("Peris", "Conversation Server is null!");
+        Log.i(TAG, "Conversation Server is null!");
         return;
       }
 
@@ -511,7 +514,7 @@ public class NewPost extends FragmentActivity {
           } else if (postType == 4) {
             final byte[][] toname = new byte[1][MAX_ITEM_COUNT];
             toname[0] = category.getBytes();
-            Log.d("Peris", "Sending message to " + parent);
+            Log.d(TAG, "Sending message to " + parent);
 
             final Vector paramz = new Vector();
             paramz.addElement(toname);
@@ -522,7 +525,7 @@ public class NewPost extends FragmentActivity {
           //cookiemanager.getCookieStore();
           return result;
         } catch (Exception e) {
-          Log.w("Peris", e.getMessage());
+          Log.w(TAG, e.getMessage());
         }
       }
       return null;

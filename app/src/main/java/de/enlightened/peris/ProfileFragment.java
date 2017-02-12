@@ -43,6 +43,7 @@ import java.util.Vector;
 @SuppressWarnings("deprecation")
 public class ProfileFragment extends Fragment {
 
+  private static final String TAG = ProfileFragment.class.getName();
   private static final double DESIRED_PIC_SIZE = 800;
 
   private static final int CAMERA_PIC_REQUEST = 1337;
@@ -252,7 +253,7 @@ public class ProfileFragment extends Fragment {
           thumbnail2 = Bitmap.createScaledBitmap(thumbnail2, THUMBNAIL_SIZE, THUMBNAIL_SIZE, false);
           this.uploadPic = thumbnail2;
 
-          Log.d("Peris", "Avatar Size: " + this.uploadPic.getWidth() + "x" + this.uploadPic.getHeight());
+          Log.d(TAG, "Avatar Size: " + this.uploadPic.getWidth() + "x" + this.uploadPic.getHeight());
 
           this.submitpic();
         } catch (Exception e) {
@@ -294,7 +295,7 @@ public class ProfileFragment extends Fragment {
             thumbnail2 = Bitmap.createScaledBitmap(thumbnail2, THUMBNAIL_SIZE, THUMBNAIL_SIZE, false);
             this.uploadPic = thumbnail2;
 
-            Log.d("Peris", "Avatar Size: " + this.uploadPic.getWidth() + "x" + this.uploadPic.getHeight());
+            Log.d(TAG, "Avatar Size: " + this.uploadPic.getWidth() + "x" + this.uploadPic.getHeight());
 
             this.submitpic();
           } catch (Exception e) {
@@ -330,20 +331,20 @@ public class ProfileFragment extends Fragment {
       if (activity != null) {
         try {
           final Object[] result = new Object[MAX_ITEM_COUNT];
-          Log.d("Peris", "Viewing profile of " + userName);
+          Log.d(TAG, "Viewing profile of " + userName);
 
           final Vector paramz = new Vector();
           paramz.addElement(userName.getBytes());
           if (categoryId != null) {
             paramz.addElement(categoryId);
-            Log.i(getString(R.string.app_name), "Loading profile for " + userName + " (" + categoryId + ")");
+            Log.i(TAG, "Loading profile for " + userName + " (" + categoryId + ")");
           } else {
-            Log.i(getString(R.string.app_name), "Loading profile for " + userName + " (null)");
+            Log.i(TAG, "Loading profile for " + userName + " (null)");
           }
           result[0] = application.getSession().performSynchronousCall("get_user_info", paramz);
           return result;
         } catch (Exception e) {
-          Log.w(getString(R.string.app_name), e.getMessage());
+          Log.w(TAG, e.getMessage());
         }
       }
       return null;
@@ -352,20 +353,20 @@ public class ProfileFragment extends Fragment {
     @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
     protected void onPostExecute(final Object[] result) {
       if (result == null || result[0] == null) {
-        Log.e(getString(R.string.app_name), "No response for profile!");
+        Log.e(TAG, "No response for profile!");
         if (result != null) {
-          Log.e(getString(R.string.app_name), Integer.toString(result.length));
+          Log.e(TAG, Integer.toString(result.length));
         }
         return;
       }
       final HashMap topicMap = (HashMap) result[0];
 
       if (topicMap == null) {
-        Log.e(getString(R.string.app_name), "No topicmap!");
-        Log.e(getString(R.string.app_name), result[0].toString());
+        Log.e(TAG, "No topicmap!");
+        Log.e(TAG, result[0].toString());
         return;
       } else {
-        Log.i(getString(R.string.app_name), result[0].toString());
+        Log.i(TAG, result[0].toString());
       }
 
       Date timestamp = null;
@@ -449,14 +450,14 @@ public class ProfileFragment extends Fragment {
       try {
         this.errorBox.dismiss();
       } catch (Exception e) {
-        Log.d("Peris", e.getMessage());
+        Log.d(TAG, e.getMessage());
       }
       if (result == null) {
         return;
       }
 
       if (result.contentEquals("fail")) {
-        Log.w("Peris", "Image upload failure");
+        Log.w(TAG, "Image upload failure");
       } else {
         finishUpSubmission();
       }

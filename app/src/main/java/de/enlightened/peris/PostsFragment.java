@@ -44,6 +44,7 @@ import de.enlightened.peris.support.Net;
 @SuppressWarnings("deprecation")
 public class PostsFragment extends Fragment {
 
+  private static final String TAG = PostsFragment.class.getName();;
   static final int POST_RESPONSE = 1;
   static final int POSTS_PER_PAGE = 20;
   private static final int MAX_ITEM_COUNT = 50;
@@ -656,7 +657,7 @@ public class PostsFragment extends Fragment {
     @Override
     protected Object[] doInBackground(final String... params) {
 
-      Log.d("Peris", "Posts - DownloadPostsTask");
+      Log.d(TAG, "Posts - DownloadPostsTask");
 
       final Object[] result = new Object[MAX_ITEM_COUNT];
 
@@ -670,7 +671,7 @@ public class PostsFragment extends Fragment {
         result[0] = application.getSession().performSynchronousCall("get_thread", paramz);
 
       } catch (Exception e) {
-        Log.w("Peris", e.getMessage());
+        Log.w(TAG, e.getMessage());
         return null;
       }
       return result;
@@ -712,7 +713,7 @@ public class PostsFragment extends Fragment {
                   //po.moderator = moderator;
 
                   if (!topicMap.containsKey("post_author_id")) {
-                    Log.w("Peris", "There is no author id with this post!");
+                    Log.w(TAG, "There is no author id with this post!");
                   }
 
                   po.author = new String((byte[]) topicMap.get("post_author_name"));
@@ -740,13 +741,13 @@ public class PostsFragment extends Fragment {
                         attachmentName = new String((byte[]) attachmentMap.get("filename"));
                       }
                       if (attachmentType != null) {
-                        Log.i("Peris", "Post has attachment of type: " + attachmentType);
+                        Log.i(TAG, "Post has attachment of type: " + attachmentType);
                       }
                       if (attachmentUrl != null) {
-                        Log.i("Peris", "Post has attachment of url: " + attachmentUrl);
+                        Log.i(TAG, "Post has attachment of url: " + attachmentUrl);
                       }
                       if (attachmentName != null) {
-                        Log.i("Peris", "Post has attachment of type: " + attachmentName);
+                        Log.i(TAG, "Post has attachment of type: " + attachmentName);
                       }
                       if (attachmentType != null && attachmentUrl != null && attachmentName != null) {
                         final PostAttachment pa = new PostAttachment();
@@ -815,12 +816,12 @@ public class PostsFragment extends Fragment {
             activity.setProgressBarIndeterminateVisibility(false);
 
             if (forceBottomScroll) {
-              Log.d("Peris", "Force Bottom Scroll: " + (postList.size() - 1));
+              Log.d(TAG, "Force Bottom Scroll: " + (postList.size() - 1));
               forceBottomScroll = false;
               mainList.setSelection(postList.size() - 1);
             } else {
               mainList.setSelection(scrollLocation);
-              Log.d("Peris", "Retained Scroll: " + scrollLocation);
+              Log.d(TAG, "Retained Scroll: " + scrollLocation);
             }
           }
         }
@@ -846,7 +847,7 @@ public class PostsFragment extends Fragment {
 
         application.getSession().performSynchronousCall("m_delete_post", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
 
       return "";
@@ -875,7 +876,7 @@ public class PostsFragment extends Fragment {
         paramz.addElement(params[0]);
         application.getSession().performSynchronousCall("thank_post", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
       return "";
     }
@@ -905,7 +906,7 @@ public class PostsFragment extends Fragment {
         paramz.addElement(params[0]);
         application.getSession().performSynchronousCall("like_post", paramz);
       } catch (Exception ex) {
-        Log.w("Peris", ex.getMessage());
+        Log.w(TAG, ex.getMessage());
       }
       return "";
     }
@@ -951,7 +952,7 @@ public class PostsFragment extends Fragment {
           result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
           return result;
         } catch (Exception e) {
-          Log.w("Peris", e.getMessage());
+          Log.w(TAG, e.getMessage());
         }
       }
       return null;

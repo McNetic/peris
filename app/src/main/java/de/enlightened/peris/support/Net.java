@@ -12,6 +12,9 @@ import java.net.URL;
  */
 
 public final class Net {
+
+  private static final String TAG = Net.class.getName();;
+
   private Net() {
   }
 
@@ -19,7 +22,7 @@ public final class Net {
     try {
       return checkURL(new URL(urlString));
     } catch (MalformedURLException e) {
-      Log.d("Peris", "Bad URL " + urlString);
+      Log.d(TAG, "Bad URL " + urlString);
     }
     return false;
   }
@@ -35,9 +38,9 @@ public final class Net {
       }
     } catch (Exception e) {
       if (e.getMessage() != null) {
-        Log.d("Peris", e.getMessage());
+        Log.d(TAG, e.getMessage());
       } else {
-        Log.d("Peris", "Header connection error");
+        Log.d(TAG, "Header connection error");
       }
     }
     return false;
