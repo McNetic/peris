@@ -111,7 +111,7 @@ public class NewAccount extends FragmentActivity {
         paramz.addElement(username.getBytes());
         paramz.addElement(password.getBytes());
         paramz.addElement(emailaddress.getBytes());
-        result[0] = application.getSession().performNewSynchronousCall("register", paramz);
+        result[0] = application.getSession().performSynchronousCall("register", paramz);
       } catch (Exception ex) {
         Log.d("Peris", ex.getMessage());
       }

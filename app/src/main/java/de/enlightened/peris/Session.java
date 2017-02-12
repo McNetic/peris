@@ -165,16 +165,11 @@ public class Session {
     this.sessionListener = l;
   }
 
-  @SuppressWarnings("rawtypes")
-  public final Object performSynchronousCall(final String method, final Vector parms) {
-    return this.performNewSynchronousCall(method, parms);
-  }
-
   @SuppressLint("TrulyRandom")
   @SuppressWarnings("rawtypes")
-  public final Object performNewSynchronousCall(final String method, final Vector parms) {
+  public final Object performSynchronousCall(final String method, final Vector parms) {
 
-    Log.d("Peris", "Performing New Server Call: Method = " + method + " (URL: " + this.currentServer.getTapatalkURL() + ")");
+    Log.d("Peris", "Performing Server Call: Method = " + method + " (URL: " + this.currentServer.getTapatalkURL() + ")");
     try {
       final Object[] parmsobject = new Object[parms.size()];
       for (int i = 0; i < parms.size(); i++) {

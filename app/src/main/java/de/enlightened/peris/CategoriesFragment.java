@@ -760,7 +760,7 @@ public class CategoriesFragment extends ListFragment {
           final Vector paramz = new Vector();
           paramz.addElement(startingPos);
           paramz.addElement(endingPos);
-          result[3][0] = application.getSession().performNewSynchronousCall("get_subscribed_topic", paramz);
+          result[3][0] = application.getSession().performSynchronousCall("get_subscribed_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
             Log.w("Peris", ex.getMessage());
@@ -771,7 +771,7 @@ public class CategoriesFragment extends ListFragment {
         try {
           final Vector paramz = new Vector();
           //result[0] = (Object[]) client.execute("get_subscribed_forum", paramz);
-          result[4][0] = application.getSession().performNewSynchronousCall("get_subscribed_forum", paramz);
+          result[4][0] = application.getSession().performSynchronousCall("get_subscribed_forum", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
             Log.w("Peris", "Favorites Error: " + ex.getMessage());
@@ -786,7 +786,7 @@ public class CategoriesFragment extends ListFragment {
           paramz.addElement(endingPos);
           paramz.addElement("");
           paramz.addElement(userid);
-          result[3][0] = application.getSession().performNewSynchronousCall("get_participated_topic", paramz);
+          result[3][0] = application.getSession().performSynchronousCall("get_participated_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
             Log.w("Peris", ex.getMessage());
@@ -799,7 +799,7 @@ public class CategoriesFragment extends ListFragment {
           paramz.addElement(searchQuery.getBytes());
           paramz.addElement(startingPos);
           paramz.addElement(endingPos);
-          result[3][0] = application.getSession().performNewSynchronousCall("search_topic", paramz);
+          result[3][0] = application.getSession().performSynchronousCall("search_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
             Log.w("Peris", ex.getMessage());
@@ -813,7 +813,7 @@ public class CategoriesFragment extends ListFragment {
             paramz.addElement(startingPos);
             paramz.addElement(endingPos);
             //paramz.addElement(userid);
-            result[3][0] = application.getSession().performNewSynchronousCall("get_latest_topic", paramz);
+            result[3][0] = application.getSession().performSynchronousCall("get_latest_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
               Log.w("Peris", ex.getMessage());
@@ -824,7 +824,7 @@ public class CategoriesFragment extends ListFragment {
         if (!isExtraScrolling) {
           try {
             final Vector paramz = new Vector();
-            result[3][0] = application.getSession().performNewSynchronousCall("get_unread_topic", paramz);
+            result[3][0] = application.getSession().performSynchronousCall("get_unread_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
               Log.w("Peris", ex.getMessage());
@@ -841,7 +841,7 @@ public class CategoriesFragment extends ListFragment {
               paramz.addElement(new Boolean(true));
               paramz.addElement(subforumId);
             }
-            result[0] = (Object[]) application.getSession().performNewSynchronousCall("get_forum", paramz);
+            result[0] = (Object[]) application.getSession().performSynchronousCall("get_forum", paramz);
             if (result[0] == null) {
               Log.e("Peris", "shits null on " + subforumId);
             }
@@ -858,7 +858,7 @@ public class CategoriesFragment extends ListFragment {
             paramz.addElement(CATEGORIES_PER_PAGE);
             paramz.addElement("ANN");
             //result[1][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-            result[1][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
+            result[1][0] = application.getSession().performSynchronousCall("get_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
               Log.w("Peris", ex.getMessage());
@@ -872,7 +872,7 @@ public class CategoriesFragment extends ListFragment {
             paramz.addElement(CATEGORIES_PER_PAGE);
             paramz.addElement("TOP");
             //result[2][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-            result[2][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
+            result[2][0] = application.getSession().performSynchronousCall("get_topic", paramz);
           } catch (Exception ex) {
             if (ex.getMessage() != null) {
               Log.w("Peris", ex.getMessage());
@@ -887,7 +887,7 @@ public class CategoriesFragment extends ListFragment {
           paramz.addElement(subforumId);
           paramz.addElement(startingPos);
           paramz.addElement(endingPos);
-          result[3][0] = application.getSession().performNewSynchronousCall("get_topic", paramz);
+          result[3][0] = application.getSession().performSynchronousCall("get_topic", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
             Log.w("Peris", ex.getMessage());
@@ -947,7 +947,7 @@ public class CategoriesFragment extends ListFragment {
           paramz.addElement(params[0]);
         }
         //application.getSession().performSynchronousCall("mark_all_as_read", paramz);
-        application.getSession().performNewSynchronousCall("mark_all_as_read", paramz);
+        application.getSession().performSynchronousCall("mark_all_as_read", paramz);
 
       } catch (Exception ex) {
         Log.w("Peris", ex.getMessage());
@@ -985,7 +985,7 @@ public class CategoriesFragment extends ListFragment {
         final Vector paramz = new Vector();
         paramz.addElement(params[0]);
         //application.getSession().performSynchronousCall("subscribe_topic", paramz);
-        application.getSession().performNewSynchronousCall("subscribe_topic", paramz);
+        application.getSession().performSynchronousCall("subscribe_topic", paramz);
 
       } catch (Exception ex) {
         Log.w("Peris", ex.getMessage());
@@ -1014,7 +1014,7 @@ public class CategoriesFragment extends ListFragment {
           final Vector paramz = new Vector();
           paramz.addElement(params[0]);
           //application.getSession().performSynchronousCall("unsubscribe_topic", paramz);
-          application.getSession().performNewSynchronousCall("unsubscribe_topic", paramz);
+          application.getSession().performSynchronousCall("unsubscribe_topic", paramz);
           return "";
         } catch (Exception ex) {
           Log.w("Peris", ex.getMessage());
@@ -1047,7 +1047,7 @@ public class CategoriesFragment extends ListFragment {
         paramz.addElement(params[0]);
         paramz.addElement(Integer.parseInt(params[1]));
         //application.getSession().performSynchronousCall("m_stick_topic", paramz);
-        application.getSession().performNewSynchronousCall("m_stick_topic", paramz);
+        application.getSession().performSynchronousCall("m_stick_topic", paramz);
       } catch (Exception ex) {
         Log.w("Peris", ex.getMessage());
       }
@@ -1081,7 +1081,7 @@ public class CategoriesFragment extends ListFragment {
         paramz.addElement(params[0]);
         paramz.addElement(Integer.parseInt(params[1]));
         //application.getSession().performSynchronousCall("m_close_topic", paramz);
-        application.getSession().performNewSynchronousCall("m_close_topic", paramz);
+        application.getSession().performSynchronousCall("m_close_topic", paramz);
 
       } catch (Exception ex) {
         Log.w("Peris", ex.getMessage());
@@ -1115,7 +1115,7 @@ public class CategoriesFragment extends ListFragment {
         paramz.addElement(params[0]);
         paramz.addElement(2);
         //application.getSession().performSynchronousCall("m_delete_topic", paramz);
-        application.getSession().performNewSynchronousCall("m_delete_topic", paramz);
+        application.getSession().performSynchronousCall("m_delete_topic", paramz);
       } catch (Exception ex) {
         Log.w("Peris", ex.getMessage());
       }
@@ -1145,7 +1145,7 @@ public class CategoriesFragment extends ListFragment {
         final Vector paramz = new Vector();
         paramz.addElement(params[0]);
         //application.getSession().performSynchronousCall("subscribe_forum", paramz);
-        application.getSession().performNewSynchronousCall("subscribe_forum", paramz);
+        application.getSession().performSynchronousCall("subscribe_forum", paramz);
       } catch (Exception ex) {
         Log.w("Peris", ex.getMessage());
       }
@@ -1177,7 +1177,7 @@ public class CategoriesFragment extends ListFragment {
         final Vector paramz = new Vector();
         paramz.addElement(params[0]);
         //application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
-        application.getSession().performNewSynchronousCall("unsubscribe_forum", paramz);
+        application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
       } catch (Exception ex) {
         Log.w("Peris", ex.getMessage());
       }
