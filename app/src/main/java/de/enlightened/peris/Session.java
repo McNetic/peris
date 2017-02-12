@@ -21,8 +21,6 @@ import javax.net.ssl.X509TrustManager;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
 import de.timroes.axmlrpc.XMLRPCClient;
-import de.timroes.axmlrpc.XMLRPCException;
-import de.timroes.axmlrpc.XMLRPCServerException;
 
 @SuppressLint({"NewApi", "TrulyRandom"})
 public class Session {
@@ -189,30 +187,14 @@ public class Session {
       }
 
       return this.newClient.call(method, parmsobject);
-
-    } catch (XMLRPCServerException ex) {
-      Log.e(TAG, "Error with tapatalk call er1: " + method);
-      if (ex.getMessage() != null) {
-        Log.e(TAG, ex.getMessage());
-      } else {
-        Log.e(TAG, "(no message available)");
-      }
-    } catch (XMLRPCException ex) {
-      Log.e(TAG, "Error with tapatalk call er2: " + method);
-      if (ex.getMessage() != null) {
-        Log.e(TAG, ex.getMessage());
-      } else {
-        Log.e(TAG, "(no message available)");
-      }
     } catch (Exception ex) {
-      Log.e(TAG, "Error with tapatalk call er3: " + method);
+      String.format("Tapatalk call error (%s) : %s", ex.getClass().getName(), method);
       if (ex.getMessage() != null) {
         Log.e(TAG, ex.getMessage());
       } else {
         Log.e(TAG, "(no message available)");
       }
     }
-
     return null;
 
     /*
