@@ -164,7 +164,7 @@ public class SettingsFragment extends Fragment {
     bundle.putString("picture", (String) "0");
     bundle.putString("color", (String) this.background);
     bundle.putString("subject", (String) "");
-    bundle.putInt("post_type", (Integer) 6);
+    bundle.putString("post_type", NewPost.Type.Tagline.name());
     final Intent myIntent = new Intent(this.getActivity(), NewPost.class);
     myIntent.putExtras(bundle);
 

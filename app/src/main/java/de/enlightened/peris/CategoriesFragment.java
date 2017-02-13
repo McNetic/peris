@@ -715,7 +715,7 @@ public class CategoriesFragment extends ListFragment {
     bundle.putString("boxTitle", (String) "New Thread");
     bundle.putString("picture", (String) "0");
     bundle.putString("subject", (String) "");
-    bundle.putInt("post_type", (Integer) 1);
+    bundle.putString("post_type", NewPost.Type.NewThread.name());
     bundle.putString("color", (String) this.background);
     myIntent.putExtras(bundle);
 

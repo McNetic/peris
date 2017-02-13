@@ -389,7 +389,7 @@ public class PostsFragment extends Fragment {
       bundle.putString("picture", (String) "0");
       bundle.putString("color", (String) this.background);
       bundle.putString("subject", (String) this.currentThreadSubject);
-      bundle.putInt("post_type", (Integer) 2);
+      bundle.putString("post_type", NewPost.Type.Reply.name());
       myIntent.putExtras(bundle);
 
       PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
@@ -415,7 +415,7 @@ public class PostsFragment extends Fragment {
       bundle.putString("picture", (String) this.selectedPost.picture);
       bundle.putString("color", (String) this.background);
       bundle.putString("subject", (String) this.currentThreadSubject);
-      bundle.putInt("post_type", (Integer) 3);
+      bundle.putString("post_type", NewPost.Type.EditPost.name());
       myIntent.putExtras(bundle);
 
       PostsFragment.this.startActivityForResult(myIntent, POST_RESPONSE);
@@ -440,7 +440,7 @@ public class PostsFragment extends Fragment {
       bundle.putString("original_text", (String) "[quote=\"" + this.selectedPost.author + "\"]" + this.selectedPost.body + "[/quote]<br /><br />");
       bundle.putString("picture", (String) "0");
       bundle.putString("color", (String) this.background);
-      bundle.putInt("post_type", (Integer) 2);
+      bundle.putString("post_type", NewPost.Type.Reply.name());
       bundle.putString("subject", (String) this.currentThreadSubject);
       myIntent.putExtras(bundle);
 
@@ -628,7 +628,7 @@ public class PostsFragment extends Fragment {
     bundle.putString("picture", (String) "0");
     bundle.putString("color", (String) getString(R.string.default_color));
     bundle.putString("subject", (String) "");
-    bundle.putInt("post_type", (Integer) 4);
+    bundle.putString("post_type", NewPost.Type.Message.name());
     myIntent.putExtras(bundle);
 
     startActivity(myIntent);

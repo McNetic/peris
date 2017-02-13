@@ -364,7 +364,7 @@ public class ForumSettingsFragment extends Fragment {
           bundle.putString("picture", (String) "0");
           bundle.putString("color", (String) application.getSession().getServer().serverColor);
           bundle.putString("subject", (String) "");
-          bundle.putInt("post_type", (Integer) 6);
+          bundle.putString("post_type", NewPost.Type.Tagline.name());
           myIntent.putExtras(bundle);
 
           startActivity(myIntent);

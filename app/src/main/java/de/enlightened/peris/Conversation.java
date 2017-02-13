@@ -198,7 +198,7 @@ public class Conversation extends FragmentActivity {
     bundle.putString("picture", (String) "0");
     bundle.putString("color", (String) this.accent);
     bundle.putString("subject", (String) this.partnerName);
-    bundle.putInt("post_type", (Integer) 4);
+    bundle.putString("post_type", NewPost.Type.Message.name());
 
     if (!this.externalServer.contentEquals("0")) {
       bundle.putString("server", this.externalServer);

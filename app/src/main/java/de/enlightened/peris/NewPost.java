@@ -38,8 +38,7 @@ public class NewPost extends FragmentActivity {
   private static final int MAX_ITEM_COUNT = 50;
   private static final int MAX_SUBJECT_LENGTH = 45;
 
-  //1: New Thread, 2: Reply, 3: Edit Post, 4: Message, 6: Tagline, 7: Instapost
-  private int postType = 1;
+  private Type postType = Type.NewThread;
   //private String server_address;
   private String parent = "0";
   private String category = "0";
@@ -61,6 +60,16 @@ public class NewPost extends FragmentActivity {
   private Session mailSession;
   private AnalyticsHelper ah;
   private PerisDBHelper dbHelper;
+
+  public static enum Type {
+    NewThread,
+    Reply,
+    EditPost,
+    Message,
+    Five,
+    Tagline,
+    Instapost
+  }
 
   private View.OnClickListener clickListener = new View.OnClickListener() {
     @SuppressWarnings("checkstyle:requirethis")
@@ -139,7 +148,7 @@ public class NewPost extends FragmentActivity {
     public void onClick(final View v) {
       submitter.setEnabled(false);
 
-      if (postType == 6) {
+      if (postType == Type.Tagline) {
         postSubmitted = true;
         final String comment = bodyInputter.getText().toString();
         mailSession.getServer().serverTagline = comment;
@@ -196,7 +205,7 @@ public class NewPost extends FragmentActivity {
 
     final Bundle bundle = getIntent().getExtras();
     this.subforum = bundle.getString("subforum_id");
-    this.postType = bundle.getInt("post_type");
+    this.postType = Type.valueOf(bundle.getString("post_type"));
     this.parent = bundle.getString("parent");
     this.category = bundle.getString("category");
     this.originalText = bundle.getString("original_text");
@@ -205,7 +214,7 @@ public class NewPost extends FragmentActivity {
     final String boxTitle = bundle.getString("boxTitle");
     this.theSubject = bundle.getString("subject");
 
-    if (this.postType == 4 && this.theSubject.length() > 0) {
+    if (this.postType == Type.Message && this.theSubject.length() > 0) {
       this.theSubject = "Re: " + this.theSubject;
     }
 
@@ -265,7 +274,7 @@ public class NewPost extends FragmentActivity {
       }
     });
 
-    if (this.postType == 5) {
+    if (this.postType == Type.Five) {
       this.pictureAttacher.setVisibility(View.GONE);
     }
     final Button bold = (Button) findViewById(R.id.new_post_bold);
@@ -282,10 +291,10 @@ public class NewPost extends FragmentActivity {
     underline.setOnClickListener(this.setUnderline);
     picker.setOnClickListener(this.clickListener);
 
-    if (this.postType != 1 && this.postType != 4) {
+    if (this.postType != Type.NewThread && this.postType != Type.Message) {
       this.subjectInputter.setVisibility(View.GONE);
       this.subjectInputter.setText(this.theSubject);
-    } else if (this.postType == 4) {
+    } else if (this.postType == Type.Message) {
       this.subjectInputter.setText(this.theSubject);
       this.bodyInputter.setSelection(0);
     }
@@ -294,16 +303,16 @@ public class NewPost extends FragmentActivity {
     this.originalText = this.originalText.replaceAll("\\<font color=\"([^<]*)\"\\>([^<]*)\\</font\\>", "[color=$1]$2[/color]");
     this.bodyInputter.setText(this.originalText);
 
-    if (this.postType == 6) {
+    if (this.postType == Type.Tagline) {
       this.bodyInputter.setText(this.tagline);
-    } else if (this.postType == 7) {
-      this.postType = 2;
+    } else if (this.postType == Type.Instapost) {
+      this.postType = Type.Reply;
       if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
         new PostDataTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
       } else {
         new PostDataTask().execute();
       }
-    } else if (this.postType == 2 && this.originalText.length() > 0) {
+    } else if (this.postType == Type.Reply && this.originalText.length() > 0) {
       this.bodyInputter.setSelection(this.originalText.length() - 1);
     }
   }
@@ -322,7 +331,7 @@ public class NewPost extends FragmentActivity {
     String postContent = "0";
     String postSubject = "0";
 
-    if (!this.postSubmitted && this.postType != 6) {
+    if (!this.postSubmitted && this.postType != Type.Tagline) {
       postContent = this.bodyInputter.getText().toString().trim();
       postSubject = this.subjectInputter.getText().toString().trim();
 
@@ -464,7 +473,7 @@ public class NewPost extends FragmentActivity {
         }
         */
         final Object[] result = new Object[MAX_ITEM_COUNT];
-        if (postType == 1 || postType == 4) {
+        if (postType == Type.NewThread || postType == Type.Message) {
           subject = subjectInputter.getText().toString();
         }
         subject = subject.trim();
@@ -475,7 +484,7 @@ public class NewPost extends FragmentActivity {
         if (subject.length() < 1) {
           subject = "no subject";
         }
-        if ((postType == 1 || postType == 2 | postType == 4) && tagline.length() > 0) {
+        if ((postType == Type.NewThread || postType == Type.Reply | postType == Type.Message) && tagline.length() > 0) {
           comment = comment + "\n\n" + tagline;
         }
 
@@ -492,26 +501,26 @@ public class NewPost extends FragmentActivity {
           client.setTransportFactory(tFactory);
           */
 
-          if (postType == 1) {
+          if (postType == Type.NewThread) {
             final Vector paramz = new Vector();
             paramz.addElement(category);
             paramz.addElement(subject.getBytes());
             paramz.addElement(comment.getBytes());
             result[0] = mailSession.performSynchronousCall("new_topic", paramz);
-          } else if (postType == 2) {
+          } else if (postType == Type.Reply) {
             final Vector paramz = new Vector();
             paramz.addElement(category);
             paramz.addElement(parent);
             paramz.addElement(subject.getBytes());
             paramz.addElement(comment.getBytes());
             result[0] = mailSession.performSynchronousCall("reply_post", paramz);
-          } else if (postType == 3) {
+          } else if (postType == Type.EditPost) {
             final Vector paramz = new Vector();
             paramz.addElement(postId);
             paramz.addElement(subject.getBytes());
             paramz.addElement(comment.getBytes());
             result[0] = mailSession.performSynchronousCall("save_raw_post", paramz);
-          } else if (postType == 4) {
+          } else if (postType == Type.Message) {
             final byte[][] toname = new byte[1][MAX_ITEM_COUNT];
             toname[0] = category.getBytes();
             Log.d(TAG, "Sending message to " + parent);

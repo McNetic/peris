@@ -194,7 +194,7 @@ public class ProfileFragment extends Fragment {
     bundle.putString("picture", (String) "0");
     bundle.putString("color", (String) getString(R.string.default_color));
     bundle.putString("subject", (String) "");
-    bundle.putInt("post_type", (Integer) 4);
+    bundle.putString("post_type", NewPost.Type.Message.name());
     myIntent.putExtras(bundle);
 
     this.startActivity(myIntent);
