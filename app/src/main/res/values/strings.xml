@@ -9,7 +9,7 @@
     <string name="analytics_app_tracker">UA-59270103-44</string>
     <string name="app_version">@string/gradle.versionName</string>
     <string name="compile_date">@string/gradle.buildDate</string>
-    <string name="copyright_years">2016</string>
+    <string name="copyright_years">2016 - 2017</string>
     <string name="app_author">Nicolai Ehemann</string>
     <string name="app_author_email">en@enlightened.de</string>
     <string name="app_url">https://github.com/McNetic/peris</string>
