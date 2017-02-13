@@ -1,22 +1,33 @@
 apply plugin: 'com.android.application'
 
+def dependencyVersions = [
+    androidSupportV4: '25.1.1',
+    gson: '2.2.4',
+    aXMLRPC: '1.8.1',
+    httpmime: '4.2.5',
+    universalImageLoader: '1.9.3'
+]
+
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.2"
-    useLibrary "org.apache.http.legacy"
+    buildToolsVersion '25.0.2'
+    useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
-        applicationId "de.enlightened.peris"
+        applicationId 'de.enlightened.peris'
         minSdkVersion 11
         targetSdkVersion 21
-        buildConfigField "long", "BUILD_TIMESTAMP", System.currentTimeMillis() + "L"
+        buildConfigField 'long', 'BUILD_TIMESTAMP', System.currentTimeMillis() + 'L'
         versionCode 42
-        versionName "1.4.0"
+        versionName '1.4.0'
     }
 
     applicationVariants.all { variant ->
-        variant.resValue "string", "gradle.buildDate", new Date().format('yyyyMMdd')
-        variant.resValue "string", "gradle.versionName", variant.versionName
+        variant.resValue 'string', 'gradle.buildDate', new Date().format('yyyyMMdd')
+        variant.resValue 'string', 'gradle.versionName', variant.versionName
+        dependencyVersions.each { dependency, version ->
+            variant.resValue 'string', 'gradle.depVersions.' + dependency, version
+        }
     }
     buildTypes {
         release {
@@ -27,11 +38,11 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:25.1.1'
-    compile 'com.google.code.gson:gson:2.2.4'
-    compile files('libs/aXMLRPC_v1.7.2.jar')
-    compile files('libs/httpmime-4.2.5.jar')
-    compile files('libs/universal-image-loader-1.9.3.jar')
+    compile 'com.android.support:support-v4:' + dependencyVersions.androidSupportV4
+    compile 'com.google.code.gson:gson:' + dependencyVersions.gson
+    compile 'de.timroes:aXMLRPC:' + dependencyVersions.aXMLRPC
+    compile files('libs/httpmime-' + dependencyVersions.httpmime + '.jar')
+    compile files('libs/universal-image-loader-' + dependencyVersions.universalImageLoader + '.jar')
 }
 
 apply plugin: 'checkstyle'
