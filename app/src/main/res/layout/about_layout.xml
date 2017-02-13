@@ -193,7 +193,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="android-support-v4.jar\naXMLRPC_v1.8.1.jar\ngson-2.2.4.jar\nhttpmime-4.2.5.jar\nuniversal-image-loader-1.9.3.jar"
+                android:text="android-support-v4 25.1.1\naXMLRPC 1.8.1\ngson 2.2.4\nhttpmime 4.2.5\nuniversal-image-loader 1.9.5"
                 android:textColor="#ffffff"
                 android:textStyle="bold" />
 

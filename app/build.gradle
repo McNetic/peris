@@ -5,7 +5,7 @@ def dependencyVersions = [
     gson: '2.2.4',
     aXMLRPC: '1.8.1',
     httpmime: '4.2.5',
-    universalImageLoader: '1.9.3'
+    universalImageLoader: '1.9.5'
 ]
 
 android {
@@ -41,8 +41,8 @@ dependencies {
     compile 'com.android.support:support-v4:' + dependencyVersions.androidSupportV4
     compile 'com.google.code.gson:gson:' + dependencyVersions.gson
     compile 'de.timroes:aXMLRPC:' + dependencyVersions.aXMLRPC
+    compile 'com.nostra13.universalimageloader:universal-image-loader:' + dependencyVersions.universalImageLoader
     compile files('libs/httpmime-' + dependencyVersions.httpmime + '.jar')
-    compile files('libs/universal-image-loader-' + dependencyVersions.universalImageLoader + '.jar')
 }
 
 apply plugin: 'checkstyle'
