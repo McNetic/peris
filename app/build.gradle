@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 def dependencyVersions = [
     androidSupportV4: '25.1.1',
     gson: '2.2.4',
-    aXMLRPC: '1.8.1',
+    aXMLRPC: '1.8.0',
     httpmime: '4.2.5',
     universalImageLoader: '1.9.5'
 ]
