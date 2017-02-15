@@ -216,7 +216,7 @@ public class PostsFragment extends Fragment {
     this.postCount = bundle.getString("posts");
     this.currentThreadSubject = bundle.getString("subject");
 
-    if (this.application.getSession().getForumSystem() == 1) {
+    if (this.application.getSession().getForumSystem() == Session.ForumSystem.PHPBB) {
       this.shareURL = this.application.getSession().getServer().getURL("/viewtopic.php?f=" + this.subforumId + "&t=" + this.threadId);
     }
 

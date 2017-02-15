@@ -28,15 +28,7 @@ public class Session {
   private static final String TAG = Session.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
   private final PerisDBHelper borrowedDbHelper;
-  /*
-     *  Forum System Reference
-     *  ----------------------
-     *  0 - Unknown
-     *  1 - phpBB
-     *  2 - MyBB
-     *  3 - vBulletin
-     */
-  private int forumSystem = 0;
+  private ForumSystem forumSystem = ForumSystem.UNKNOWN;
   private long sessionId;
   // Install the all-trusting trust manager
   private SSLContext sc;
@@ -74,6 +66,13 @@ public class Session {
     this.sessionId = new Date().getTime();
 
     Log.i(TAG, "*** NEW SESSION (" + this.sessionId + ") ***");
+  }
+
+  public enum ForumSystem {
+    UNKNOWN,
+    PHPBB,
+    MYBB,
+    VBULLETIN
   }
 
   public final String getAvatarName() {
@@ -269,7 +268,7 @@ public class Session {
     return this.allowRegistration;
   }
 
-  public final int getForumSystem() {
+  public final ForumSystem getForumSystem() {
     return this.forumSystem;
   }
 
@@ -439,17 +438,17 @@ public class Session {
           Log.i(TAG, "Forum system code is: " + system);
 
           if (system.contains("pb")) {
-            forumSystem = 1;
+            forumSystem = ForumSystem.PHPBB;
             avatarSubmissionName = "uploadfile";
             Log.i(TAG, "Forum is phpBB");
           }
           if (system.contains("mb")) {
-            forumSystem = 2;
+            forumSystem = ForumSystem.MYBB;
             avatarSubmissionName = "avatarupload";
             Log.i(TAG, "Forum is MyBB");
           }
           if (system.contains("vb")) {
-            forumSystem = 3;
+            forumSystem = ForumSystem.VBULLETIN;
             avatarSubmissionName = "upload";
             Log.i(TAG, "Forum is vBulletin");
           }
