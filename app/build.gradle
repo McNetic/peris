@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 def dependencyVersions = [
+    lombok: '1.16.14',
     androidSupportV4: '25.1.1',
     gson: '2.2.4',
     aXMLRPC: '1.8.0',
@@ -38,6 +39,8 @@ android {
 }
 
 dependencies {
+    compile 'javax.annotation:jsr250-api:1.0'
+    provided "org.projectlombok:lombok:" + dependencyVersions.lombok
     compile 'com.android.support:support-v4:' + dependencyVersions.androidSupportV4
     compile 'com.google.code.gson:gson:' + dependencyVersions.gson
     compile 'de.timroes:aXMLRPC:' + dependencyVersions.aXMLRPC
