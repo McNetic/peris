@@ -33,11 +33,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Vector;
 
+import de.enlightened.peris.site.Topic;
 import de.enlightened.peris.support.Net;
 
 @SuppressLint("NewApi")
@@ -652,147 +650,28 @@ public class PostsFragment extends Fragment {
     void onProfileSelected(String username, String userid);
   }
 
-  private class DownloadPostsTask extends AsyncTask<String, Void, Object[]> {
+  private class DownloadPostsTask extends AsyncTask<Object, Object, Topic> {
     @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(final String... params) {
-
+    protected Topic doInBackground(final Object... params) {
       Log.d(TAG, "Posts - DownloadPostsTask");
-
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(threadId);
-        paramz.addElement(curMinPost);
-        paramz.addElement(curMaxPost);
-        paramz.addElement(true);
-
-        result[0] = application.getSession().performSynchronousCall("get_thread", paramz);
-
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
+      return PostsFragment.this.application.getSession().getApi().getTopic(threadId, curMinPost, curMaxPost, true);
     }
 
     @SuppressWarnings({"rawtypes", "checkstyle:requirethis", "checkstyle:nestedifdepth", "checkstyle:nestedfordepth"})
-    protected void onPostExecute(final Object[] result) {
+    protected void onPostExecute(final Topic result) {
       if (activity != null) {
         if (result == null) {
           final Toast toast = Toast.makeText(activity, "No response from the server!", Toast.LENGTH_LONG);
           toast.show();
         } else {
-          final ArrayList<Post> postList = new ArrayList<Post>();
-          for (Object o : result) {
-            if (o != null) {
-              final HashMap map = (HashMap) o;
-              if (map.get("total_post_num") != null) {
-                curTotalPosts = (Integer) map.get("total_post_num");
-              }
-              if (map.get("can_reply") != null) {
-                canPost = (Boolean) map.get("can_reply");
-                if (canPost) {
-                  final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
-                  if (appPreferences.getBoolean("show_quick_reply", true)) {
-                    postsInputArea.setVisibility(View.VISIBLE);
-                  }
-                }
-              }
-
-              if (map.containsKey("posts")) {
-                final Object[] topics = (Object[]) map.get("posts");
-                for (Object t : topics) {
-                  final HashMap topicMap = (HashMap) t;
-                  final Date timestamp = (Date) topicMap.get("post_time");
-                  final Post po = new Post();
-                  po.categoryId = categoryId;
-                  po.subforumId = subforumId;
-                  po.threadId = threadId;
-                  //po.moderator = moderator;
-
-                  if (!topicMap.containsKey("post_author_id")) {
-                    Log.w(TAG, "There is no author id with this post!");
-                  }
-
-                  po.author = new String((byte[]) topicMap.get("post_author_name"));
-                  po.authorId = (String) topicMap.get("post_author_id");
-                  po.body = new String((byte[]) topicMap.get("post_content"));
-                  po.avatar = (String) topicMap.get("icon_url");
-
-                  po.id = (String) topicMap.get("post_id");
-                  po.tagline = "tagline";
-
-                  if (timestamp != null) {
-                    po.timestamp = timestamp.toString();
-                  }
-
-                  if (topicMap.containsKey("attachments")) {
-                    final Object[] attachments = (Object[]) topicMap.get("attachments");
-
-                    for (Object a : attachments) {
-                      final HashMap attachmentMap = (HashMap) a;
-                      final String attachmentType = (String) attachmentMap.get("content_type");
-                      final String attachmentUrl = (String) attachmentMap.get("url");
-                      String attachmentName = null;
-
-                      if (attachmentMap.containsKey("filename")) {
-                        attachmentName = new String((byte[]) attachmentMap.get("filename"));
-                      }
-                      if (attachmentType != null) {
-                        Log.i(TAG, "Post has attachment of type: " + attachmentType);
-                      }
-                      if (attachmentUrl != null) {
-                        Log.i(TAG, "Post has attachment of url: " + attachmentUrl);
-                      }
-                      if (attachmentName != null) {
-                        Log.i(TAG, "Post has attachment of type: " + attachmentName);
-                      }
-                      if (attachmentType != null && attachmentUrl != null && attachmentName != null) {
-                        final PostAttachment pa = new PostAttachment();
-                        pa.contentType = attachmentType;
-                        pa.url = attachmentUrl;
-                        pa.filename = attachmentName;
-                        po.attachmentList.add(pa);
-                      }
-                    }
-                  }
-
-                  if (topicMap.containsKey("is_online")) {
-                    po.userOnline = (Boolean) topicMap.get("is_online");
-                  }
-                  if (topicMap.containsKey("is_ban")) {
-                    po.userBanned = (Boolean) topicMap.get("is_ban");
-                  }
-                  if (topicMap.containsKey("can_delete")) {
-                    po.canDelete = (Boolean) topicMap.get("can_delete");
-                  }
-                  if (topicMap.containsKey("can_ban")) {
-                    po.canBan = (Boolean) topicMap.get("can_ban");
-                  }
-                  if (topicMap.containsKey("can_edit")) {
-                    po.canEdit = (Boolean) topicMap.get("can_edit");
-                  }
-                  if (topicMap.containsKey("can_thank")) {
-                    po.canThank = (Boolean) topicMap.get("can_thank");
-                  }
-                  if (topicMap.containsKey("can_like")) {
-                    po.canLike = (Boolean) topicMap.get("can_like");
-                  }
-                  if (topicMap.containsKey("thanks_info")) {
-                    final Object[] thankses = (Object[]) topicMap.get("thanks_info");
-                    po.thanksCount = thankses.length;
-                  }
-                  if (topicMap.containsKey("likes_info")) {
-                    final Object[] likes = (Object[]) topicMap.get("likes_info");
-                    po.likeCount = likes.length;
-                  }
-                  postList.add(po);
-                }
-              }
+          if (result.isCanPost()) {
+            final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
+            if (appPreferences.getBoolean("show_quick_reply", true)) {
+              postsInputArea.setVisibility(View.VISIBLE);
             }
           }
+
           setupPagination();
           if (mainList != null) {
             registerForContextMenu(mainList);
@@ -810,15 +689,15 @@ public class PostsFragment extends Fragment {
               }
             });
 
-            PostsFragment.this.mainList.setAdapter(new PostAdapter(postList, activity, application, pageNumber));
+            PostsFragment.this.mainList.setAdapter(new PostAdapter(result.getPosts(), activity, application, pageNumber));
 
             mainList.setItemsCanFocus(true);
             activity.setProgressBarIndeterminateVisibility(false);
 
             if (forceBottomScroll) {
-              Log.d(TAG, "Force Bottom Scroll: " + (postList.size() - 1));
+              Log.d(TAG, "Force Bottom Scroll: " + (result.getPosts().size() - 1));
               forceBottomScroll = false;
-              mainList.setSelection(postList.size() - 1);
+              mainList.setSelection(result.getPosts().size() - 1);
             } else {
               mainList.setSelection(scrollLocation);
               Log.d(TAG, "Retained Scroll: " + scrollLocation);

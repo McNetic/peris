@@ -165,8 +165,6 @@ public class NewPost extends FragmentActivity {
       } else {
         new PostDataTask().execute();
       }
-
-
     }
   };
   private View.OnClickListener submissionOptionsListener = new View.OnClickListener() {
@@ -194,8 +192,6 @@ public class NewPost extends FragmentActivity {
           // Do nothing.
         }
       }).show();
-
-
     }
   };
 
@@ -543,7 +539,6 @@ public class NewPost extends FragmentActivity {
     //This method is executed after the thread has completed.
     @SuppressWarnings("checkstyle:requirethis")
     protected void onPostExecute(final Object[] result) {
-
       if (result == null) {
         submitter.setEnabled(true);
 
@@ -554,10 +549,8 @@ public class NewPost extends FragmentActivity {
       }
 
       postSubmitted = true;
-
       NewPost.this.setResult(1);
       finish();
     }
-
   }
 }

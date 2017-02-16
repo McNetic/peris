@@ -20,6 +20,7 @@ import javax.net.ssl.X509TrustManager;
 
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
+import de.enlightened.peris.api.Tapatalk;
 import de.timroes.axmlrpc.XMLRPCClient;
 
 @SuppressLint({"NewApi", "TrulyRandom"})
@@ -29,6 +30,7 @@ public class Session {
   private static final int MAX_ITEM_COUNT = 50;
   private final PerisDBHelper borrowedDbHelper;
   private ForumSystem forumSystem = ForumSystem.UNKNOWN;
+  private final Tapatalk api;
   private long sessionId;
   // Install the all-trusting trust manager
   private SSLContext sc;
@@ -62,6 +64,7 @@ public class Session {
   public Session(final Context c, final PerisApp app, final PerisDBHelper dbHelper) {
     this.context = c;
     this.borrowedDbHelper = dbHelper;
+    this.api = new Tapatalk();
     this.application = app;
     this.sessionId = new Date().getTime();
 
@@ -73,6 +76,10 @@ public class Session {
     PHPBB,
     MYBB,
     VBULLETIN
+  }
+
+  public Tapatalk getApi() {
+    return this.api;
   }
 
   public final String getAvatarName() {
@@ -90,6 +97,7 @@ public class Session {
   }
 
   public final void setServer(final Server server) {
+    this.api.setServer(server);
     this.currentServer = server;
 
     if (server.serverTagline.contentEquals("[*WEBVIEW*]")) {
