@@ -77,4 +77,8 @@ public class RPCMap extends OptMap<String, Object> {
   public int getCount(final String key) {
     return ((Object[]) this.getOrDefault(key, new Object[0])).length;
   }
+
+  public Boolean getStringBoolOrDefault(final String key) {
+    return "1".equals(this.getStringOrDefault(key, "0"));
+  }
 }

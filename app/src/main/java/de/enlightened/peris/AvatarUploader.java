@@ -97,7 +97,7 @@ public class AvatarUploader {
 
       //String uploadFileFieldName = "uploadfile";
 
-      uploadFileFieldName = application.getSession().getAvatarName();
+      uploadFileFieldName = application.getSession().getApi().getConfig().getAvatarSubmissionName();
 
       Log.d(TAG, "Avatar Upload Field Name: " + uploadFileFieldName);
 

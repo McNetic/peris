@@ -35,6 +35,7 @@ import android.widget.Toast;
 import java.net.URL;
 import java.util.Vector;
 
+import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Topic;
 import de.enlightened.peris.support.Net;
 
@@ -214,7 +215,7 @@ public class PostsFragment extends Fragment {
     this.postCount = bundle.getString("posts");
     this.currentThreadSubject = bundle.getString("subject");
 
-    if (this.application.getSession().getForumSystem() == Session.ForumSystem.PHPBB) {
+    if (this.application.getSession().getApi().getConfig().getForumSystem() == Config.ForumSystem.PHPBB) {
       this.shareURL = this.application.getSession().getServer().getURL("/viewtopic.php?f=" + this.subforumId + "&t=" + this.threadId);
     }
 

@@ -29,6 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import de.enlightened.peris.site.Config;
 import de.enlightened.peris.support.Net;
 
 @SuppressLint("NewApi")
@@ -170,7 +171,7 @@ public class CategoriesFragment extends ListFragment {
     if (shareId.contentEquals("0")) {
       this.shareURL = this.application.getSession().getServer().getURL();
     } else {
-      if (this.application.getSession().getForumSystem() == Session.ForumSystem.PHPBB) {
+      if (this.application.getSession().getApi().getConfig().getForumSystem() == Config.ForumSystem.PHPBB) {
         this.shareURL = this.application.getSession().getServer().getURL("viewforum.php?f=" + shareId);
       }
     }

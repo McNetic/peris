@@ -46,7 +46,7 @@ public class Login extends Fragment {
     @SuppressWarnings("checkstyle:requirethis")
     public void onClick(final View v) {
       if (getString(R.string.registration_url).contentEquals("0")) {
-        if (application.getSession().getAllowRegistration()) {
+        if (application.getSession().getApi().getConfig().getAccountManagementEnabled()) {
           final Intent myIntent = new Intent(getActivity(), NewAccount.class);
           Login.this.startActivity(myIntent);
         } else {

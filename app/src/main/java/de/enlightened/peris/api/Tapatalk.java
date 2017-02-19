@@ -2,10 +2,11 @@ package de.enlightened.peris.api;
 
 import android.util.Log;
 
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-import java.util.Vector;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -17,8 +18,10 @@ import javax.net.ssl.X509TrustManager;
 import de.enlightened.peris.Post;
 import de.enlightened.peris.PostAttachment;
 import de.enlightened.peris.Server;
+import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Topic;
 import de.enlightened.peris.support.RPCMap;
+import de.enlightened.peris.support.XMLRPCCall;
 import de.timroes.axmlrpc.XMLRPCClient;
 
 /**
@@ -32,9 +35,32 @@ public class Tapatalk {
   private XMLRPCClient xmlRPCClient;
   private Server server;
   private SSLContext sc;
+  private Config serverConfig;
 
   public void setServer(final Server server) {
     this.server = server;
+  }
+
+  private XMLRPCClient getXMLRPCClient() {
+    if (this.xmlRPCClient == null) {
+      try {
+        if (this.server.serverHttps) {
+          this.sc = SSLContext.getInstance("SSL");
+          this.sc.init(null, this.trustAllCerts, new SecureRandom());
+          HttpsURLConnection.setDefaultSSLSocketFactory(this.sc.getSocketFactory());
+          HttpsURLConnection.setDefaultHostnameVerifier(this.hostnameVerifier);
+        }
+        this.xmlRPCClient = new XMLRPCClient(this.server.getTapatalkURL(), XMLRPCClient.FLAGS_ENABLE_COOKIES);
+      } catch (NoSuchAlgorithmException | KeyManagementException ex) {
+        String.format("Tapatalk call error (SSL initialization): %s", ex.getClass().getName());
+        if (ex.getMessage() != null) {
+          Log.e(TAG, ex.getMessage());
+        } else {
+          Log.e(TAG, "(no message available)");
+        }
+      }
+    }
+    return this.xmlRPCClient;
   }
 
   private final HostnameVerifier hostnameVerifier = new HostnameVerifier() {
@@ -57,46 +83,29 @@ public class Tapatalk {
       },
   };
 
-  public final Object xmlCall(final String method, final Vector parms) {
+  private XMLRPCCall xmlrpc(final String method) {
+    return new XMLRPCCall(this.getXMLRPCClient(), method);
+  }
 
-    Log.d(TAG, "Performing Server Call: Method = " + method + " (URL: " + this.server.getTapatalkURL() + ")");
-    try {
-      final Object[] parmsobject = new Object[parms.size()];
-      for (int i = 0; i < parms.size(); i++) {
-        parmsobject[i] = parms.get(i);
-      }
-
-      if (this.xmlRPCClient == null) {
-        if (this.server.serverHttps) {
-          this.sc = SSLContext.getInstance("SSL");
-          this.sc.init(null, this.trustAllCerts, new SecureRandom());
-          HttpsURLConnection.setDefaultSSLSocketFactory(this.sc.getSocketFactory());
-          HttpsURLConnection.setDefaultHostnameVerifier(this.hostnameVerifier);
-        }
-        this.xmlRPCClient = new XMLRPCClient(this.server.getTapatalkURL(), XMLRPCClient.FLAGS_ENABLE_COOKIES);
-      }
-
-      return this.xmlRPCClient.call(method, parmsobject);
-    } catch (Exception ex) {
-      String.format("Tapatalk call error (%s) : %s", ex.getClass().getName(), method);
-      if (ex.getMessage() != null) {
-        Log.e(TAG, ex.getMessage());
-      } else {
-        Log.e(TAG, "(no message available)");
-      }
+  public Config getConfig() {
+    if (this.serverConfig == null) {
+      final RPCMap configMap = this.xmlrpc("get_config").call();
+      this.serverConfig = Config.builder()
+          .serverPluginVersion(configMap.getString("version"))
+          .accountManagementEnabled(configMap.getStringBoolOrDefault("inappreg"))
+          .build();
+      Log.i(TAG, String.format("Forum is ", this.serverConfig.getForumSystem()));
     }
-    return null;
+    return this.serverConfig;
   }
 
   public Topic getTopic(final String topicId, final int startNum, final int lastNum, final boolean returnHtml) {
-    final Vector paramz = new Vector();
-    paramz.addElement(topicId);
-    paramz.addElement(startNum);
-    paramz.addElement(lastNum);
-    paramz.addElement(true);
-
-    final Object obj = this.xmlCall("get_thread", paramz);
-    final RPCMap topicMap = RPCMap.of(obj);
+    final RPCMap topicMap = this.xmlrpc("get_thread")
+        .param(topicId)
+        .param(startNum)
+        .param(lastNum)
+        .param(true)
+        .call();
     final Topic topic = Topic.builder()
         .curTotalPosts(topicMap.getIntOrDefault("total_post_num", 0))
         .canPost(topicMap.getBoolOrDefault("can_reply", false))

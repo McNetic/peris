@@ -21,6 +21,7 @@ import javax.net.ssl.X509TrustManager;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
 import de.enlightened.peris.api.Tapatalk;
+import de.enlightened.peris.site.Config;
 import de.timroes.axmlrpc.XMLRPCClient;
 
 @SuppressLint({"NewApi", "TrulyRandom"})
@@ -29,7 +30,6 @@ public class Session {
   private static final String TAG = Session.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
   private final PerisDBHelper borrowedDbHelper;
-  private ForumSystem forumSystem = ForumSystem.UNKNOWN;
   private final Tapatalk api;
   private long sessionId;
   // Install the all-trusting trust manager
@@ -55,8 +55,6 @@ public class Session {
   };
   private Context context;
   private Server currentServer;
-  private String avatarSubmissionName = "uploadfile";
-  private boolean allowRegistration = false;
   private XMLRPCClient newClient;
   private PerisApp application;
   private SessionListener sessionListener = null;
@@ -71,19 +69,8 @@ public class Session {
     Log.i(TAG, "*** NEW SESSION (" + this.sessionId + ") ***");
   }
 
-  public enum ForumSystem {
-    UNKNOWN,
-    PHPBB,
-    MYBB,
-    VBULLETIN
-  }
-
   public Tapatalk getApi() {
     return this.api;
-  }
-
-  public final String getAvatarName() {
-    return this.avatarSubmissionName;
   }
 
   public final Server getServer() {
@@ -272,14 +259,6 @@ public class Session {
     */
   }
 
-  public final boolean getAllowRegistration() {
-    return this.allowRegistration;
-  }
-
-  public final ForumSystem getForumSystem() {
-    return this.forumSystem;
-  }
-
   public interface SessionListener {
     void onSessionConnected();
     void onSessionConnectionFailed(final String reason);
@@ -388,32 +367,19 @@ public class Session {
     }
   }
 
-  private class FetchForumConfigurationTask extends AsyncTask<String, Void, Object[]> {
+  private class FetchForumConfigurationTask extends AsyncTask<String, Void, Config> {
 
     @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(final String... params) {
-
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-
-      try {
-        final Vector paramz = new Vector();
-        result[0] = performSynchronousCall("get_config", paramz);
-
-      } catch (Exception ex) {
-        Log.d(TAG, ex.getMessage());
-      }
-      return result;
+    protected Config doInBackground(final String... params) {
+      return Session.this.getApi().getConfig();
     }
 
     @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
-    protected void onPostExecute(final Object[] result) {
-            /*
-       *
-       *  THIS MAY HAVE TO BE MOVED IN FUTURE, TO INSURE
+    protected void onPostExecute(final Config config) {
+      /*  THIS MAY HAVE TO BE MOVED IN FUTURE, TO INSURE
        *  THAT WE HAVE CONFIGURATION SUCCESSFULLY BEFORE
        *  ATTEMPTING TO LOG IN!
-       *
        */
       if (currentServer.serverUserName.contentEquals("0")) {
         sessionListener.onSessionConnected();
@@ -423,63 +389,6 @@ public class Session {
         } else {
           new ConnectSessionTask().execute();
         }
-      }
-
-      if (result == null) {
-        Log.e(TAG, "Fetching Configuration Failed!");
-        return;
-      }
-
-      //Parse tapatalk api data
-      if (result[0] != null) {
-        final HashMap map = (HashMap) result[0];
-
-        /*
-        if(map.containsKey("api_level")) {
-          String api = (String) map.get("api_level");
-        }
-        */
-
-        if (map.containsKey("version")) {
-          final String system = (String) map.get("version");
-
-          Log.i(TAG, "Forum system code is: " + system);
-
-          if (system.contains("pb")) {
-            forumSystem = ForumSystem.PHPBB;
-            avatarSubmissionName = "uploadfile";
-            Log.i(TAG, "Forum is phpBB");
-          }
-          if (system.contains("mb")) {
-            forumSystem = ForumSystem.MYBB;
-            avatarSubmissionName = "avatarupload";
-            Log.i(TAG, "Forum is MyBB");
-          }
-          if (system.contains("vb")) {
-            forumSystem = ForumSystem.VBULLETIN;
-            avatarSubmissionName = "upload";
-            Log.i(TAG, "Forum is vBulletin");
-          }
-
-        } else {
-          Log.e(TAG, "Server returned no system information!");
-          if (result[0] != null) {
-            Log.e(TAG, result[0].toString());
-          }
-        }
-
-        // see if in-app registration is allowed
-        if (map.containsKey("inappreg")) {
-          final String regKey = (String) map.get("inappreg");
-          Log.i(TAG, "Forum inappreg code is: " + regKey);
-
-          if (regKey.contentEquals("1")) {
-            allowRegistration = true;
-          }
-        }
-      } else {
-        Log.e(TAG, "Unable to fetch configuration data!");
-        return;
       }
     }
   }
