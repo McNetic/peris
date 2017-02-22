@@ -19,6 +19,7 @@ import de.enlightened.peris.Post;
 import de.enlightened.peris.PostAttachment;
 import de.enlightened.peris.Server;
 import de.enlightened.peris.site.Config;
+import de.enlightened.peris.site.Identity;
 import de.enlightened.peris.site.Topic;
 import de.enlightened.peris.support.RPCMap;
 import de.enlightened.peris.support.XMLRPCCall;
@@ -36,6 +37,7 @@ public class Tapatalk {
   private Server server;
   private SSLContext sc;
   private Config serverConfig;
+  private Identity identity;
 
   public void setServer(final Server server) {
     this.server = server;
@@ -99,6 +101,30 @@ public class Tapatalk {
     return this.serverConfig;
   }
 
+  public Identity getIdentity() {
+    return this.identity;
+  }
+
+  public LoginResult login(final String username, final String password) {
+    final RPCMap loginMap = this.xmlrpc("login")
+        .param(username.getBytes())
+        .param(password.getBytes())
+        .call();
+    final LoginResult loginResult = LoginResult.builder()
+        .success(loginMap.getBool("result"))
+        .message(loginMap.getByteStringOrDefault("result_text", "wrong username or password"))
+        .build();
+    if (loginResult.isSuccess()) {
+      this.identity = Identity.builder()
+          .id(loginMap.getString("user_id"))
+          .avatarUrl(loginMap.getString("icon_url"))
+          .postCount(loginMap.getIntOrDefault("post_count", 0))
+          .profileAccess(loginMap.getBoolOrDefault("can_profile"))
+          .build();
+    }
+    return loginResult;
+  }
+
   public Topic getTopic(final String topicId, final int startNum, final int lastNum, final boolean returnHtml) {
     final RPCMap topicMap = this.xmlrpc("get_thread")
         .param(topicId)
@@ -110,28 +136,6 @@ public class Tapatalk {
         .curTotalPosts(topicMap.getIntOrDefault("total_post_num", 0))
         .canPost(topicMap.getBoolOrDefault("can_reply", false))
         .build();
-    /*
-    forum_id class java.lang.String value 5027
-    topic_author_avatar class java.lang.String value
-    can_report class java.lang.Boolean value true
-    topic_title class [B value [B@4caf54a
-    real_topic_id class java.lang.String value 3545900
-    can_subscribe class java.lang.Boolean value false
-    position class java.lang.Integer value 1
-    can_merge_post class java.lang.Boolean value false
-    topic_author_name class [B value [B@2632cbb
-    can_merge class java.lang.Boolean value false
-    topic_author_id class java.lang.String value 8025907
-    view_number class java.lang.Integer value 186
-    posts class [Ljava.lang.Object; value [Ljava.lang.Object
-    can_upload class java.lang.Boolean value false
-    topic_id class java.lang.String value 3545900
-    is_approved class java.lang.Boolean value true
-    forum_name class [B value [B@bc7ed31
-    is_moved class java.lang.Boolean value false
-    is_poll class java.lang.Boolean value false
-    breadcrumb class [Ljava.lang.Object; value [Ljava.lang.O
-    */
 
     for (final RPCMap postMap : topicMap.getRPCMap("posts")) {
       final Date timestamp = postMap.getDate("post_time");
@@ -146,7 +150,6 @@ public class Tapatalk {
       if (!postMap.containsKey("post_author_id")) {
         Log.w(TAG, "There is no author id with this post!");
       }
-
       po.author = postMap.getByteString("post_author_name");
       po.authorId = postMap.getString("post_author_id");
       po.body = postMap.getByteString("post_content");
@@ -179,7 +182,6 @@ public class Tapatalk {
           po.attachmentList.add(pa);
         }
       }
-
       po.userOnline = postMap.getBoolOrDefault("is_online");
       po.userBanned = postMap.getBoolOrDefault("is_ban");
       po.canDelete = postMap.getBoolOrDefault("can_delete");
@@ -190,25 +192,6 @@ public class Tapatalk {
       po.thanksCount = postMap.getCount("thanks_info");
       po.likeCount = postMap.getCount("likes_info");
       topic.addPost(po);
-      /*
-      key icon_url class java.lang.String value
-      key timestamp class java.lang.String value 1485513284
-      key post_time class java.util.Date value Fri Jan 27 11:34:44 GMT+01:00
-      key post_author_id class java.lang.String value 8025907
-      key post_title class [B value [B@88dd997
-      key allow_smilies class java.lang.Boolean value true
-      key attachments class [Ljava.lang.Object; value [Ljava.lang.Object;@e7
-      key editor_id class java.lang.String value 8025907
-      key post_author_name class [B value [B@a7d2b6d
-      key post_content class [B value [B@dd4e3a2
-      key post_count class java.lang.Integer value 1
-      key attachment_authority class java.lang.Integer value 0
-      key editor_name class [B value [B@24c7833
-      key user_type class [B value [B@1a0e7f0
-      key edit_reason class [B value [B@bce1169
-      key post_id class java.lang.String value 70752573
-      key edit_time class java.lang.String value 1485713863
-    */
     }
     return topic;
   }

@@ -494,7 +494,7 @@ public class CategoriesFragment extends ListFragment {
 
     this.clickedCategory = (Category) CategoriesFragment.this.getListView().getItemAtPosition(info.position);
 
-    if (serverUserId.contentEquals("0")) {
+    if (serverUserId == null) {
       return;
     }
     super.onCreateContextMenu(menu, v, menuInfo);
@@ -619,9 +619,7 @@ public class CategoriesFragment extends ListFragment {
   public final void onCreateOptionsMenu(final Menu menu, final MenuInflater inflater) {
 
     if (this.userid != null) {
-      if (!this.userid.contentEquals("0")) {
-        inflater.inflate(R.menu.categories_menu, menu);
-      }
+      inflater.inflate(R.menu.categories_menu, menu);
     }
 
     super.onCreateOptionsMenu(menu, inflater);
@@ -632,7 +630,7 @@ public class CategoriesFragment extends ListFragment {
   public final void onPrepareOptionsMenu(final Menu menu) {
     super.onPrepareOptionsMenu(menu);
 
-    if ((this.userid != null) && !this.userid.contentEquals("0") && (menu != null)) {
+    if ((this.userid != null) && (menu != null)) {
       if (this.subforumId.contentEquals("0")
           || this.subforumId.contentEquals("participated")
           || this.subforumId.contentEquals("favs")

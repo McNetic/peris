@@ -372,7 +372,7 @@ public class PostsFragment extends Fragment {
     if (this.lock.contentEquals("1")) {
       final Toast toast = Toast.makeText(this.activity, "Thread is locked!", Toast.LENGTH_LONG);
       toast.show();
-    } else if (this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+    } else if (this.application.getSession().getServer().serverUserId == null) {
       final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
       toast.show();
     } else {
@@ -399,7 +399,7 @@ public class PostsFragment extends Fragment {
     if (this.lock.contentEquals("1")) {
       final Toast toast = Toast.makeText(this.activity, "Thread is locked!", Toast.LENGTH_LONG);
       toast.show();
-    } else if (this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+    } else if (this.application.getSession().getServer().serverUserId == null) {
       final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
       toast.show();
     } else {
@@ -425,7 +425,7 @@ public class PostsFragment extends Fragment {
     if (this.lock.contentEquals("1")) {
       final Toast toast = Toast.makeText(this.activity, "Thread is locked!", Toast.LENGTH_LONG);
       toast.show();
-    } else if (this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+    } else if (this.application.getSession().getServer().serverUserId == null) {
       final Toast toast = Toast.makeText(this.activity, "You must be logged in to post!", Toast.LENGTH_LONG);
       toast.show();
     } else {

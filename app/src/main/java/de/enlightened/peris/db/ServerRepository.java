@@ -137,7 +137,7 @@ public final class ServerRepository {
     server.serverPassword = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
     server.serverUserId = cursor.getString(cursor.getColumnIndex(COLUMN_USERID));
     server.serverAvatar = cursor.getString(cursor.getColumnIndex(COLUMN_AVATAR));
-    server.serverPostcount = cursor.getString(cursor.getColumnIndex(COLUMN_POSTCOUNT));
+    server.serverPostcount = cursor.getInt(cursor.getColumnIndex(COLUMN_POSTCOUNT));
     server.serverTheme = cursor.getString(cursor.getColumnIndex(COLUMN_THEME_INT));
     server.serverCookies = cursor.getString(cursor.getColumnIndex(COLUMN_COOKIE_COUNT));
     server.serverTab = cursor.getString(cursor.getColumnIndex(COLUMN_LAST_TAB));

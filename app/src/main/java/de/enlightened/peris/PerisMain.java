@@ -319,7 +319,7 @@ public class PerisMain extends FragmentActivity {
     editor.putInt(this.storagePrefix + "just_logged_in", 0);
     editor.commit();
 
-    if (this.serverUserid.contentEquals("0")) {
+    if (this.serverUserid != null) {
       final Toast toast = Toast.makeText(PerisMain.this, "TIP: Tap on the key icon to log in to your forum account.", Toast.LENGTH_LONG);
       toast.show();
     }
@@ -625,7 +625,7 @@ public class PerisMain extends FragmentActivity {
     final MenuItem searchMenuItem = menu.findItem(R.id.search);
     final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
 
-    if (this.serverUserid.contentEquals("0") || !getString(R.string.subforum_id).contentEquals("0")) {
+    if (this.serverUserid == null || !getString(R.string.subforum_id).contentEquals("0")) {
       searchView.setVisibility(View.GONE);
     } else {
       if (ThemeSetter.getForegroundDark(this.background)) {

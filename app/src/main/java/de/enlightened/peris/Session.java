@@ -7,7 +7,6 @@ import android.util.Log;
 
 import java.security.cert.X509Certificate;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
@@ -18,10 +17,12 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import de.enlightened.peris.api.LoginResult;
+import de.enlightened.peris.api.Tapatalk;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
-import de.enlightened.peris.api.Tapatalk;
 import de.enlightened.peris.site.Config;
+import de.enlightened.peris.site.Identity;
 import de.timroes.axmlrpc.XMLRPCClient;
 
 @SuppressLint({"NewApi", "TrulyRandom"})
@@ -122,10 +123,10 @@ public class Session {
       return;
     }
 
-    this.currentServer.serverUserId = "0";
+    this.currentServer.serverUserId = null;
     this.currentServer.serverUserName = "0";
     this.currentServer.serverPassword = "0";
-    this.currentServer.serverPostcount = "0";
+    this.currentServer.serverPostcount = 0;
     this.currentServer.serverTab = "0";
     this.currentServer.serverAvatar = "0";
 
@@ -134,7 +135,7 @@ public class Session {
 
   public final void refreshLogin() {
     if (this.currentServer != null) {
-      if (!this.currentServer.serverUserId.contentEquals("0")) {
+      if (this.currentServer.serverUserId != null) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
           new ConnectSessionTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
@@ -264,105 +265,34 @@ public class Session {
     void onSessionConnectionFailed(final String reason);
   }
 
-  private class ConnectSessionTask extends AsyncTask<String, Void, Object[]> {
+  private class ConnectSessionTask extends AsyncTask<String, Void, LoginResult> {
 
-    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    protected Object[] doInBackground(final String... params) {
-
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-
-      Log.i(TAG, "Attempting u:" + currentServer.serverUserName + "    " + "p:" + currentServer.serverPassword);
-
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(currentServer.serverUserName.getBytes());
-        paramz.addElement(currentServer.serverPassword.getBytes());
-
-        result[0] = performSynchronousCall("login", paramz);
-
-      } catch (Exception ex) {
-        Log.d(TAG, ex.getMessage());
-      }
-
-      return result;
+    protected LoginResult doInBackground(final String... params) {
+      Log.i(TAG, String.format("Attempting u:%s    p:%s[...]", Session.this.currentServer.serverUserName, Session.this.currentServer.serverPassword.substring(0, 1)));
+      return Session.this.getApi().login(Session.this.currentServer.serverUserName, Session.this.currentServer.serverPassword);
     }
 
     @SuppressWarnings({"rawtypes", "checkstyle:requirethis", "checkstyle:nestedifdepth"})
-    protected void onPostExecute(final Object[] result) {
-
-      if (result == null) {
-        sessionListener.onSessionConnectionFailed("Login Failed.");
-      } else if (result[0] != null) {
-        final HashMap map = (HashMap) result[0];
-
-        if (map.containsKey("result")) {
-          final Boolean loginSuccess = (Boolean) map.get("result");
-          if (loginSuccess) {
-            // Submit server login stat to forum owners' analytics account
-            if (currentServer.analyticsId != null && !currentServer.analyticsId.contentEquals("0")) {
-              application.getAnalyticsHelper().trackCustomEvent(currentServer.analyticsId, "ff_user", "connected", currentServer.serverUserName);
-            }
-
-            if (map.containsKey("login_name")) {
-              final String loginName = new String((byte[]) map.get("login_name"));
-              Log.i(TAG, "User login_name is " + loginName);
-            } else {
-              Log.e(TAG, "Server provides no login_name information!");
-            }
-
-            if (map.get("user_id") instanceof Integer) {
-              currentServer.serverUserId = Integer.toString((Integer) map.get("user_id"));
-            } else {
-              currentServer.serverUserId = (String) map.get("user_id");
-            }
-
-            if (map.containsKey("icon_url")) {
-              currentServer.serverAvatar = (String) map.get("icon_url");
-            }
-
-            if (map.get("post_count") != null) {
-              currentServer.serverPostcount = Integer.toString((Integer) map.get("post_count"));
-            } else {
-              currentServer.serverPostcount = "0";
-            }
-
-            if (map.containsKey("can_profile")) {
-              final boolean canProfile = (Boolean) map.get("can_profile");
-
-              if (canProfile) {
-                Log.i(TAG, "Use can view and edit profiles!");
-              } else {
-                Log.e(TAG, "Use can NOT view or edit profiles!");
-              }
-            } else {
-              Log.e(TAG, "Server provides no profile permission information!");
-            }
-
-            if (sessionListener != null) {
-              sessionListener.onSessionConnected();
-            }
-            if (currentServer.serverUserId == null) {
-              currentServer.serverUserId = "0";
-            }
-            updateServer();
-          } else {
-            if (map.containsKey("result_text")) {
-              final String failReason = new String((byte[]) map.get("result_text"));
-              sessionListener.onSessionConnectionFailed(failReason);
-            } else {
-              if (sessionListener != null) {
-                sessionListener.onSessionConnectionFailed("Wrong username or password.");
-              }
-            }
-          }
-        } else {
-          sessionListener.onSessionConnectionFailed("No result key.");
+    protected void onPostExecute(final LoginResult result) {
+      if (!result.isSuccess()) {
+        if (sessionListener != null) {
+          sessionListener.onSessionConnectionFailed(result.getMessage());
         }
       } else {
-        if (sessionListener != null) {
-          sessionListener.onSessionConnectionFailed("Login attempt failed.");
+        final Identity identity = Session.this.getApi().getIdentity();
+        if (currentServer.analyticsId != null && !currentServer.analyticsId.contentEquals("0")) {
+          application.getAnalyticsHelper().trackCustomEvent(currentServer.analyticsId, "ff_user", "connected", currentServer.serverUserName);
         }
+        currentServer.serverUserId = identity.getId();
+        currentServer.serverAvatar = identity.getAvatarUrl();
+        currentServer.serverPostcount = identity.getPostCount();
+
+        if (sessionListener != null) {
+          sessionListener.onSessionConnected();
+        }
+        updateServer();
       }
     }
   }

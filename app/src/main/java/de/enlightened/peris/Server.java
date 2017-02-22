@@ -15,12 +15,12 @@ public class Server extends DBEntity {
   public String serverId = "0";
   public String serverAddress = null;
   public boolean serverHttps = true;
-  public String serverUserId = "0";
+  public String serverUserId = null;
   public String serverUserName = "0";
   public String serverPassword = "0";
   public String serverTagline = "null";
   public String serverAvatar = "0";
-  public String serverPostcount = "0";
+  public int serverPostcount = 0;
   public String serverColor = "0";
   public String serverCookies = "0";
   public String serverTheme = "0";

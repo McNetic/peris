@@ -78,7 +78,7 @@ public class MailService extends Service {
 
     for (final Server server : servers) {
       Log.i(TAG, "Checking login data for server " + server.serverAddress);
-      if (!server.serverUserId.contentEquals("0")) {
+      if (server.serverUserId != null) {
         this.serverList.add(server);
       }
     }

@@ -70,7 +70,7 @@ public class SettingsFragment extends Fragment {
 
     super.onResume();
 
-    if (!this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+    if (this.application.getSession().getServer().serverUserId != null) {
       new CheckUnreadMailTask().execute();
     }
   }
@@ -201,7 +201,7 @@ public class SettingsFragment extends Fragment {
     }
 
     final LinearLayout userLayout = (LinearLayout) getActivity().findViewById(R.id.settings_user_box);
-    if (this.application.getSession().getServer().serverUserId.contentEquals("0")) {
+    if (this.application.getSession().getServer().serverUserId == null) {
       userLayout.setVisibility(View.GONE);
     } else {
       final ImageView ivAvatar = (ImageView) getActivity().findViewById(R.id.settings_user_avatar);
