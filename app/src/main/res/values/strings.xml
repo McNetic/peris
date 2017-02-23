@@ -13,6 +13,12 @@
     <string name="app_author">Nicolai Ehemann</string>
     <string name="app_author_email">en@enlightened.de</string>
     <string name="app_url">https://github.com/McNetic/peris</string>
+    <string name="app_info">Project page / issue tracker on https://github.com/McNetic/peris. Please report bugs / feature requests there.</string>
+    <string name="license_info">
+        This program is free software; you can redistribute it and/or modify it under the terms of
+        the GNU General Public License as published by the Free Software Foundation, either version
+        3 of the License, or (at your option) any later version.
+    </string>
 
     <!-- Stand Alone App Strings -->
     <string name="server_location">0</string>

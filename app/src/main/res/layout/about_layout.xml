@@ -21,13 +21,14 @@
 
         <TextView
             android:id="@+id/about_tv_edition"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="340dp"
+            android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
-            android:layout_margin="20sp"
+            android:layout_margin="18sp"
             android:text="F o r u m   R e a d e r"
             android:textColor="#aaffffff"
             android:textSize="34dp"
+            android:gravity="center"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -96,7 +97,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="6dp"
-                android:text="2014 - 2015 Original Author"
+                android:text="2014 - 2015"
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="6dp"
+                android:text="Original Author"
                 android:textColor="#ffffff"
                 android:textStyle="bold" />
 
@@ -124,36 +133,50 @@
                 android:textColor="#ffffff"
                 android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="6dp"
-                android:text="@string/app_author"
-                android:textColor="#ffffff"
-                android:textStyle="bold" />
+                android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="("
-                android:textColor="#ffffff"
-                android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="6dp"
+                    android:text="@string/app_author"
+                    android:textColor="#ffffff"
+                    android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:autoLink="email"
-                android:text="@string/app_author_email"
-                android:textColorLink="#ffffff"
-                android:textStyle="bold" />
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="6dp"
-                android:text=")"
-                android:textColor="#ffffff"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="("
+                        android:textColor="#ffffff"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:autoLink="email"
+                        android:text="@string/app_author_email"
+                        android:textColorLink="#ffffff"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=")"
+                        android:textColor="#ffffff"
+                        android:textStyle="bold" />
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
 
         </LinearLayout>
 
@@ -162,20 +185,37 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="6dp"
-                android:autoLink="web"
-                android:text="@string/app_url"
+                android:text="@string/app_info"
+                android:textColor="#ffffff"
                 android:textColorLink="#ffffff"
+                android:autoLink="web"
                 android:textStyle="bold" />
 
         </LinearLayout>
 
-        <LinearLayout
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="6dp"
+            android:text="@string/license_info"
+            android:textColor="#ffffff"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
             android:id="@+id/amazon_scary_about_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
