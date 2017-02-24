@@ -490,7 +490,7 @@ public class PostsFragment extends Fragment {
     final MenuInflater inflater = this.activity.getMenuInflater();
     inflater.inflate(R.menu.posts_context, menu);
 
-    if (!this.userid.contentEquals("0")) {
+    if (this.userid != null) {
       final MenuItem item3 = menu.findItem(R.id.posts_quote);
       item3.setVisible(true);
 
@@ -499,7 +499,7 @@ public class PostsFragment extends Fragment {
     }
 
     if (this.selectedPost.authorId != null) {
-      if (this.userid.contentEquals(this.selectedPost.authorId)) {
+      if (this.selectedPost.authorId.equals(this.userid)) {
         final MenuItem item5 = menu.findItem(R.id.posts_message);
         item5.setVisible(false);
       }
@@ -700,7 +700,7 @@ public class PostsFragment extends Fragment {
             mainList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
               public void onItemClick(final AdapterView<?> adapterView, final View view, final int itemPos, final long arg3) {
-                if (userid.contentEquals("0")) {
+                if (userid == null) {
                   return;
                 }
 

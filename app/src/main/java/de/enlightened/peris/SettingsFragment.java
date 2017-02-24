@@ -417,14 +417,14 @@ public class SettingsFragment extends Fragment {
 
   private ArrayList<Setting> createSettingsOptions(final String userid) {
     final ArrayList<Setting> newSettingsOptions = new ArrayList<Setting>();
-    /*if (userid.contentEquals("0")) {
+    /*if (userid == null) {
       //To be implemented in future!
       //settingsOptions.add("Login");
     } else {*/
       newSettingsOptions.add(new Setting("Inbox", R.drawable.drawer_inbox, this.unreadMail));
     /*}*/
     newSettingsOptions.add(new Setting("Forum Index", R.drawable.drawer_index));
-    /*if (userid.contentEquals("0")) {
+    /*if (userid == null) {
       //To be implemented in future!
       //settingsOptions.add("Login");
     } else {*/

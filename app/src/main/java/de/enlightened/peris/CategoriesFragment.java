@@ -718,7 +718,7 @@ public class CategoriesFragment extends ListFragment {
 
   private void startPost() {
 
-    if (this.subforumId.contentEquals("0") || this.userid.contentEquals("0")) {
+    if (this.subforumId.contentEquals("0") || this.userid == null) {
       final Toast toast = Toast.makeText(this.activity, "You are not allowed to post here!", Toast.LENGTH_LONG);
       toast.show();
       return;

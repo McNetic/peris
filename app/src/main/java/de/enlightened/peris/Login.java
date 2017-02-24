@@ -157,7 +157,7 @@ public class Login extends Fragment {
   @Override
   public void onResume() {
     final String userid = this.application.getSession().getServer().serverUserId;
-    if (!userid.contentEquals("0")) {
+    if (userid != null) {
       getActivity().finish();
       getActivity().startActivity(getActivity().getIntent());
     }

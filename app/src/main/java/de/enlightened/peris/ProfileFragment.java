@@ -137,10 +137,8 @@ public class ProfileFragment extends Fragment {
 
     if (this.categoryId == null) {
       avatarButtons.setVisibility(View.GONE);
-    } else {
-      if (!userid.contentEquals(this.categoryId)) {
-        avatarButtons.setVisibility(View.GONE);
-      }
+    } else if (!this.categoryId.equals(userid)) {
+      avatarButtons.setVisibility(View.GONE);
     }
 
     final Button btnPicFromCamera = (Button) this.activity.findViewById(R.id.profile_upload_avatar_camera);

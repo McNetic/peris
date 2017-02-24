@@ -703,14 +703,14 @@ public class PerisMain extends FragmentActivity {
     newMailItem.setVisible(false);
 
     final MenuItem searchMenuItem = menu.findItem(R.id.search);
-    if (this.serverUserid.contentEquals("0") || !getString(R.string.subforum_id).contentEquals("0")) {
+    if (this.serverUserid == null || !getString(R.string.subforum_id).contentEquals("0")) {
       searchMenuItem.setVisible(false);
     }
 
     final MenuItem itemLogin = menu.findItem(R.id.main_menu_open_login);
     final MenuItem itemChat = menu.findItem(R.id.main_menu_open_chat);
 
-    if (this.serverUserid.contentEquals("0")) {
+    if (this.serverUserid == null) {
       itemLogin.setVisible(true);
       itemChat.setVisible(false);
     } else {
@@ -878,7 +878,7 @@ public class PerisMain extends FragmentActivity {
     final String customChatForum = this.application.getSession().getServer().chatForum;
     final String customChatThread = this.application.getSession().getServer().chatThread;
 
-    if (!this.serverUserid.contentEquals("0") && ((!getString(R.string.chat_thread).contentEquals("0")) || (!customChatForum.contentEquals("0") && !customChatThread.contentEquals("0")))) {
+    if (this.serverUserid != null && ((!getString(R.string.chat_thread).contentEquals("0")) || (!customChatForum.contentEquals("0") && !customChatThread.contentEquals("0")))) {
       final SocialFragment sf = new SocialFragment();
       sf.setOnProfileSelectedListener(this.profileSocialSelected);
       final Bundle bundle = new Bundle();
@@ -891,7 +891,7 @@ public class PerisMain extends FragmentActivity {
       ftZ.replace(R.id.main_page_frame_right, sf);
       ftZ.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
       ftZ.commit();
-    } else if (this.serverUserid.contentEquals("0")) {
+    } else if (this.serverUserid == null) {
       final Login login = new Login();
 
       final FragmentManager fragmentManager = getSupportFragmentManager();
