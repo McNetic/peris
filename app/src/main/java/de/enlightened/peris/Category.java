@@ -25,6 +25,7 @@ import android.annotation.SuppressLint;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 @SuppressLint("NewApi")
 @SuppressWarnings("checkstyle:visibilitymodifier")
@@ -33,7 +34,7 @@ public class Category {
   public String name = "Category Name";
   public String id = "0";
   public String subforumId = "0";
-  public String lastUpdate = null;
+  public Date lastUpdate = null;
   public String lastThread = "Thread Name";
   public String threadCount = "0";
   public String viewCount = "0";

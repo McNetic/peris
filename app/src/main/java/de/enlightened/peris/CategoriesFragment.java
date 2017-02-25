@@ -44,13 +44,15 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Toast;
 
-import com.google.gson.internal.LinkedTreeMap;
-
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map;
 import java.util.Vector;
 
 import de.enlightened.peris.site.Config;
+import de.enlightened.peris.support.CacheService;
 import de.enlightened.peris.support.Net;
 
 @SuppressLint("NewApi")
@@ -222,21 +224,15 @@ public class CategoriesFragment extends ListFragment {
 
   @Override
   public final void onResume() {
-
     //Log.d(TAG,"CF OnResume Began");
-
     this.activity.getActionBar().setTitle(this.screenTitle);
     this.activity.getActionBar().setSubtitle(this.screenSubtitle);
 
     //activity.getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+    final Object[][] forumObject = (Object[][]) CacheService.readObject(CategoriesFragment.this.getContext(), "forums/" + this.storagePrefix + "forum" + this.subforumId);
 
-
-    final SharedPreferences appPreferences = this.activity.getSharedPreferences("prefs", 0);
-    final String cachedForum = appPreferences.getString(this.storagePrefix + "forum" + this.subforumId, "n/a");
-
-    if (!(cachedForum.contentEquals("n/a"))) {
+    if (forumObject != null) {
       try {
-        final Object[][] forumObject = GsonHelper.CUSTOM_GSON.fromJson(cachedForum, Object[][].class);
         this.parseCachedForums(forumObject);
         Log.d(TAG, "Forum cache available, using it");
       } catch (Exception ex) {
@@ -300,6 +296,7 @@ public class CategoriesFragment extends ListFragment {
 
   @SuppressWarnings("rawtypes")
   private void parseCachedForums(final Object[][] result) {
+    Log.d(TAG, "parseCachedForums()");
     if (this.categoryList == null || !this.isExtraScrolling) {
       this.categoryList = new ArrayList<Category>();
     }
@@ -313,12 +310,11 @@ public class CategoriesFragment extends ListFragment {
     //Announcement Topics
     for (Object o : result[1]) {
       if (o != null) {
-        final LinkedTreeMap map = (LinkedTreeMap) o;
+        final Map map = (Map) o;
 
         if (map.containsKey("topics")) {
-          final ArrayList topics = (ArrayList) map.get("topics");
-          for (Object t : topics) {
-            this.categoryList.add(this.createCategoryFromTopics((LinkedTreeMap) t, false, true));
+          for (Object t : (Object[]) map.get("topics")) {
+            this.categoryList.add(this.createCategoryFromTopics((Map) t, false, true));
           }
         }
       }
@@ -326,12 +322,11 @@ public class CategoriesFragment extends ListFragment {
     //Sticky Topics
     for (Object o : result[2]) {
       if (o != null) {
-        final LinkedTreeMap map = (LinkedTreeMap) o;
+        final Map map = (Map) o;
 
         if (map.containsKey("topics")) {
-          final ArrayList topics = (ArrayList) map.get("topics");
-          for (Object t : topics) {
-            this.categoryList.add(this.createCategoryFromTopics((LinkedTreeMap) t, false, true));
+          for (Object t : (Object[]) map.get("topics")) {
+            this.categoryList.add(this.createCategoryFromTopics((Map) t, false, true));
           }
         }
       }
@@ -378,12 +373,11 @@ public class CategoriesFragment extends ListFragment {
     }
     for (Object o : result[3]) {
       if (o != null) {
-        final LinkedTreeMap map = (LinkedTreeMap) o;
+        final Map map = (Map) o;
 
         if (map.containsKey("topics")) {
-          final ArrayList topics = (ArrayList) map.get("topics");
-          for (Object t : topics) {
-            this.categoryList.add(this.createCategoryFromTopics((LinkedTreeMap) t, true, false));
+          for (Object t : (Object[]) map.get("topics")) {
+            this.categoryList.add(this.createCategoryFromTopics((Map) t, true, false));
           }
         }
       }
@@ -393,11 +387,11 @@ public class CategoriesFragment extends ListFragment {
       if (o != null) {
         Log.i(TAG, "We have some favs!");
 
-        final LinkedTreeMap map = (LinkedTreeMap) o;
+        final Map map = (Map) o;
         if (map.containsKey("forums")) {
           final ArrayList forums = (ArrayList) map.get("forums");
           for (Object f : forums) {
-            final LinkedTreeMap forumMap = (LinkedTreeMap) f;
+            final Map forumMap = (Map) f;
 
             final Category ca = new Category();
             ca.name = (String) forumMap.get("forum_name");
@@ -446,9 +440,9 @@ public class CategoriesFragment extends ListFragment {
     this.initialParseDone = true;
   }
 
-  private Category createCategoryFromTopics(final LinkedTreeMap topicMap, final boolean subforum, final boolean sticky) {
+  private Category createCategoryFromTopics(final Map topicMap, final boolean subforum, final boolean sticky) {
     final Category ca = new Category();
-    ca.name = (String) topicMap.get("topic_title");
+    ca.name = new String((byte[]) topicMap.get("topic_title"));
 
     if (subforum && topicMap.get("forum_id") != null) {
       ca.subforumId = (String) topicMap.get("forum_id");
@@ -460,10 +454,10 @@ public class CategoriesFragment extends ListFragment {
       //}
     }
     ca.id = (String) topicMap.get("topic_id");
-    Log.d(TAG, "LAST_REPLY_TIME: " + (String) topicMap.get("last_reply_time"));
-    ca.lastUpdate = (String) topicMap.get("last_reply_time");
+    Log.d(TAG, "LAST_REPLY_TIME: " + ((Date) topicMap.get("last_reply_time")).toString());
+    ca.lastUpdate = (Date) topicMap.get("last_reply_time");
     if (!subforum || topicMap.get("topic_author_name") != null) {
-      ca.lastThread = (String) topicMap.get("topic_author_name");
+      ca.lastThread = new String((byte[]) topicMap.get("topic_author_name"));
     } else {
       ca.lastThread = (String) topicMap.get("forum_name");
     }
@@ -932,6 +926,18 @@ public class CategoriesFragment extends ListFragment {
           initialLoadComplete = true;
           isLoading = false;
 
+          final Object[][] cachedForum = (Object[][]) CacheService.readObject(CategoriesFragment.this.getContext(), "forums/" + storagePrefix + "forum" + subforumId);
+          if (!result.equals(cachedForum)) {
+            if (!isExtraScrolling) {
+              try {
+                CacheService.writeObject(CategoriesFragment.this.getContext(), "forums/" + storagePrefix + "forum" + subforumId, result);
+              } catch (IOException e) {
+                Log.e(TAG, "Error writing forum cache (" + e.getMessage() + ")");
+              }
+            }
+            parseCachedForums(result);
+          }
+          /*
           final String objectString = GsonHelper.CUSTOM_GSON.toJson(result);
           final SharedPreferences appPreferences = activity.getSharedPreferences("prefs", 0);
           final String cachedForum = appPreferences.getString(storagePrefix + "forum" + subforumId, "n/a");
@@ -944,8 +950,9 @@ public class CategoriesFragment extends ListFragment {
             }
 
             final Object[][] forumObject = GsonHelper.CUSTOM_GSON.fromJson(objectString, Object[][].class);
-            parseCachedForums(forumObject);
+            parseCachedForums(result);
           }
+          */
         }
       }
     }

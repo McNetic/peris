@@ -23,9 +23,8 @@ package de.enlightened.peris;
 
 import android.util.Log;
 
-import com.google.gson.internal.LinkedTreeMap;
-
 import java.util.ArrayList;
+import java.util.Map;
 
 public final class CategoryParser {
 
@@ -40,9 +39,9 @@ public final class CategoryParser {
 
     for (Object o : data) {
       if (o != null) {
-        final LinkedTreeMap map = (LinkedTreeMap) o;
+        final Map map = (Map) o;
         final Category ca = new Category();
-        ca.name = (String) map.get("forum_name");
+        ca.name = new String((byte[]) map.get("forum_name"));
         ca.subforumId = subforumId;
         ca.id = (String) map.get("forum_id");
         ca.type = "S";
@@ -75,17 +74,7 @@ public final class CategoryParser {
         if (subOnly) {
           if (map.get("child") != null) {
             ca.id = subforumId + "###" + (String) map.get("forum_id");
-            final ArrayList childArray = (ArrayList) map.get("child");
-            final Object[] objArray = new Object[childArray.size()];
-            int i = 0;
-            for (Object childForum : childArray) {
-              if (childForum != null) {
-                final LinkedTreeMap childMap = (LinkedTreeMap) childForum;
-                objArray[i] = childMap;
-              }
-              i++;
-            }
-            ca.children = parseCategories(objArray, ca.id, background);
+            ca.children = parseCategories((Object[]) map.get("child"), ca.id, background);
           }
         }
         categories.add(ca);

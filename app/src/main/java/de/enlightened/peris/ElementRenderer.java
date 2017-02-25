@@ -292,12 +292,12 @@ final class ElementRenderer {
     if (ca.lastUpdate == null) {
       timeAgo = "never";
     } else {
-      timeAgo = ca.lastUpdate;
+      timeAgo = ca.lastUpdate.toString();
       if (ca.type.contentEquals("C")) {
         try {
-          timeAgo = DateTimeUtils.getTimeAgo(new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.ENGLISH).parse(ca.lastUpdate));
-        } catch (IllegalArgumentException | ParseException e) {
-          timeAgo = ca.lastUpdate;
+          timeAgo = DateTimeUtils.getTimeAgo(ca.lastUpdate);
+        } catch (IllegalArgumentException e) {
+          timeAgo = ca.lastUpdate.toString();
         }
       }
     }
