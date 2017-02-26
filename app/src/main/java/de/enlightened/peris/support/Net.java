@@ -23,6 +23,7 @@ package de.enlightened.peris.support;
 import android.net.Uri;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -30,8 +31,34 @@ import java.net.URL;
 public final class Net {
 
   private static final String TAG = Net.class.getName();;
+  private static final int CONNECTION_BUFFER_SIZE = 1024;
 
   private Net() {
+  }
+
+  public static String getHtml(final URL url) {
+    String html;
+    try {
+      final HttpURLConnection huc = (HttpURLConnection) url.openConnection();
+      huc.setRequestMethod("GET");
+      huc.setInstanceFollowRedirects(false);
+      huc.connect();
+      final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      final byte[] buffer = new byte[CONNECTION_BUFFER_SIZE];
+      int length = 0;
+      while ((length = huc.getInputStream().read(buffer)) != -1) {
+        baos.write(buffer, 0, length);
+      }
+      html = baos.toString("UTF-8");
+    } catch (Exception e) {
+      html = null;
+      if (e.getMessage() != null) {
+        Log.d(TAG, e.getMessage());
+      } else {
+        Log.d(TAG, "Header connection error");
+      }
+    }
+    return html;
   }
 
   public static boolean checkURL(final String urlString) {

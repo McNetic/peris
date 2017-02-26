@@ -63,12 +63,13 @@ public class WebViewer extends FragmentActivity {
     this.ah = this.application.getAnalyticsHelper();
     this.ah.trackScreen(getClass().getName(), false);
 
-    setContentView(R.layout.web_viewer);
+    this.setContentView(R.layout.web_viewer);
     this.wvMain = (WebView) findViewById(R.id.web_viewer_webview);
     this.wvMain.setWebViewClient(new HelloWebViewClient());
     this.wvMain.loadUrl(this.application.getSession().getServer().getUrlString());
 
-    new CheckForumIconTask(this.application.getSession()).execute();
+    final int optimalIconSize = (int) this.getResources().getDimension(android.R.dimen.app_icon_size);
+    new CheckForumIconTask(this.application.getSession(), optimalIconSize).execute();
   }
 
   @Override

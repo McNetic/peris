@@ -303,14 +303,15 @@ public class PerisMain extends FragmentActivity {
     this.ah = this.application.getAnalyticsHelper();
 
     if (this.application.getSession().getServer().serverIcon == null) {
+      final int optimalIconSize = (int) this.getResources().getDimension(android.R.dimen.app_icon_size);
       if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-        new CheckForumIconTask(this.application.getSession()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        new CheckForumIconTask(this.application.getSession(), optimalIconSize).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
       } else {
-        new CheckForumIconTask(this.application.getSession()).execute();
+        new CheckForumIconTask(this.application.getSession(), optimalIconSize).execute();
       }
     }
-    final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
     this.serverAddress = this.application.getSession().getServer().serverAddress;
+    final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
     this.sidebarOption = appPreferences.getBoolean("show_sidebar", true);
     this.screenTitle = getString(R.string.app_name);
 
@@ -442,7 +443,6 @@ public class PerisMain extends FragmentActivity {
         }
       }
     }
-
     //Juice up gesture listener
     this.enableGestures();
   }
