@@ -81,7 +81,7 @@ public class RPCMap extends OptMap<String, Object> {
     }
   }
 
-  public RPCMap[] getRPCMap(final String key) {
+  public RPCMap[] getRPCMapArray(final String key) {
     final Object[] srcArray = (Object[]) this.getOrDefault(key, new Object[0]);
     final RPCMap[] dstArray = new RPCMap[srcArray.length];
     for (int i = 0; i < srcArray.length; i++) {

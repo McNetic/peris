@@ -41,7 +41,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
 
@@ -56,7 +56,7 @@ public class InboxAdapter extends BaseAdapter {
   private static final int DEFAULT_FONT_SIZE = 16;
 
   private Context context;
-  private ArrayList<InboxItem> data;
+  private List<InboxItem> data;
   private boolean useShading = false;
   private boolean useOpenSans = false;
   private int fontSize = DEFAULT_FONT_SIZE;
@@ -82,7 +82,7 @@ public class InboxAdapter extends BaseAdapter {
     }
   };
 
-  InboxAdapter(final ArrayList<InboxItem> data, final Context context, final PerisApp application) {
+  InboxAdapter(final List<InboxItem> data, final Context context, final PerisApp application) {
     this.data = data;
     this.context = context;
     this.application = application;
@@ -95,17 +95,14 @@ public class InboxAdapter extends BaseAdapter {
   }
 
   public int getCount() {
-    // TODO Auto-generated method stub
     return this.data.size();
   }
 
   public Object getItem(final int id) {
-    // TODO Auto-generated method stub
     return this.data.get(id);
   }
 
   public long getItemId(final int id) {
-    // TODO Auto-generated method stub
     return id;
   }
 
@@ -186,10 +183,10 @@ public class InboxAdapter extends BaseAdapter {
     tvUpdated.setText(ii.moderator);
 
     if (ii.isUnread) {
-      if (ii.senderColor.contains("#")) {
-        tvSubject.setTextColor(Color.parseColor(ii.senderColor));
+      if (this.application.getSession().getServer().serverColor.contains("#")) {
+        tvSubject.setTextColor(Color.parseColor(this.application.getSession().getServer().serverColor));
         if (this.useShading) {
-          tvSubject.setShadowLayer(2, 0, 0, Color.parseColor(ii.senderColor.replace("#", "#66")));
+          tvSubject.setShadowLayer(2, 0, 0, Color.parseColor(this.application.getSession().getServer().serverColor.replace("#", "#66")));
         }
       } else {
         tvSubject.setTextColor(Color.RED);

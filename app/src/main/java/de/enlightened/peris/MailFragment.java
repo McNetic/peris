@@ -39,9 +39,11 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
+
+import de.enlightened.peris.site.MessageBox;
+import de.enlightened.peris.site.MessageFolder;
 
 @SuppressLint("NewApi")
 public class MailFragment extends ListFragment {
@@ -51,7 +53,6 @@ public class MailFragment extends ListFragment {
 
   private String rogueTitle;
   private String ourInboxId = "0";
-  private String accent;
   private DownloadMailTask mailDownloader;
   private PerisApp application;
   private InboxItem selectedItem;
@@ -76,7 +77,6 @@ public class MailFragment extends ListFragment {
         && this.application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
       this.getListView().setDivider(null);
     }
-    this.accent = this.application.getSession().getServer().serverColor;
   }
 
   @Override
@@ -114,7 +114,7 @@ public class MailFragment extends ListFragment {
     bundle.putString("boxid", (String) this.ourInboxId);
     bundle.putString("name", (String) sender.sender);
     bundle.putString("moderator", (String) sender.moderatorId);
-    bundle.putString("background", (String) this.accent);
+    bundle.putString("background", (String) this.application.getSession().getServer().serverColor);
     myIntent.putExtras(bundle);
 
     MailFragment.this.startActivity(myIntent);
@@ -147,97 +147,30 @@ public class MailFragment extends ListFragment {
     }
   }
 
-  private class DownloadMailTask extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
+  private class DownloadMailTask extends AsyncTask<Object, Object, List<InboxItem>> {
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    protected Object[] doInBackground(final String... params) {
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-      try {
-        Vector paramz = new Vector();
-        final HashMap map = (HashMap) application.getSession().performSynchronousCall("get_box_info", paramz);
-        final Object[] boxes = (Object[]) map.get("list");
-
-        ourInboxId = "0";
-        for (Object o : boxes) {
-          final HashMap boxMap = (HashMap) o;
-          final String boxType = (String) boxMap.get("box_type");
-          Log.d(TAG, "Found Mailbox: " + boxType);
-
-          if (boxType.contentEquals("INBOX")) {
-            ourInboxId = (String) boxMap.get("box_id");
-          }
-        }
-
-        paramz = new Vector();
-        paramz.addElement(ourInboxId);
-        result[0] = application.getSession().performSynchronousCall("get_box", paramz);
-      } catch (Exception e) {
-        //null response
-        return null;
+    protected List<InboxItem> doInBackground(final Object... params) {
+      final MessageBox messageBox = MailFragment.this.application.getSession().getApi().getMessageBox();
+      if (messageBox != null) {
+        final MessageFolder inboxFolder = messageBox.getInboxFolder();
+        MailFragment.this.ourInboxId = inboxFolder.getId();
+        return MailFragment.this.application.getSession().getApi()
+            .getMessages(inboxFolder);
+      } else {
+        return new ArrayList<>();
       }
-      return result;
     }
 
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
-    protected void onPostExecute(final Object[] result) {
-      if (result == null) {
-        //Toast toast = Toast.makeText(getActivity(), "Server connection timeout :-(", Toast.LENGTH_SHORT);
-        //toast.show();
-        return;
-      }
-      try {
-        try {
-          final ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
-
-          for (Object o : result) {
-            if (o != null) {
-              final HashMap map = (HashMap) o;
-              if (map.containsKey("list")) {
-                final Object[] topics = (Object[]) map.get("list");
-                for (Object t : topics) {
-                  final HashMap topicMap = (HashMap) t;
-                  final Date timestamp = (Date) topicMap.get("sent_date");
-                  final InboxItem ii = new InboxItem();
-
-                  if (topicMap.containsKey("msg_state")) {
-                    final int state = (Integer) topicMap.get("msg_state");
-                    if (state == 1) {
-                      ii.isUnread = true;
-                    }
-                  }
-
-                  ii.unread = timestamp.toString();
-                  ii.sender = new String((byte[]) topicMap.get("msg_subject"));
-                  ii.senderId = (String) topicMap.get("msg_id");
-                  ii.moderator = new String((byte[]) topicMap.get("msg_from"));
-                  ii.moderatorId = (String) topicMap.get("msg_from_id");
-                  ii.id = ourInboxId;
-
-                  if (topicMap.containsKey("icon_url")) {
-                    ii.senderAvatar = (String) topicMap.get("icon_url");
-                  }
-
-                  ii.senderColor = accent;
-                  inboxList.add(ii);
-                }
-              }
-            }
-          }
-
-          setListAdapter(new InboxAdapter(inboxList, getActivity(), application));
-          registerForContextMenu(getListView());
-          getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
-              loadConversation((InboxItem) arg0.getItemAtPosition(arg2));
-            }
-          });
-        } catch (Exception ex) {
-          Log.d(TAG, ex.getMessage());
+    @SuppressWarnings("rawtypes")
+    protected void onPostExecute(final List<InboxItem> inboxItemList) {
+      setListAdapter(new InboxAdapter(inboxItemList, getActivity(), MailFragment.this.application));
+      registerForContextMenu(getListView());
+      getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
+          MailFragment.this.loadConversation((InboxItem) arg0.getItemAtPosition(arg2));
         }
-      } catch (Exception e) {
-        Log.d(TAG, e.getMessage());
-      }
+      });
     }
   }
 

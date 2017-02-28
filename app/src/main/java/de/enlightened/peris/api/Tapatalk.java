@@ -26,7 +26,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -35,11 +37,14 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import de.enlightened.peris.InboxItem;
 import de.enlightened.peris.Post;
 import de.enlightened.peris.PostAttachment;
 import de.enlightened.peris.Server;
 import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Identity;
+import de.enlightened.peris.site.MessageBox;
+import de.enlightened.peris.site.MessageFolder;
 import de.enlightened.peris.site.Topic;
 import de.enlightened.peris.support.RPCMap;
 import de.enlightened.peris.support.XMLRPCCall;
@@ -153,7 +158,7 @@ public class Tapatalk {
         .canPost(topicMap.getBoolOrDefault("can_reply", false))
         .build();
 
-    for (final RPCMap postMap : topicMap.getRPCMap("posts")) {
+    for (final RPCMap postMap : topicMap.getRPCMapArray("posts")) {
       final Date timestamp = postMap.getDate("post_time");
       final Post po = new Post();
       /* TODO: Needed?
@@ -177,7 +182,7 @@ public class Tapatalk {
         po.timestamp = timestamp.toString();
       }
 
-      for (final RPCMap attachmentMap : postMap.getRPCMap("attachements")) {
+      for (final RPCMap attachmentMap : postMap.getRPCMapArray("attachements")) {
         final String attachmentType = attachmentMap.getString("content_type");
         final String attachmentUrl = attachmentMap.getString("url");
         final String attachmentName = attachmentMap.getByteStringOrDefault("filename", null);
@@ -210,5 +215,52 @@ public class Tapatalk {
       topic.addPost(po);
     }
     return topic;
+  }
+
+  public MessageBox getMessageBox() {
+    final RPCMap messageBoxMap = this.xmlrpc("get_box_info").call();
+    if (messageBoxMap.getBool("result")) {
+      final MessageBox messageBox = MessageBox.builder()
+          .remainingMessageCount(messageBoxMap.getInt("message_room_count"))
+          .build();
+      for (final RPCMap messageFolderMap : messageBoxMap.getRPCMapArray("list")) {
+        messageBox.addMessageFolder(MessageFolder.builder()
+            .id(messageFolderMap.getString("box_id"))
+            .name(messageFolderMap.getByteString("box_name"))
+            .messageCount(messageFolderMap.getInt("msg_count"))
+            .unreadCount(messageFolderMap.getInt("unread_count"))
+            .type(MessageFolder.Type.valueOf(messageFolderMap.getStringOrDefault("box_type", "DEFAULT")))
+            .build());
+      }
+      return messageBox;
+    } else {
+      return null;
+    }
+  }
+
+  public List<InboxItem> getMessages(final MessageFolder folder) {
+    final RPCMap messagesMap = this.xmlrpc("get_box")
+        .param(folder.getId())
+        .call();
+    final List<InboxItem> messages = new ArrayList<InboxItem>();
+    for (final RPCMap messageMap : messagesMap.getRPCMapArray("list")) {
+      final InboxItem ii = new InboxItem();
+      if (messageMap.containsKey("msg_state")) {
+        final int state = messageMap.getInt("msg_state");
+        if (state == 1) {
+          ii.isUnread = true;
+        }
+      }
+
+      ii.id = folder.getId();
+      ii.unread = messageMap.getDate("sent_date").toString();
+      ii.sender = messageMap.getByteString("msg_subject");
+      ii.senderId = messageMap.getString("msg_id");
+      ii.moderator = messageMap.getByteString("msg_from");
+      ii.moderatorId = messageMap.getString("msg_from_id");
+      ii.senderAvatar = messageMap.getString("icon_url");
+      messages.add(ii);
+    }
+    return messages;
   }
 }
