@@ -72,6 +72,7 @@ public class MailFragment extends ListFragment {
   @Override
   public void onStart() {
     super.onStart();
+    this.setEmptyText("No messages available.");
     if (!(this.application.getSession().getServer().serverBackground.contentEquals(
         this.application.getSession().getServer().serverBoxColor)
         && this.application.getSession().getServer().serverBoxBorder.contentEquals("0"))) {
