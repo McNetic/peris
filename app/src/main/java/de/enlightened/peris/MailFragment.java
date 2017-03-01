@@ -27,7 +27,6 @@ import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -40,8 +39,8 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
+import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.site.MessageBox;
 import de.enlightened.peris.site.MessageFolder;
 
@@ -52,7 +51,6 @@ public class MailFragment extends ListFragment {
   private static final int MAX_ITEM_COUNT = 50;
 
   private String rogueTitle;
-  private String ourInboxId = "0";
   private DownloadMailTask mailDownloader;
   private PerisApp application;
   private InboxItem selectedItem;
@@ -108,13 +106,13 @@ public class MailFragment extends ListFragment {
     }
   }
 
-  private void loadConversation(final InboxItem sender) {
+  private void loadMessage(final InboxItem inboxItem) {
     final Intent myIntent = new Intent(getActivity(), MessageActivity.class);
     final Bundle bundle = new Bundle();
-    bundle.putString("id", (String) sender.senderId);
-    bundle.putString("boxid", (String) this.ourInboxId);
-    bundle.putString("name", (String) sender.sender);
-    bundle.putString("moderator", (String) sender.moderatorId);
+    bundle.putString("id", (String) inboxItem.messageId);
+    bundle.putString("boxid", (String) inboxItem.folderId);
+    bundle.putString("name", (String) inboxItem.subject);
+    bundle.putString("moderator", (String) inboxItem.senderId);
     bundle.putString("background", (String) this.application.getSession().getServer().serverColor);
     myIntent.putExtras(bundle);
 
@@ -137,10 +135,21 @@ public class MailFragment extends ListFragment {
   public boolean onContextItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.mail_delete:
+        final TaskListener<ApiResult> listener = new TaskListener<ApiResult>() {
+          @Override
+          public void onPostExecute(final ApiResult result) {
+            MailFragment.this.loadMail();
+          }
+        };
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-          new DeleteMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+          new DeleteMessageTask(MailFragment.this.application.getSession().getApi(),
+              MailFragment.this.selectedItem.messageId, MailFragment.this.selectedItem.folderId, listener)
+              .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
-          new DeleteMessageTask().execute();
+          new DeleteMessageTask(MailFragment.this.application.getSession().getApi(),
+              MailFragment.this.selectedItem.messageId, MailFragment.this.selectedItem.folderId, listener)
+              .execute();
         }
         return true;
       default:
@@ -155,7 +164,6 @@ public class MailFragment extends ListFragment {
       final MessageBox messageBox = MailFragment.this.application.getSession().getApi().getMessageBox();
       if (messageBox != null) {
         final MessageFolder inboxFolder = messageBox.getInboxFolder();
-        MailFragment.this.ourInboxId = inboxFolder.getId();
         return MailFragment.this.application.getSession().getApi()
             .getMessages(inboxFolder);
       } else {
@@ -169,33 +177,9 @@ public class MailFragment extends ListFragment {
       registerForContextMenu(getListView());
       getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
         public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
-          MailFragment.this.loadConversation((InboxItem) arg0.getItemAtPosition(arg2));
+          MailFragment.this.loadMessage((InboxItem) arg0.getItemAtPosition(arg2));
         }
       });
-    }
-  }
-
-  private class DeleteMessageTask extends AsyncTask<String, Void, Object[]> {
-
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
-    @Override
-    protected Object[] doInBackground(final String... params) {
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(selectedItem.senderId);
-        paramz.addElement(ourInboxId);
-        result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
-    }
-
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final Object[] result) {
-      loadMail();
     }
   }
 }

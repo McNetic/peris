@@ -126,12 +126,12 @@ public class Tapatalk {
     return this.identity;
   }
 
-  public LoginResult login(final String username, final String password) {
+  public ApiResult login(final String username, final String password) {
     final RPCMap loginMap = this.xmlrpc("login")
         .param(username.getBytes())
         .param(password.getBytes())
         .call();
-    final LoginResult loginResult = LoginResult.builder()
+    final ApiResult loginResult = ApiResult.builder()
         .success(loginMap.getBool("result"))
         .message(loginMap.getByteStringOrDefault("result_text", "wrong username or password"))
         .build();
@@ -252,12 +252,12 @@ public class Tapatalk {
         }
       }
 
-      ii.id = folder.getId();
-      ii.unread = messageMap.getDate("sent_date").toString();
-      ii.sender = messageMap.getByteString("msg_subject");
-      ii.senderId = messageMap.getString("msg_id");
-      ii.moderator = messageMap.getByteString("msg_from");
-      ii.moderatorId = messageMap.getString("msg_from_id");
+      ii.folderId = folder.getId();
+      ii.sentDate = messageMap.getDate("sent_date").toString();
+      ii.subject = messageMap.getByteString("msg_subject");
+      ii.messageId = messageMap.getString("msg_id");
+      ii.sender = messageMap.getByteString("msg_from");
+      ii.senderId = messageMap.getString("msg_from_id");
       ii.senderAvatar = messageMap.getString("icon_url");
       messages.add(ii);
     }
@@ -283,5 +283,16 @@ public class Tapatalk {
     post.tagline = "tagline";
     post.timestamp = messageMap.getDate("sent_date").toString();
     return post;
+  }
+
+  public ApiResult deleteMessage(final String boxId, final String messageId) {
+    final RPCMap resultMap = this.xmlrpc("delete_message")
+        .param(messageId)
+        .param(boxId)
+        .call();
+    return ApiResult.builder()
+        .success(resultMap.getBool("result"))
+        .message(resultMap.getByteString("result_text"))
+        .build();
   }
 }

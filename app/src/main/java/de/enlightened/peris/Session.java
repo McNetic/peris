@@ -38,7 +38,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import de.enlightened.peris.api.LoginResult;
+import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.api.Tapatalk;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
@@ -286,17 +286,17 @@ public class Session {
     void onSessionConnectionFailed(final String reason);
   }
 
-  private class ConnectSessionTask extends AsyncTask<String, Void, LoginResult> {
+  private class ConnectSessionTask extends AsyncTask<String, Void, ApiResult> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    protected LoginResult doInBackground(final String... params) {
+    protected ApiResult doInBackground(final String... params) {
       Log.i(TAG, String.format("Attempting u:%s    p:%s[...]", Session.this.currentServer.serverUserName, Session.this.currentServer.serverPassword.substring(0, 1)));
       return Session.this.getApi().login(Session.this.currentServer.serverUserName, Session.this.currentServer.serverPassword);
     }
 
     @SuppressWarnings({"rawtypes", "checkstyle:requirethis", "checkstyle:nestedifdepth"})
-    protected void onPostExecute(final LoginResult result) {
+    protected void onPostExecute(final ApiResult result) {
       if (!result.isSuccess()) {
         if (sessionListener != null) {
           sessionListener.onSessionConnectionFailed(result.getMessage());

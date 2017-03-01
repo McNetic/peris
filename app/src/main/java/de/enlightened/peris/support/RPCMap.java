@@ -50,7 +50,12 @@ public class RPCMap extends OptMap<String, Object> {
   }
 
   public String getByteString(final String key) {
-    return new String((byte[]) this.get(key));
+    final byte[] bytes = (byte[]) this.get(key);
+    if (bytes != null) {
+      return new String(bytes);
+    } else {
+      return null;
+    }
   }
 
   public Boolean getBoolOrDefault(final String key, final Boolean defaultValue) {

@@ -27,7 +27,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -43,7 +42,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.Vector;
 
 import de.enlightened.peris.support.DateTimeUtils;
 import de.enlightened.peris.support.Net;
@@ -67,15 +65,17 @@ public class InboxAdapter extends BaseAdapter {
     @SuppressWarnings("checkstyle:requirethis")
     public void onClick(final View view) {
       final int itemId = (Integer) view.getTag();
-      final InboxItem ii = data.get(itemId);
+      final InboxItem inboxItem = data.get(itemId);
 
       if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-        new DeleteMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, ii);
+        new DeleteMessageTask(InboxAdapter.this.application.getSession().getApi(),
+            inboxItem.messageId, inboxItem.folderId).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
       } else {
-        new DeleteMessageTask().execute(ii);
+        new DeleteMessageTask(InboxAdapter.this.application.getSession().getApi(),
+            inboxItem.messageId, inboxItem.folderId).execute();
       }
 
-      ii.isDeleted = true;
+      inboxItem.isDeleted = true;
       data.remove(itemId);
 
       notifyDataSetChanged();
@@ -179,8 +179,8 @@ public class InboxAdapter extends BaseAdapter {
       tvTimestamp.setShadowLayer(2, 0, 0, Color.parseColor(textColor.replace("#", "#66")));
     }
 
-    tvSubject.setText(ii.sender);
-    tvUpdated.setText(ii.moderator);
+    tvSubject.setText(ii.subject);
+    tvUpdated.setText(ii.sender);
 
     if (ii.isUnread) {
       if (this.application.getSession().getServer().serverColor.contains("#")) {
@@ -205,7 +205,7 @@ public class InboxAdapter extends BaseAdapter {
     }
 
     try {
-      tvTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(ii.unread)));
+      tvTimestamp.setText(DateTimeUtils.getTimeAgo(new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH).parse(ii.sentDate)));
     } catch (IllegalArgumentException | ParseException ex) {
       tvTimestamp.setVisibility(View.GONE);
     }
@@ -215,30 +215,5 @@ public class InboxAdapter extends BaseAdapter {
     inboxDelete.setOnClickListener(this.deleteClicked);
 
     return inboxView;
-  }
-
-  private class DeleteMessageTask extends AsyncTask<InboxItem, Void, Object[]> {
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
-    @Override
-    protected Object[] doInBackground(final InboxItem... params) {
-
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-      final InboxItem item = params[0];
-
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(item.senderId);
-        paramz.addElement(item.id);
-        result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
-    }
-
-    protected void onPostExecute(final Object[] result) {
-      // nothing to do here really
-    }
   }
 }

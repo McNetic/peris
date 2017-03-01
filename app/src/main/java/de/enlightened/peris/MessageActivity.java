@@ -36,8 +36,8 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.Vector;
 
+import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
 
@@ -50,7 +50,7 @@ public class MessageActivity extends FragmentActivity {
   private String messageId;
   private String partnerName;
   private ListView conversationList;
-  private String boxId = "0";
+  private String folderId = "0";
   private String senderName = "";
   private String conversationModerator;
   private String accent = "";
@@ -97,7 +97,7 @@ public class MessageActivity extends FragmentActivity {
     setContentView(R.layout.conversation);
 
     if (bundle.getString("boxid") != null) {
-      this.boxId = bundle.getString("boxid");
+      this.folderId = bundle.getString("boxid");
     }
 
     setTitle(this.partnerName);
@@ -125,7 +125,7 @@ public class MessageActivity extends FragmentActivity {
 
         @Override
         public void onSessionConnected() {
-          new LoadMessageTask(MessageActivity.this.messageId, MessageActivity.this.boxId).execute();
+          new LoadMessageTask(MessageActivity.this.messageId, MessageActivity.this.folderId).execute();
         }
 
         @Override
@@ -137,7 +137,7 @@ public class MessageActivity extends FragmentActivity {
       this.mailSession.setServer(server);
     } else {
       this.mailSession = this.application.getSession();
-      new LoadMessageTask(MessageActivity.this.messageId, MessageActivity.this.boxId).execute();
+      new LoadMessageTask(MessageActivity.this.messageId, MessageActivity.this.folderId).execute();
     }
 
     if (getString(R.string.server_location).contentEquals("0")) {
@@ -229,10 +229,21 @@ public class MessageActivity extends FragmentActivity {
 
   @SuppressLint("NewApi")
   private void deleteMessage() {
+    final TaskListener<ApiResult> listener = new TaskListener<ApiResult>() {
+      @Override
+      public void onPostExecute(final ApiResult result) {
+        MessageActivity.this.finish();
+      }
+    };
+
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      new DeleteMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      new DeleteMessageTask(MessageActivity.this.application.getSession().getApi(),
+          MessageActivity.this.messageId, MessageActivity.this.folderId, listener)
+          .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     } else {
-      new DeleteMessageTask().execute();
+      new DeleteMessageTask(MessageActivity.this.application.getSession().getApi(),
+          MessageActivity.this.messageId, MessageActivity.this.folderId, listener)
+          .execute();
     }
   }
 
@@ -268,27 +279,4 @@ public class MessageActivity extends FragmentActivity {
     }
   }
 
-  private class DeleteMessageTask extends AsyncTask<String, Void, Object[]> {
-
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
-    @Override
-    protected Object[] doInBackground(final String... params) {
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(messageId);
-        paramz.addElement(boxId);
-        result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
-
-    }
-
-    protected void onPostExecute(final Object[] result) {
-      finish();
-    }
-  }
 }

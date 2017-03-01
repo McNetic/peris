@@ -1,5 +1,4 @@
 /*
- * Copyright (C) 2014 - 2015 Initial Author
  * Copyright (C) 2017 Nicolai Ehemann
  *
  * This file is part of Peris.
@@ -19,17 +18,14 @@
  *
  */
 
-package de.enlightened.peris;
+package de.enlightened.peris.api;
 
-@SuppressWarnings("checkstyle:visibilitymodifier")
-public class InboxItem {
-  public String sentDate = "X Unread";
-  public String subject = "Sender";
-  public String sender = "n/a";
-  public String messageId = "0";
-  public String senderId = "0";
-  public String senderAvatar = "0";
-  public String folderId = "0";
-  public boolean isDeleted = false;
-  public boolean isUnread = false;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class ApiResult {
+  private boolean success;
+  private String message;
 }

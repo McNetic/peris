@@ -138,7 +138,7 @@ public class MailService extends Service {
   private void processUnreadMessage(final InboxItem ii, final long idServer) {
     final SQLiteDatabase db = this.dbHelper.getWritableDatabase();
     if (MessageNotificationRepository.findOneByServerAndMessage(
-        db, idServer, Integer.parseInt(ii.senderId)) == null) {
+        db, idServer, Integer.parseInt(ii.messageId)) == null) {
       String notificationColor = getString(R.string.default_color);
       final String customColor = this.mailSession.getServer().serverColor;
 
@@ -152,8 +152,8 @@ public class MailService extends Service {
       final NotificationCompat.Builder mBuilder =
           new NotificationCompat.Builder(MailService.this)
               .setSmallIcon(R.drawable.ic_launcher)
-              .setContentTitle("New Message From " + ii.moderator)
-              .setContentText(ii.sender)
+              .setContentTitle("New Message From " + ii.sender)
+              .setContentText(ii.subject)
               .setSound(alarmSound)
               .setLights(Color.parseColor(notificationColor), LED_ON_MS, LED_OFF_MS)
               .setVibrate(pattern)
@@ -161,10 +161,10 @@ public class MailService extends Service {
 
       final Intent resultIntent = new Intent(MailService.this, MessageActivity.class);
       final Bundle bundle = new Bundle();
-      bundle.putString("id", (String) ii.senderId);
+      bundle.putString("id", (String) ii.messageId);
       bundle.putString("boxid", (String) "0");
-      bundle.putString("name", (String) ii.sender);
-      bundle.putString("moderator", (String) ii.moderatorId);
+      bundle.putString("name", (String) ii.subject);
+      bundle.putString("moderator", (String) ii.senderId);
       bundle.putString("background", (String) notificationColor);
       bundle.putString("server", this.mailSession.getServer().serverId);
       resultIntent.putExtras(bundle);
@@ -173,7 +173,7 @@ public class MailService extends Service {
       stackBuilder.addParentStack(MessageActivity.class);
       stackBuilder.addNextIntent(resultIntent);
 
-      String flag = ii.senderId;
+      String flag = ii.messageId;
       if (flag.length() > 5) {
         flag = flag.substring(flag.length() - 5, flag.length());
       }
@@ -182,9 +182,9 @@ public class MailService extends Service {
       mBuilder.setContentIntent(resultPendingIntent);
 
       final NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-      mNotificationManager.notify(Integer.parseInt(ii.senderId), mBuilder.build());
+      mNotificationManager.notify(Integer.parseInt(ii.messageId), mBuilder.build());
 
-      MessageNotificationRepository.add(db, new MessageNotification(idServer, Integer.parseInt(ii.senderId)));
+      MessageNotificationRepository.add(db, new MessageNotification(idServer, Integer.parseInt(ii.messageId)));
     }
   }
 
@@ -279,11 +279,11 @@ public class MailService extends Service {
                     }
                   }
 
-                  ii.unread = timestamp.toString();
-                  ii.sender = new String((byte[]) topicMap.get("msg_subject"));
-                  ii.senderId = (String) topicMap.get("msg_id");
-                  ii.moderator = new String((byte[]) topicMap.get("msg_from"));
-                  ii.moderatorId = (String) topicMap.get("msg_from_id");
+                  ii.sentDate = timestamp.toString();
+                  ii.subject = new String((byte[]) topicMap.get("msg_subject"));
+                  ii.messageId = (String) topicMap.get("msg_id");
+                  ii.sender = new String((byte[]) topicMap.get("msg_from"));
+                  ii.senderId = (String) topicMap.get("msg_from_id");
                   inboxList.add(ii);
 
                   if (ii.isUnread) {
