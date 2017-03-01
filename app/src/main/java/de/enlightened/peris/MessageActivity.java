@@ -36,18 +36,18 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.Vector;
 
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
 
-public class Conversation extends FragmentActivity {
+public class MessageActivity extends FragmentActivity {
 
-  private static final String TAG = Conversation.class.getName();
+  private static final String TAG = MessageActivity.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
-  private String partner;
+  private static final boolean RETURN_HTML = true;
+
+  private String messageId;
   private String partnerName;
   private ListView conversationList;
   private String boxId = "0";
@@ -69,7 +69,7 @@ public class Conversation extends FragmentActivity {
     this.dbHelper = new PerisDBHelper(this);
     this.application = (PerisApp) getApplication();
     final Bundle bundle = getIntent().getExtras();
-    this.partner = bundle.getString("id");
+    this.messageId = bundle.getString("id");
     this.partnerName = bundle.getString("name");
     this.conversationModerator = bundle.getString("moderator");
 
@@ -125,7 +125,7 @@ public class Conversation extends FragmentActivity {
 
         @Override
         public void onSessionConnected() {
-          new LoadInboxTask().execute();
+          new LoadMessageTask(MessageActivity.this.messageId, MessageActivity.this.boxId).execute();
         }
 
         @Override
@@ -135,12 +135,9 @@ public class Conversation extends FragmentActivity {
 
       });
       this.mailSession.setServer(server);
-
-
     } else {
       this.mailSession = this.application.getSession();
-
-      new LoadInboxTask().execute();
+      new LoadMessageTask(MessageActivity.this.messageId, MessageActivity.this.boxId).execute();
     }
 
     if (getString(R.string.server_location).contentEquals("0")) {
@@ -207,10 +204,10 @@ public class Conversation extends FragmentActivity {
   }
 
   private void launchComposer() {
-    final Intent myIntent = new Intent(Conversation.this, NewPost.class);
+    final Intent myIntent = new Intent(MessageActivity.this, NewPost.class);
 
     final Bundle bundle = new Bundle();
-    bundle.putString("postid", (String) this.partner);
+    bundle.putString("postid", (String) this.messageId);
     bundle.putString("parent", (String) this.conversationModerator);
     bundle.putString("category", this.senderName);
     bundle.putString("subforum_id", (String) "0");
@@ -239,68 +236,34 @@ public class Conversation extends FragmentActivity {
     }
   }
 
-  private class LoadInboxTask extends AsyncTask<String, Void, Object[]> {
+  private class LoadMessageTask extends AsyncTask<String, Void, Post> {
+
+    private final String messageId;
+    private final String boxId;
+
+    public LoadMessageTask(final String messageId, final String boxId) {
+      this.messageId = messageId;
+      this.boxId = boxId;
+    }
 
     // can use UI thread here
     protected void onPreExecute() {
-
     }
 
     // automatically done on worker thread (separate from UI thread)
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
-    protected Object[] doInBackground(final String... args) {
-
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(partner);
-        paramz.addElement(boxId);
-        paramz.addElement(true);
-        result[0] = application.getSession().performSynchronousCall("get_message", paramz);
-
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected Post doInBackground(final String... args) {
+      return MessageActivity.this.application.getSession().getApi().getMessage(this.boxId, this.messageId, RETURN_HTML);
     }
 
     // can use UI thread here
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
-    protected void onPostExecute(final Object[] result) {
-      if (result == null) {
-        return;
-      }
-
-      final ArrayList<Post> postList = new ArrayList<Post>();
-      try {
-        for (Object o : result) {
-          if (o != null) {
-            final HashMap map = (HashMap) o;
-            final Date timestamp = (Date) map.get("sent_date");
-            final Post po = new Post();
-            //po.id = id;
-            //po.subforumId = subforumId;
-            //po.thread_id = thread_id;
-            //po.moderator = moderator;
-
-            senderName = new String((byte[]) map.get("msg_from"));
-            po.author = new String((byte[]) map.get("msg_from"));
-            po.authorId = conversationModerator;
-            po.body = new String((byte[]) map.get("text_body"));
-            po.avatar = (String) map.get("icon_url");
-            po.id = partner;
-            po.tagline = "tagline";
-            po.timestamp = timestamp.toString();
-
-            postList.add(po);
-          }
-        }
-
-        conversationList.setAdapter(new PostAdapter(postList, Conversation.this, application, -1));
-
-      } catch (Exception e) {
-        return;
+    @SuppressWarnings("rawtypes")
+    protected void onPostExecute(final Post post) {
+      if (post != null) {
+        final ArrayList<Post> postList = new ArrayList<Post>();
+        MessageActivity.this.senderName = post.author;
+        postList.add(post);
+        MessageActivity.this.conversationList.setAdapter(new PostAdapter(postList, MessageActivity.this, MessageActivity.this.application, -1));
       }
     }
   }
@@ -313,7 +276,7 @@ public class Conversation extends FragmentActivity {
       final Object[] result = new Object[MAX_ITEM_COUNT];
       try {
         final Vector paramz = new Vector();
-        paramz.addElement(partner);
+        paramz.addElement(messageId);
         paramz.addElement(boxId);
         result[0] = application.getSession().performSynchronousCall("delete_message", paramz);
       } catch (Exception e) {

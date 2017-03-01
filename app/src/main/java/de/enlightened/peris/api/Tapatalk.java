@@ -263,4 +263,25 @@ public class Tapatalk {
     }
     return messages;
   }
+
+  public Post getMessage(final String boxId, final String messageId, final boolean returnHtml) {
+    final RPCMap messageMap = this.xmlrpc("get_message")
+        .param(messageId)
+        .param(boxId)
+        .param(returnHtml)
+        .call();
+    final Post post = new Post();
+    //TODO: Needed?
+    //po.subforumId = subforumId;
+    //po.thread_id = thread_id;
+    //po.moderator = moderator;
+    post.id = messageId;
+    post.author = messageMap.getByteString("msg_from");
+    post.authorId = messageMap.getString("msg_from_id");
+    post.body = messageMap.getByteString("text_body");
+    post.avatar = messageMap.getString("icon_url");
+    post.tagline = "tagline";
+    post.timestamp = messageMap.getDate("sent_date").toString();
+    return post;
+  }
 }

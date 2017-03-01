@@ -109,7 +109,7 @@ public class MailFragment extends ListFragment {
   }
 
   private void loadConversation(final InboxItem sender) {
-    final Intent myIntent = new Intent(getActivity(), Conversation.class);
+    final Intent myIntent = new Intent(getActivity(), MessageActivity.class);
     final Bundle bundle = new Bundle();
     bundle.putString("id", (String) sender.senderId);
     bundle.putString("boxid", (String) this.ourInboxId);

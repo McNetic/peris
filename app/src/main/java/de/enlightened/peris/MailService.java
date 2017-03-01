@@ -159,7 +159,7 @@ public class MailService extends Service {
               .setVibrate(pattern)
               .setAutoCancel(true);
 
-      final Intent resultIntent = new Intent(MailService.this, Conversation.class);
+      final Intent resultIntent = new Intent(MailService.this, MessageActivity.class);
       final Bundle bundle = new Bundle();
       bundle.putString("id", (String) ii.senderId);
       bundle.putString("boxid", (String) "0");
@@ -170,7 +170,7 @@ public class MailService extends Service {
       resultIntent.putExtras(bundle);
 
       final TaskStackBuilder stackBuilder = TaskStackBuilder.create(MailService.this);
-      stackBuilder.addParentStack(Conversation.class);
+      stackBuilder.addParentStack(MessageActivity.class);
       stackBuilder.addNextIntent(resultIntent);
 
       String flag = ii.senderId;

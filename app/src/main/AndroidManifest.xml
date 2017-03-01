@@ -63,7 +63,7 @@
         <activity android:name=".Mail"></activity>
 
         <activity
-            android:name=".Conversation"
+            android:name=".MessageActivity"
             android:configChanges="orientation|screenSize"
             android:uiOptions="splitActionBarWhenNarrow"
             android:windowSoftInputMode="stateHidden"></activity>
