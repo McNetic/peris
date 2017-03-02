@@ -48,39 +48,41 @@ class CheckForumIconTask extends AsyncTask<String, Void, String> {
     String iconUrlString = null;
     if (this.session.getServer().serverIcon == null) {
       final String indexPage = Net.getHtml(this.session.getServer().getURL());
-      final Matcher matcher = PATTERN_ICON_LINK.matcher(indexPage);
-      int currentSize = 0;
-      String currentHref = "/favicon.ico";
-      while (matcher.find()) {
-        final String iconLink = matcher.group();
-        final Matcher sizeMatcher = PATTERN_SIZE.matcher(iconLink);
-        final int size;
-        if (sizeMatcher.find()) {
-          size = Integer.parseInt(sizeMatcher.group(1));
-        } else {
-          size = 1;
+      if (indexPage != null) {
+        final Matcher matcher = PATTERN_ICON_LINK.matcher(indexPage);
+        int currentSize = 0;
+        String currentHref = "/favicon.ico";
+        while (matcher.find()) {
+          final String iconLink = matcher.group();
+          final Matcher sizeMatcher = PATTERN_SIZE.matcher(iconLink);
+          final int size;
+          if (sizeMatcher.find()) {
+            size = Integer.parseInt(sizeMatcher.group(1));
+          } else {
+            size = 1;
+          }
+          if ((currentSize < this.optimalIconSize && size > currentSize)
+              || (currentSize > this.optimalIconSize && size > this.optimalIconSize && size < currentSize)) {
+            final Matcher hrefMatcher = PATTERN_HREF.matcher(iconLink);
+            hrefMatcher.find();
+            currentHref = hrefMatcher.group(1);
+            currentSize = size;
+          }
         }
-        if ((currentSize < this.optimalIconSize && size > currentSize)
-            || (currentSize > this.optimalIconSize && size > this.optimalIconSize && size < currentSize)) {
-          final Matcher hrefMatcher = PATTERN_HREF.matcher(iconLink);
-          hrefMatcher.find();
-          currentHref = hrefMatcher.group(1);
-          currentSize = size;
-        }
-      }
-      final URL forumIconUrl;
-      try {
-        if (currentHref.startsWith("//")) {
-          final int slashPos = currentHref.indexOf('/', 2);
+        final URL forumIconUrl;
+        try {
+          if (currentHref.startsWith("//")) {
+            final int slashPos = currentHref.indexOf('/', 2);
             forumIconUrl = new URL(this.session.getServer().getScheme(), currentHref.substring(2, slashPos), currentHref.substring(slashPos + 1));
-        } else {
-          forumIconUrl = this.session.getServer().getURL(currentHref);
+          } else {
+            forumIconUrl = this.session.getServer().getURL(currentHref);
+          }
+          if (Net.checkURL(forumIconUrl)) {
+            iconUrlString = forumIconUrl.toExternalForm();
+          }
+        } catch (MalformedURLException e) {
+          iconUrlString = null;
         }
-        if (Net.checkURL(forumIconUrl)) {
-          iconUrlString = forumIconUrl.toExternalForm();
-        }
-      } catch (MalformedURLException e) {
-        iconUrlString = null;
       }
     }
     return iconUrlString;
