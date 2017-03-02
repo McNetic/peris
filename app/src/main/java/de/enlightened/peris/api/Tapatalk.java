@@ -113,11 +113,13 @@ public class Tapatalk {
   public Config getConfig() {
     if (this.serverConfig == null) {
       final RPCMap configMap = this.xmlrpc("get_config").call();
-      this.serverConfig = Config.builder()
-          .serverPluginVersion(configMap.getString("version"))
-          .accountManagementEnabled(configMap.getStringBoolOrDefault("inappreg"))
-          .build();
-      Log.i(TAG, String.format("Forum is ", this.serverConfig.getForumSystem()));
+      if (configMap != null) {
+        this.serverConfig = Config.builder()
+            .serverPluginVersion(configMap.getString("version"))
+            .accountManagementEnabled(configMap.getStringBoolOrDefault("inappreg"))
+            .build();
+        Log.i(TAG, String.format("Forum is %s", this.serverConfig.getForumSystem()));
+      }
     }
     return this.serverConfig;
   }

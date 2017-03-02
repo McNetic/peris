@@ -332,7 +332,9 @@ public class Session {
        *  THAT WE HAVE CONFIGURATION SUCCESSFULLY BEFORE
        *  ATTEMPTING TO LOG IN!
        */
-      if (currentServer.serverUserName.contentEquals("0")) {
+      if (config == null) {
+        sessionListener.onSessionConnectionFailed("Failed to get server config");
+      } else if (currentServer.serverUserName.contentEquals("0")) {
         sessionListener.onSessionConnected();
       } else {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
