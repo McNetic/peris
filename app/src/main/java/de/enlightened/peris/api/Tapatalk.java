@@ -133,17 +133,25 @@ public class Tapatalk {
         .param(username.getBytes())
         .param(password.getBytes())
         .call();
-    final ApiResult loginResult = ApiResult.builder()
-        .success(loginMap.getBool("result"))
-        .message(loginMap.getByteStringOrDefault("result_text", "wrong username or password"))
-        .build();
-    if (loginResult.isSuccess()) {
-      this.identity = Identity.builder()
-          .id(loginMap.getString("user_id"))
-          .avatarUrl(loginMap.getString("icon_url"))
-          .postCount(loginMap.getIntOrDefault("post_count", 0))
-          .profileAccess(loginMap.getBoolOrDefault("can_profile"))
+    final ApiResult loginResult;
+    if (loginMap != null) {
+      loginResult = ApiResult.builder()
+          .success(loginMap.getBool("result"))
+          .message(loginMap.getByteStringOrDefault("result_text", "wrong username or password"))
           .build();
+      if (loginResult.isSuccess()) {
+        this.identity = Identity.builder()
+            .id(loginMap.getString("user_id"))
+            .avatarUrl(loginMap.getString("icon_url"))
+            .postCount(loginMap.getIntOrDefault("post_count", 0))
+            .profileAccess(loginMap.getBoolOrDefault("can_profile"))
+            .build();
+      }
+    } else {
+      loginResult = ApiResult.builder()
+        .success(false)
+        .message("unknown error")
+        .build();
     }
     return loginResult;
   }
