@@ -173,7 +173,15 @@ public class MailFragment extends ListFragment {
 
     @SuppressWarnings("rawtypes")
     protected void onPostExecute(final List<InboxItem> inboxItemList) {
-      setListAdapter(new InboxAdapter(inboxItemList, getActivity(), MailFragment.this.application));
+      final List<InboxItem> itemList;
+
+      if (inboxItemList == null) {
+        MailFragment.this.setEmptyText("Loading mailbox failed.");
+        itemList = new ArrayList<>();
+      } else {
+        itemList = inboxItemList;
+      }
+      setListAdapter(new InboxAdapter(itemList, getActivity(), MailFragment.this.application));
       registerForContextMenu(getListView());
       getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
         public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {

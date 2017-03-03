@@ -229,7 +229,7 @@ public class Tapatalk {
 
   public MessageBox getMessageBox() {
     final RPCMap messageBoxMap = this.xmlrpc("get_box_info").call();
-    if (messageBoxMap.getBool("result")) {
+    if (messageBoxMap != null && messageBoxMap.getBool("result")) {
       final MessageBox messageBox = MessageBox.builder()
           .remainingMessageCount(messageBoxMap.getInt("message_room_count"))
           .build();
@@ -252,26 +252,30 @@ public class Tapatalk {
     final RPCMap messagesMap = this.xmlrpc("get_box")
         .param(folder.getId())
         .call();
-    final List<InboxItem> messages = new ArrayList<InboxItem>();
-    for (final RPCMap messageMap : messagesMap.getRPCMapArray("list")) {
-      final InboxItem ii = new InboxItem();
-      if (messageMap.containsKey("msg_state")) {
-        final int state = messageMap.getInt("msg_state");
-        if (state == 1) {
-          ii.isUnread = true;
+    if (messagesMap != null) {
+      final List<InboxItem> messages = new ArrayList<InboxItem>();
+      for (final RPCMap messageMap : messagesMap.getRPCMapArray("list")) {
+        final InboxItem ii = new InboxItem();
+        if (messageMap.containsKey("msg_state")) {
+          final int state = messageMap.getInt("msg_state");
+          if (state == 1) {
+            ii.isUnread = true;
+          }
         }
-      }
 
-      ii.folderId = folder.getId();
-      ii.sentDate = messageMap.getDate("sent_date").toString();
-      ii.subject = messageMap.getByteString("msg_subject");
-      ii.messageId = messageMap.getString("msg_id");
-      ii.sender = messageMap.getByteString("msg_from");
-      ii.senderId = messageMap.getString("msg_from_id");
-      ii.senderAvatar = messageMap.getString("icon_url");
-      messages.add(ii);
+        ii.folderId = folder.getId();
+        ii.sentDate = messageMap.getDate("sent_date").toString();
+        ii.subject = messageMap.getByteString("msg_subject");
+        ii.messageId = messageMap.getString("msg_id");
+        ii.sender = messageMap.getByteString("msg_from");
+        ii.senderId = messageMap.getString("msg_from_id");
+        ii.senderAvatar = messageMap.getString("icon_url");
+        messages.add(ii);
+      }
+      return messages;
+    } else {
+      return null;
     }
-    return messages;
   }
 
   public Post getMessage(final String boxId, final String messageId, final boolean returnHtml) {
