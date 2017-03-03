@@ -284,19 +284,23 @@ public class Tapatalk {
         .param(boxId)
         .param(returnHtml)
         .call();
-    final Post post = new Post();
-    //TODO: Needed?
-    //po.subforumId = subforumId;
-    //po.thread_id = thread_id;
-    //po.moderator = moderator;
-    post.id = messageId;
-    post.author = messageMap.getByteString("msg_from");
-    post.authorId = messageMap.getString("msg_from_id");
-    post.body = messageMap.getByteString("text_body");
-    post.avatar = messageMap.getString("icon_url");
-    post.tagline = "tagline";
-    post.timestamp = messageMap.getDate("sent_date").toString();
-    return post;
+    if (messageMap != null) {
+      final Post post = new Post();
+      //TODO: Needed?
+      //po.subforumId = subforumId;
+      //po.thread_id = thread_id;
+      //po.moderator = moderator;
+      post.id = messageId;
+      post.author = messageMap.getByteString("msg_from");
+      post.authorId = messageMap.getString("msg_from_id");
+      post.body = messageMap.getByteString("text_body");
+      post.avatar = messageMap.getString("icon_url");
+      post.tagline = "tagline";
+      post.timestamp = messageMap.getDate("sent_date").toString();
+      return post;
+    } else {
+      return null;
+    }
   }
 
   public ApiResult deleteMessage(final String boxId, final String messageId) {
