@@ -25,13 +25,10 @@ import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-
-import de.enlightened.peris.support.Style;
 
 
 public class PreviewDialogFragment extends DialogFragment {
@@ -76,7 +73,7 @@ public class PreviewDialogFragment extends DialogFragment {
   }
 
   private void showPreview() {
-    final String color = Style.colorToColorString(ContextCompat.getColor(this.getActivity(), R.color.color_preview));
+    final String color = getActivity().getApplicationContext().getString(R.color.color_preview);
     BBCodeParser.parseCode(this.getActivity(), this.previewDialogLinearLayout, this.previewText,
         this.opensans, this.useOpenSans, this.useShading, null, this.fontSize, false,
         color, (PerisApp) getActivity().getApplication());
