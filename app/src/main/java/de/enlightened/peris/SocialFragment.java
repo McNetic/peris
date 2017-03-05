@@ -435,7 +435,6 @@ public class SocialFragment extends Fragment {
                   po.body = new String((byte[]) topicMap.get("post_content"));
                   po.avatar = (String) topicMap.get("icon_url");
                   po.id = (String) topicMap.get("post_id");
-                  po.tagline = "tagline";
                   po.timestamp = timestamp.toString();
                   postList.add(0, po);
                 }

@@ -22,7 +22,11 @@
 package de.enlightened.peris;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -30,26 +34,31 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.FrameLayout;
-import android.widget.ListView;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
 
 import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
+import de.enlightened.peris.site.Message;
+import de.enlightened.peris.support.DateTimeUtils;
+import de.enlightened.peris.support.Net;
 
 public class MessageActivity extends FragmentActivity {
 
   private static final String TAG = MessageActivity.class.getName();
   private static final int MAX_ITEM_COUNT = 50;
   private static final boolean RETURN_HTML = true;
+  private static final int DEFAULT_FONT_SIZE = 16;
 
   private String messageId;
   private String partnerName;
-  private ListView conversationList;
   private String folderId = "0";
   private String senderName = "";
   private String conversationModerator;
@@ -94,23 +103,13 @@ public class MessageActivity extends FragmentActivity {
     this.ah = ((PerisApp) getApplication()).getAnalyticsHelper();
     this.ah.trackScreen(getClass().getName(), false);
 
-    setContentView(R.layout.conversation);
+    this.setContentView(R.layout.message_layout);
 
     if (bundle.getString("boxid") != null) {
       this.folderId = bundle.getString("boxid");
     }
 
     setTitle(this.partnerName);
-
-    final FrameLayout container = (FrameLayout) findViewById(R.id.conversation_list_container);
-
-    this.conversationList = new ListView(this);
-    this.conversationList.setDivider(null);
-    this.conversationList.setLayoutParams(
-        new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT,
-        LayoutParams.MATCH_PARENT));
-
-    container.addView(this.conversationList);
 
     if (bundle.containsKey("server")) {
       this.externalServer = bundle.getString("server");
@@ -247,7 +246,105 @@ public class MessageActivity extends FragmentActivity {
     }
   }
 
-  private class LoadMessageTask extends AsyncTask<String, Void, Post> {
+  private void renderMessage(final Message message) {
+    final Context context = this.getApplicationContext();
+    final SharedPreferences appPreferences = context.getSharedPreferences("prefs", 0);
+    final boolean useShading = appPreferences.getBoolean("use_shading", false);
+    final boolean useOpenSans = appPreferences.getBoolean("use_opensans", false);
+    final int fontSize = appPreferences.getInt("font_size", DEFAULT_FONT_SIZE);
+    final boolean currentAvatarSetting = appPreferences.getBoolean("show_images", true);
+    final Typeface opensans = Typeface.createFromAsset(context.getAssets(), "fonts/opensans.ttf");
+
+    final View view = this.findViewById(R.id.message_layout);
+    final TextView poAuthor = (TextView) view.findViewById(R.id.message_author);
+    final TextView poTimestamp = (TextView) view.findViewById(R.id.message_timestamp);
+    final TextView tvOnline = (TextView) view.findViewById(R.id.message_online_status);
+
+    final LinearLayout llBorderBackground = (LinearLayout) view.findViewById(R.id.ll_border_background);
+    final LinearLayout llColorBackground = (LinearLayout) view.findViewById(R.id.ll_color_background);
+
+    String textColor = context.getString(R.string.default_text_color);
+    if (this.application.getSession().getServer().serverTextColor.contains("#")) {
+      textColor = this.application.getSession().getServer().serverTextColor;
+    }
+
+    String boxColor = context.getString(R.string.default_element_background);
+    if (this.application.getSession().getServer().serverBoxColor != null) {
+      boxColor = this.application.getSession().getServer().serverBoxColor;
+    }
+
+    if (boxColor.contains("#")) {
+      llColorBackground.setBackgroundColor(Color.parseColor(boxColor));
+    } else {
+      llColorBackground.setBackgroundColor(Color.TRANSPARENT);
+    }
+
+    //TODO: remove border?
+    String boxBorder = context.getString(R.string.default_element_border);
+    if (this.application.getSession().getServer().serverBoxBorder != null) {
+      boxBorder = this.application.getSession().getServer().serverBoxBorder;
+    }
+
+    if (boxBorder.contentEquals("1")) {
+      llBorderBackground.setBackgroundResource(R.drawable.element_border);
+    } else {
+      llBorderBackground.setBackgroundColor(Color.TRANSPARENT);
+    }
+
+    if (useOpenSans) {
+      poAuthor.setTypeface(opensans);
+      poTimestamp.setTypeface(opensans);
+      tvOnline.setTypeface(opensans);
+    }
+
+    if (useShading) {
+      poAuthor.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
+      tvOnline.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
+    }
+
+    final LinearLayout llPostBodyHolder = (LinearLayout) view.findViewById(R.id.message_body_holder);
+    llPostBodyHolder.removeAllViews();
+
+    final ImageView poAvatar = (ImageView) view.findViewById(R.id.message_avatar);
+
+    if (boxColor != null && boxColor.contains("#") && boxColor.length() == 7) {
+      final ImageView postAvatarFrame = (ImageView) view.findViewById(R.id.message_avatar_frame);
+      postAvatarFrame.setColorFilter(Color.parseColor(boxColor));
+    } else {
+      final ImageView postAvatarFrame = (ImageView) view.findViewById(R.id.message_avatar_frame);
+      postAvatarFrame.setVisibility(View.GONE);
+    }
+
+    if (message.isAuthorOnline()) {
+      tvOnline.setText("ONLINE");
+      tvOnline.setVisibility(View.VISIBLE);
+    } else {
+      tvOnline.setVisibility(View.GONE);
+    }
+
+    poAuthor.setText(message.getAuthor());
+    poTimestamp.setText(DateTimeUtils.getTimeAgo(message.getTimestamp()));
+
+    final String postContent = message.getBody();
+    // TODO: add attachments
+    BBCodeParser.parseCode(context, llPostBodyHolder, postContent, opensans, useOpenSans, useShading, new ArrayList<PostAttachment>(), fontSize, true, textColor, this.application);
+
+    poAuthor.setTextColor(Color.parseColor(textColor));
+    poTimestamp.setTextColor(Color.parseColor(textColor));
+
+    if (currentAvatarSetting) {
+      if (Net.isUrl(message.getAuthorAvatar())) {
+        final String imageUrl = message.getAuthorAvatar();
+        ImageLoader.getInstance().displayImage(imageUrl, poAvatar);
+      } else {
+        poAvatar.setImageResource(R.drawable.no_avatar);
+      }
+    } else {
+      poAvatar.setVisibility(View.GONE);
+    }
+  }
+
+  private class LoadMessageTask extends AsyncTask<String, Void, Message> {
 
     private final String messageId;
     private final String boxId;
@@ -263,20 +360,17 @@ public class MessageActivity extends FragmentActivity {
 
     // automatically done on worker thread (separate from UI thread)
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected Post doInBackground(final String... args) {
+    protected Message doInBackground(final String... args) {
       return MessageActivity.this.application.getSession().getApi().getMessage(this.boxId, this.messageId, RETURN_HTML);
     }
 
     // can use UI thread here
     @SuppressWarnings("rawtypes")
-    protected void onPostExecute(final Post post) {
-      if (post != null) {
-        final ArrayList<Post> postList = new ArrayList<Post>();
-        MessageActivity.this.senderName = post.author;
-        postList.add(post);
-        MessageActivity.this.conversationList.setAdapter(new PostAdapter(postList, MessageActivity.this, MessageActivity.this.application, -1));
+    protected void onPostExecute(final Message message) {
+      if (message != null) {
+        MessageActivity.this.senderName = message.getAuthor();
+        MessageActivity.this.renderMessage(message);
       }
     }
   }
-
 }

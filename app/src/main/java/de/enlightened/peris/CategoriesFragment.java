@@ -454,7 +454,6 @@ public class CategoriesFragment extends ListFragment {
       //}
     }
     ca.id = (String) topicMap.get("topic_id");
-    Log.d(TAG, "LAST_REPLY_TIME: " + ((Date) topicMap.get("last_reply_time")).toString());
     ca.lastUpdate = (Date) topicMap.get("last_reply_time");
     if (!subforum || topicMap.get("topic_author_name") != null) {
       ca.lastThread = new String((byte[]) topicMap.get("topic_author_name"));
@@ -754,7 +753,6 @@ public class CategoriesFragment extends ListFragment {
 
     @Override
     protected void onPreExecute() {
-      Log.i(TAG, "DownloadCategoriesTask onPreExecute");
       super.onPreExecute();
     }
 
@@ -762,7 +760,7 @@ public class CategoriesFragment extends ListFragment {
     @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
     protected Object[][] doInBackground(final String... params) {
-      Log.i(TAG, "DownloadCategoriesTask doInBackground");
+      Log.i(TAG, "DownloadCategoriesTask doInBackground subforumId " + subforumId);
       if (activity == null) {
         Log.e(TAG, "Category activity is null!");
         return null;

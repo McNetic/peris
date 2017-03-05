@@ -43,6 +43,7 @@ import de.enlightened.peris.PostAttachment;
 import de.enlightened.peris.Server;
 import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Identity;
+import de.enlightened.peris.site.Message;
 import de.enlightened.peris.site.MessageBox;
 import de.enlightened.peris.site.MessageFolder;
 import de.enlightened.peris.site.Topic;
@@ -186,7 +187,6 @@ public class Tapatalk {
       po.body = postMap.getByteString("post_content");
       po.avatar = postMap.getString("icon_url");
       po.id = postMap.getString("post_id");
-      po.tagline = "tagline";
 
       if (timestamp != null) {
         po.timestamp = timestamp.toString();
@@ -278,26 +278,27 @@ public class Tapatalk {
     }
   }
 
-  public Post getMessage(final String boxId, final String messageId, final boolean returnHtml) {
+  public Message getMessage(final String boxId, final String messageId, final boolean returnHtml) {
     final RPCMap messageMap = this.xmlrpc("get_message")
         .param(messageId)
         .param(boxId)
         .param(returnHtml)
         .call();
     if (messageMap != null) {
-      final Post post = new Post();
       //TODO: Needed?
       //po.subforumId = subforumId;
       //po.thread_id = thread_id;
       //po.moderator = moderator;
-      post.id = messageId;
-      post.author = messageMap.getByteString("msg_from");
-      post.authorId = messageMap.getString("msg_from_id");
-      post.body = messageMap.getByteString("text_body");
-      post.avatar = messageMap.getString("icon_url");
-      post.tagline = "tagline";
-      post.timestamp = messageMap.getDate("sent_date").toString();
-      return post;
+      // TODO: add attachments
+      return Message.builder()
+          .id(messageId)
+          .author(messageMap.getByteString("msg_from"))
+          .authorId(messageMap.getString("msg_from_id"))
+          .authorOnline(messageMap.getBoolOrDefault("is_online"))
+          .authorAvatar(messageMap.getString("icon_url"))
+          .body(messageMap.getByteString("text_body"))
+          .timestamp(messageMap.getDate("sent_date"))
+          .build();
     } else {
       return null;
     }

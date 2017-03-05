@@ -27,7 +27,6 @@ import java.util.ArrayList;
 
 @SuppressWarnings("checkstyle:visibilitymodifier")
 public class Post {
-  public String tagline = "tagline";
   public String author = "Author";
   public String body = "Post body goes here!";
   public String avatar = "n/a";
