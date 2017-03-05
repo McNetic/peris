@@ -29,7 +29,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -104,64 +103,6 @@ public class IntroScreen extends FragmentActivity {
   private String stealingLocation = "0";
   private ArrayList<ForumManifestCheckerTask> runningManifestChecks;
   private ServerAdapter sAdapterTemp;
-
-  public static Server parseServerData(final Cursor c) {
-    final Server parsedServer = new Server();
-
-    parsedServer.serverUserId = c.getString(c.getColumnIndex("userid"));
-    parsedServer.serverName = c.getString(c.getColumnIndex("servername"));
-    parsedServer.serverAddress = c.getString(c.getColumnIndex("server"));
-    parsedServer.serverAvatar = c.getString(c.getColumnIndex("avatar"));
-    parsedServer.serverUserName = c.getString(c.getColumnIndex("username"));
-    parsedServer.serverColor = c.getString(c.getColumnIndex("color"));
-    parsedServer.serverId = Integer.toString(c.getInt(c.getColumnIndex("_id")));
-    parsedServer.serverPassword = c.getString(c.getColumnIndex("password"));
-    parsedServer.serverTheme = c.getString(c.getColumnIndex("themeInt"));
-    parsedServer.serverIcon = c.getString(c.getColumnIndex("icon"));
-    parsedServer.serverTagline = c.getString(c.getColumnIndex("tagline"));
-    parsedServer.chatForum = c.getString(c.getColumnIndex("chatForum"));
-    parsedServer.chatName = c.getString(c.getColumnIndex("chatName"));
-    parsedServer.chatThread = c.getString(c.getColumnIndex("chatThread"));
-    parsedServer.ffChatId = c.getString(c.getColumnIndex("ffchat"));
-
-    if (c.getColumnIndex("analytics") > -1) {
-      parsedServer.analyticsId = c.getString(c.getColumnIndex("analytics"));
-    }
-
-    if (c.getColumnIndex("mobfox") > -1) {
-      parsedServer.mobfoxId = c.getString(c.getColumnIndex("mobfox"));
-    }
-
-    if (c.getColumnIndex("background") > -1) {
-      parsedServer.serverBackground = c.getString(c.getColumnIndex("background"));
-    }
-
-    if (c.getColumnIndex("boxcolor") > -1) {
-      parsedServer.serverBoxColor = c.getString(c.getColumnIndex("boxcolor"));
-    }
-
-    if (c.getColumnIndex("boxborder") > -1) {
-      parsedServer.serverBoxBorder = c.getString(c.getColumnIndex("boxborder"));
-    }
-
-    if (c.getColumnIndex("textcolor") > -1) {
-      parsedServer.serverTextColor = c.getString(c.getColumnIndex("textcolor"));
-    }
-
-    if (c.getColumnIndex("dividercolor") > -1) {
-      parsedServer.serverDividerColor = c.getString(c.getColumnIndex("dividercolor"));
-    }
-
-    if (c.getColumnIndex("wallpaper") > -1) {
-      parsedServer.serverWallpaper = c.getString(c.getColumnIndex("wallpaper"));
-    }
-
-    if (c.getColumnIndex("https") > -1) {
-      parsedServer.serverHttps = c.getInt(c.getColumnIndex("https")) == 1;
-    }
-
-    return parsedServer;
-  }
 
   public static Bitmap getBitmapFromURL(final String src) {
     try {
