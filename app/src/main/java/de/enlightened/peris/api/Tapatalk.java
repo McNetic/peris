@@ -27,7 +27,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,8 +44,10 @@ import de.enlightened.peris.InboxItem;
 import de.enlightened.peris.Post;
 import de.enlightened.peris.PostAttachment;
 import de.enlightened.peris.Server;
+import de.enlightened.peris.site.Category;
 import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Identity;
+import de.enlightened.peris.site.ListedTopics;
 import de.enlightened.peris.site.Message;
 import de.enlightened.peris.site.MessageBox;
 import de.enlightened.peris.site.MessageFolder;
@@ -152,6 +156,8 @@ public class Tapatalk {
       if (loginResult.isSuccess()) {
         this.identity = Identity.builder()
             .id(loginMap.getString("user_id"))
+            .userName(loginMap.getByteStringOrDefault("login_name", username))
+            .displayName(loginMap.getByteString("username"))
             .avatarUrl(loginMap.getString("icon_url"))
             .postCount(loginMap.getIntOrDefault("post_count", 0))
             .profileAccess(loginMap.getBoolOrDefault("can_profile"))
@@ -174,8 +180,12 @@ public class Tapatalk {
         .param(true)
         .call();
     final Topic topic = Topic.builder()
-        .curTotalPosts(topicMap.getIntOrDefault("total_post_num", 0))
+        .postCount(topicMap.getIntOrDefault("total_post_num", 0))
         .canPost(topicMap.getBoolOrDefault("can_reply", false))
+        .forumName(topicMap.getByteString("forum_name"))
+        .authorId(topicMap.getString("topic_author_id"))
+        .authorName(topicMap.getByteString("topic_author_name"))
+        .authorIcon(topicMap.getString("topic_author_avatar"))
         .build();
 
     for (final RPCMap postMap : topicMap.getRPCMapArray("posts")) {
@@ -322,5 +332,154 @@ public class Tapatalk {
         .success(resultMap.getBool("result"))
         .message(resultMap.getByteString("result_text"))
         .build();
+  }
+
+  private static final Map<Topic.Type, String> TOPIC_TYPE_MAP = new HashMap<>();
+
+  static {
+    TOPIC_TYPE_MAP.put(Topic.Type.Announcement, "ANN");
+    TOPIC_TYPE_MAP.put(Topic.Type.Sticky, "TOP");
+  }
+
+  private ListedTopics readTopics(final RPCMap listedTopicsMap, final Topic.Type type, final String subforumId) {
+    if (listedTopicsMap != null) {
+      final ListedTopics listedTopics = ListedTopics.builder()
+          .forumId(listedTopicsMap.getString("forum_id"))
+          .forumName(listedTopicsMap.getByteString("forum_name"))
+          .count(listedTopicsMap.getIntOrDefault("total_topic_num", 1))
+          .unreadAnnouncementCount(listedTopicsMap.getIntOrDefault("unread_announce_count", 0))
+          .unreadStickyCount(listedTopicsMap.getIntOrDefault("unread_sticky_count", 0))
+          .postAllowed(listedTopicsMap.getBoolOrDefault("can_post"))
+          .subscriptionAllowed(listedTopicsMap.getBoolOrDefault("can_subscribe"))
+          .subscribed(listedTopicsMap.getBoolOrDefault("is_subscribed"))
+          .build();
+      if (listedTopics.getCount() > 0) {
+        for (final RPCMap topicMap : listedTopicsMap.getRPCMapArray("topics")) {
+          listedTopics.addTopic(Topic.builder()
+              .id(topicMap.getString("topic_id"))
+              .title(topicMap.getByteString("topic_title"))
+              .type(type)
+              .subforumId(topicMap.getStringOrDefault("forum_id", subforumId))
+              .lastUpdate(topicMap.getDate("last_reply_time"))
+              .forumName(topicMap.getByteString("forum_name"))
+              .authorId(topicMap.getString("topic_author_id"))
+              .authorName(topicMap.getByteString("topic_author_name"))
+              .replyCount(topicMap.getIntOrDefault("reply_number", 0))
+              .viewCount(topicMap.getIntOrDefault("view_number", 0))
+              .hasNewPosts(topicMap.getBoolOrDefault("new_post"))
+              .isClosed(topicMap.getBoolOrDefault("is_closed"))
+              .authorIcon(topicMap.getString("icon_url"))
+              .canStick(topicMap.getBoolOrDefault("can_stick"))
+              .canDelete(topicMap.getBoolOrDefault("can_delete"))
+              .canSubscribe(topicMap.getBoolOrDefault("can_subscribe", true))
+              .canClose(topicMap.getBoolOrDefault("can_close"))
+              .build());
+        }
+      }
+      return listedTopics;
+    } else {
+      return null;
+    }
+  }
+
+  public ListedTopics getTopics(final String subforumId, final int start, final int end, final Topic.Type type) {
+    return this.readTopics(this.xmlrpc("get_topic")
+        .param(subforumId)
+        .param(start)
+        .param(end)
+        .optionalParam(TOPIC_TYPE_MAP.get(type))
+        .call(), type, subforumId);
+  }
+
+  public ListedTopics getTopics(final String subforumId, final int start, final int end) {
+    return this.getTopics(subforumId, start, end, Topic.Type.Default);
+  }
+
+  public ListedTopics getSubscribedTopics(final String subforumId, final int start, final int end) {
+    return this.readTopics(this.xmlrpc("get_subscribed_topic")
+        .param(start)
+        .param(end)
+        .call(), Topic.Type.Default, subforumId);
+  }
+
+  public ListedTopics getParticipatedTopics(final String subforumId, final int start, final int end) {
+    if (this.identity == null) {
+      return null;
+    } else {
+      return this.readTopics(this.xmlrpc("get_participated_topic")
+          .param(this.identity.getUserName().getBytes())
+          .param(start)
+          .param(end)
+          .param("")
+          .param(this.identity.getId())
+          .call(), Topic.Type.Default, subforumId);
+    }
+  }
+
+  public ListedTopics searchTopic(final String subforumId, final String searchQuery, final int start, final int end) {
+    return this.readTopics(this.xmlrpc("search_topic")
+        .param(searchQuery.getBytes())
+        .param(start)
+        .param(end)
+        .call(), Topic.Type.Default, subforumId);
+  }
+
+  public ListedTopics getLatestTopics(final String subforumId, final int start, final int end) {
+    return this.readTopics(this.xmlrpc("get_latest_topic")
+        .param(start)
+        .param(end)
+        .call(), Topic.Type.Default, subforumId);
+  }
+
+  public ListedTopics getUnreadTopics(final String subforumId) {
+    return this.readTopics(this.xmlrpc("get_unread_topic")
+        .call(), Topic.Type.Default, subforumId);
+  }
+
+  private List<Category> readCategories(final Map<String, Category> categories, final List<RPCMap> categoryMapList, final String parentId) {
+    final List<Category> categoryList = new ArrayList<>();
+    for (RPCMap categoryMap : categoryMapList) {
+      final Category category = Category.builder()
+          .id(categoryMap.getString("forum_id"))
+          .parentId(parentId)
+          .hash((parentId == null ? "" : parentId + "###") + categoryMap.getString("forum_id"))
+          .name(categoryMap.getByteString("forum_name"))
+          .logoUrl(categoryMap.getString("logo_url"))
+          .url(categoryMap.getString("url"))
+          .isSubscribed(categoryMap.getBoolOrDefault("is_subscribed"))
+          .canSubscribe(categoryMap.getBoolOrDefault("can_subscribe"))
+          .hasNewTopic(categoryMap.getBoolOrDefault("new_post"))
+          .children(this.readCategories(categories, Arrays.asList(categoryMap.getRPCMapArray("children")), categoryMap.getString("forum_id")))
+          .build();
+      categoryList.add(category);
+      categories.put(category.getId(), category);
+    }
+    return categoryList;
+  }
+
+  private List<Category> readCategories(final Map<String, Category> categories, final List<RPCMap> categoryMapList) {
+    return this.readCategories(categories, categoryMapList, null);
+  }
+
+  public Map<String, Category> getCategory(final String categoryId) {
+    final Map<String, Category> categories = new HashMap<>();
+    categories.put(categoryId, Category.builder()
+        .id(categoryId)
+        .children(this.readCategories(categories, this.xmlrpc("get_forum")
+            .param(Boolean.TRUE)
+            .param(categoryId)
+            .callAsList()))
+        .build());
+    return categories;
+  }
+
+  public Map<String, Category> getCategories() {
+    final Map<String, Category> categories = new HashMap<>();
+    categories.put(Category.ROOT_ID, Category.builder()
+        .id(Category.ROOT_ID)
+        .children(this.readCategories(categories, this.xmlrpc("get_forum")
+            .callAsList()))
+        .build());
+    return categories;
   }
 }

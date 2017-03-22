@@ -47,11 +47,14 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import de.enlightened.peris.site.Category;
 import de.enlightened.peris.site.Config;
+import de.enlightened.peris.site.Topic;
+import de.enlightened.peris.site.TopicItem;
 import de.enlightened.peris.support.CacheService;
 import de.enlightened.peris.support.Net;
 
@@ -59,19 +62,13 @@ import de.enlightened.peris.support.Net;
 public class CategoriesFragment extends ListFragment {
   private static final String TAG = CategoriesFragment.class.getName();
   private static final int CATEGORIES_PER_PAGE = 20;
-  private static final int MAX_ITEM_COUNT = 50;
 
   private String serverAddress;
-  private String subforumId = "0";
+  private String subforumId = null;
   private String background;
   private String userid;
-  private Category clickedCategory;
-  private String username;
-
-  //private String hashId = "0";
-
+  private TopicItem clickedTopicItem;
   private String storagePrefix = "";
-
   private DownloadCategoriesTask categoriesDownloader;
   private PerisApp application;
   private String searchQuery = "";
@@ -90,9 +87,9 @@ public class CategoriesFragment extends ListFragment {
   private URL shareURL = null;
   private FragmentActivity activity;
   private String totalHash;
-  private ArrayList<Category> categoryList;
+  private List<TopicItem> categoryList;
   private boolean initialParseDone = false;
-  private CategorySelectedListener categorySelected = null;
+  private TopicItemSelectedListener categorySelected = null;
   private OnScrollListener listScrolled = new OnScrollListener() {
 
     @Override
@@ -188,7 +185,6 @@ public class CategoriesFragment extends ListFragment {
     }
 
     this.userid = this.application.getSession().getServer().serverUserId;
-    this.username = this.application.getSession().getServer().serverPassword;
 
     final String shareId = this.subforumId;
     if (shareId.contentEquals("0")) {
@@ -229,7 +225,7 @@ public class CategoriesFragment extends ListFragment {
     this.activity.getActionBar().setSubtitle(this.screenSubtitle);
 
     //activity.getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-    final Object[][] forumObject = (Object[][]) CacheService.readObject(CategoriesFragment.this.getContext(), "forums/" + this.storagePrefix + "forum" + this.subforumId);
+    final ResultObject forumObject = (ResultObject) CacheService.readObject(CategoriesFragment.this.getContext(), "forums/" + this.storagePrefix + "forum" + this.subforumId);
 
     if (forumObject != null) {
       try {
@@ -247,9 +243,7 @@ public class CategoriesFragment extends ListFragment {
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
       this.activity.invalidateOptionsMenu();
     }
-
-    //Log.d(TAG,"CF OnResume Completed");
-
+    Log.d(TAG, "CF OnResume Completed");
     super.onResume();
   }
 
@@ -285,9 +279,9 @@ public class CategoriesFragment extends ListFragment {
   /*
   private void setChatThread() {
 
-        application.getSession().getServer().chatThread = clickedCategory.id;
-        application.getSession().getServer().chatForum = clickedCategory.subforumId;
-        application.getSession().getServer().chatName = clickedCategory.name;
+        application.getSession().getServer().chatThread = clickedTopicItem.id;
+        application.getSession().getServer().chatForum = clickedTopicItem.subforumId;
+        application.getSession().getServer().chatName = clickedTopicItem.name;
         application.getSession().updateServer();
 
         chatChanged.onChatChanged(application.getSession().getServer().chatThread);
@@ -295,10 +289,10 @@ public class CategoriesFragment extends ListFragment {
   */
 
   @SuppressWarnings("rawtypes")
-  private void parseCachedForums(final Object[][] result) {
+  private void parseCachedForums(final ResultObject result) {
     Log.d(TAG, "parseCachedForums()");
     if (this.categoryList == null || !this.isExtraScrolling) {
-      this.categoryList = new ArrayList<Category>();
+      this.categoryList = new ArrayList<>();
     }
     int retainedPosition = getListView().getFirstVisiblePosition();
 
@@ -308,47 +302,37 @@ public class CategoriesFragment extends ListFragment {
       retainedPosition = Integer.parseInt(savedForumPosition);
     }
     //Announcement Topics
-    for (Object o : result[1]) {
-      if (o != null) {
-        final Map map = (Map) o;
-
-        if (map.containsKey("topics")) {
-          for (Object t : (Object[]) map.get("topics")) {
-            this.categoryList.add(this.createCategoryFromTopics((Map) t, false, true));
-          }
-        }
-      }
+    if (result.announcementTopics != null) {
+      //this.categoryList.add(result.announcementTopics);
+      this.categoryList.addAll(result.announcementTopics.getTopics());
     }
+
     //Sticky Topics
-    for (Object o : result[2]) {
-      if (o != null) {
-        final Map map = (Map) o;
-
-        if (map.containsKey("topics")) {
-          for (Object t : (Object[]) map.get("topics")) {
-            this.categoryList.add(this.createCategoryFromTopics((Map) t, false, true));
-          }
-        }
-      }
+    if (result.stickyTopics != null) {
+      this.categoryList.addAll(result.stickyTopics.getTopics());
     }
 
-    Log.d(TAG, "Starting category parse!");
+    Log.d(TAG, "Starting category parse! " + this.subforumId);
     //Forums
-    if (result[0] != null) {
-      ArrayList<Category> forumz = CategoryParser.parseCategories(result[0], this.subforumId, this.background);
+    if (result.categories != null) {
+      this.categoryList.addAll(result.categories.get(this.subforumId).getChildren());
+    }
+    /*
+    if (result.categories != null) {
+      ArrayList<CategoryOld> forumz = CategoryParser.parseCategories(result.categories, this.subforumId, this.background);
       Log.d(TAG, "Forums parsed!");
       String currentHash = this.subforumParts[0];
       Log.d(TAG, "Hash Size: " + this.subforumParts.length);
       if (this.subforumParts.length == 1) {
-        for (Category c : forumz) {
+        for (CategoryOld c : forumz) {
           this.categoryList.add(c);
         }
       } else {
         for (int i = 1; i < this.subforumParts.length; i++) {
           currentHash = currentHash + "###" + this.subforumParts[i];
           Log.d(TAG, "Checking hash: " + currentHash + " (total hash is " + this.totalHash + ")");
-          ArrayList<Category> tempForums = null;
-          for (Category c : forumz) {
+          ArrayList<CategoryOld> tempForums = null;
+          for (CategoryOld c : forumz) {
             if (c.children != null && c.id.contentEquals(currentHash)) {
               tempForums = c.children;
             }
@@ -358,62 +342,48 @@ public class CategoriesFragment extends ListFragment {
             forumz = tempForums;
 
             if (currentHash.contentEquals(this.totalHash)) {
-              for (Category c : forumz) {
+              for (CategoryOld c : forumz) {
                 this.categoryList.add(c);
               }
             }
           }
         }
       }
-    }
+    }*/
     Log.d(TAG, "Finished category parse!");
     //Non-Sticky Topics
-    if (result[3] == null || result[3].length == 0) {
+    if (result.defaultTopics == null) {
       this.canScrollMoreThreads = false;
+    } else {
+      this.categoryList.addAll(result.defaultTopics.getTopics());
     }
-    for (Object o : result[3]) {
-      if (o != null) {
-        final Map map = (Map) o;
 
-        if (map.containsKey("topics")) {
-          for (Object t : (Object[]) map.get("topics")) {
-            this.categoryList.add(this.createCategoryFromTopics((Map) t, true, false));
-          }
-        }
+    if (result.favoriteTopics != null) {
+      Log.i(TAG, "We have some favs!");
+
+      final Map map = (Map) result.favoriteTopics;
+      if (map.containsKey("result_text")) {
+        Log.d(TAG, "RESULT_TEXT: " + new String((byte[]) map.get("result_text")));
       }
-    }
+      if (map.containsKey("forums")) {
+        for (Object f : (Object[]) map.get("forums")) {
+          final Map forumMap = (Map) f;
 
-    for (Object o : result[4]) {
-      if (o != null) {
-        Log.i(TAG, "We have some favs!");
-
-        final Map map = (Map) o;
-        if (map.containsKey("forums")) {
-          final ArrayList forums = (ArrayList) map.get("forums");
-          for (Object f : forums) {
-            final Map forumMap = (Map) f;
-
-            final Category ca = new Category();
-            ca.name = (String) forumMap.get("forum_name");
-            ca.subforumId = this.subforumId;
-            ca.id = (String) forumMap.get("forum_id");
-            ca.type = "S";
-            ca.color = this.background;
-
-            if (forumMap.containsKey("icon_url")) {
-              if (forumMap.get("icon_url") != null) {
-                ca.icon = (String) forumMap.get("icon_url");
-              }
-            }
-            ca.isSubscribed = true;
-            if (forumMap.get("new_post") != null) {
-              ca.hasNewTopic = (Boolean) forumMap.get("new_post");
-            }
-            this.categoryList.add(ca);
-          }
-        } else {
-          Log.e(TAG, "Favs has no forums!");
+          final Category ca = Category.builder()
+              .name(new String((byte[]) forumMap.get("forum_name")))
+              .id((String) forumMap.get("forum_id"))
+              .isSubscribed(true)
+              .logoUrl(forumMap.containsKey("icon_url") && forumMap.get("icon_url") != null
+                  ? (String) forumMap.get("icon_url") : null)
+              .hasNewTopic(forumMap.get("new_post") != null ? (Boolean) forumMap.get("new_post") : false)
+              .build();
+          //TODO
+          //ca.subforumId = this.subforumId;
+          //ca.color = this.background;
+          this.categoryList.add(ca);
         }
+      } else {
+        Log.e(TAG, "Favs has no forums!");
       }
     }
 
@@ -421,18 +391,14 @@ public class CategoriesFragment extends ListFragment {
     registerForContextMenu(getListView());
     getListView().setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
+      @Override
       @SuppressWarnings("checkstyle:requirethis")
-      public void onItemClick(final AdapterView<?> arg0, final View arg1, final int arg2, final long arg3) {
-        final Category sender = (Category) arg0.getItemAtPosition(arg2);
+      public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+        final TopicItem topicItem = (TopicItem) parent.getItemAtPosition(position);
 
-        if (sender == null) {
-          return;
+        if (topicItem != null && categorySelected != null) {
+          categorySelected.onTopicItemSelected(topicItem);
         }
-        if (categorySelected == null) {
-          return;
-        }
-
-        categorySelected.onCategorySelected(sender);
       }
     });
 
@@ -440,8 +406,8 @@ public class CategoriesFragment extends ListFragment {
     this.initialParseDone = true;
   }
 
-  private Category createCategoryFromTopics(final Map topicMap, final boolean subforum, final boolean sticky) {
-    final Category ca = new Category();
+  /*private CategoryOld createCategoryFromTopics(final Map topicMap, final boolean subforum, final boolean sticky) {
+    final CategoryOld ca = new CategoryOld();
     ca.name = new String((byte[]) topicMap.get("topic_title"));
 
     if (subforum && topicMap.get("forum_id") != null) {
@@ -458,7 +424,7 @@ public class CategoriesFragment extends ListFragment {
     if (!subforum || topicMap.get("topic_author_name") != null) {
       ca.lastThread = new String((byte[]) topicMap.get("topic_author_name"));
     } else {
-      ca.lastThread = (String) topicMap.get("forum_name");
+      ca.lastThread = new String((byte[]) topicMap.get("forum_name"));
     }
     if (sticky) {
       ca.topicSticky = "Y";
@@ -500,19 +466,19 @@ public class CategoriesFragment extends ListFragment {
       ca.canLock = (Boolean) topicMap.get("can_close");
     }
     return ca;
-  }
+  }*/
 
   public final void onCreateContextMenu(final ContextMenu menu, final View v, final ContextMenuInfo menuInfo) {
     final String serverUserId = this.application.getSession().getServer().serverUserId;
     final AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
 
-    this.clickedCategory = (Category) CategoriesFragment.this.getListView().getItemAtPosition(info.position);
+    this.clickedTopicItem = (TopicItem) CategoriesFragment.this.getListView().getItemAtPosition(info.position);
 
     if (serverUserId == null) {
       return;
     }
     super.onCreateContextMenu(menu, v, menuInfo);
-    menu.setHeaderTitle(this.clickedCategory.name);
+    menu.setHeaderTitle(this.clickedTopicItem.getHeading());
     final MenuInflater inflater = this.activity.getMenuInflater();
 
     inflater.inflate(R.menu.categories_context, menu);
@@ -526,53 +492,55 @@ public class CategoriesFragment extends ListFragment {
     final MenuItem subscribeItem = menu.findItem(R.id.categories_add_favorite);
     final MenuItem unsubscribeItem = menu.findItem(R.id.categories_remove_favorite);
 
-    if (this.clickedCategory.type.contentEquals("S")) {
+    if (this.clickedTopicItem instanceof Category) {
+      final Category category = (Category) this.clickedTopicItem;
       ubsubItem.setVisible(false);
       subItem.setVisible(false);
       stickyItem.setVisible(false);
       lockItem.setVisible(false);
       deleteItem.setVisible(false);
 
-      if (this.clickedCategory.canSubscribe) {
+      if (category.isCanSubscribe()) {
         subscribeItem.setVisible(true);
       } else {
         subscribeItem.setVisible(false);
       }
 
-      if (this.clickedCategory.isSubscribed) {
+      if (category.isSubscribed()) {
         unsubscribeItem.setVisible(true);
         subscribeItem.setVisible(false);
       } else {
         unsubscribeItem.setVisible(false);
       }
     } else {
+      final Topic topic = (Topic) this.clickedTopicItem;
 
       unsubscribeItem.setVisible(false);
       subscribeItem.setVisible(false);
 
 
-      if (this.clickedCategory.canSticky) {
+      if (topic.isCanStick()) {
         stickyItem.setVisible(true);
 
-        if (this.clickedCategory.topicSticky.contentEquals("N")) {
-          stickyItem.setTitle("Stick Topic");
-        } else {
+        if (Topic.Type.Sticky == topic.getType()) {
           stickyItem.setTitle("Unstick Topic");
+        } else {
+          stickyItem.setTitle("Stick Topic");
         }
       } else {
         stickyItem.setVisible(false);
       }
 
-      if (this.clickedCategory.canDelete) {
+      if (topic.isCanDelete()) {
         deleteItem.setVisible(true);
       } else {
         deleteItem.setVisible(false);
       }
 
-      if (this.clickedCategory.canLock) {
+      if (topic.isCanClose()) {
         lockItem.setVisible(true);
 
-        if (this.clickedCategory.isLocked) {
+        if (topic.isClosed()) {
           lockItem.setTitle("Unlock Topic");
         } else {
           lockItem.setTitle("Lock Topic");
@@ -594,33 +562,38 @@ public class CategoriesFragment extends ListFragment {
   public final  boolean onContextItemSelected(final MenuItem item) {
     switch (item.getItemId()) {
       case R.id.categories_unsubscribe:
-        new UnsubscribeTopicTask().execute(this.clickedCategory.id);
+        new UnsubscribeTopicTask().execute(this.clickedTopicItem.getId());
         break;
       case R.id.categories_subscribe:
-        new SubscribeTopicTask().execute(this.clickedCategory.id);
+        new SubscribeTopicTask().execute(this.clickedTopicItem.getId());
         break;
       case R.id.categories_context_sticky:
-        if (this.clickedCategory.topicSticky.contentEquals("N")) {
-          new StickyTopicTask().execute(this.clickedCategory.id, "1");
-        } else {
-          new StickyTopicTask().execute(this.clickedCategory.id, "2");
+        if (this.clickedTopicItem instanceof Topic) {
+          if (Topic.Type.Sticky == ((Topic) this.clickedTopicItem).getType()) {
+            new StickyTopicTask().execute(this.clickedTopicItem.getId(), "2");
+          } else {
+            new StickyTopicTask().execute(this.clickedTopicItem.getId(), "1");
+          }
         }
         break;
       case R.id.categories_context_lock:
-        if (this.clickedCategory.isLocked) {
-          new LockTopicTask().execute(this.clickedCategory.id, "1");
-        } else {
-          new LockTopicTask().execute(this.clickedCategory.id, "2");
+        if (this.clickedTopicItem instanceof Topic) {
+          final Topic topic = (Topic) this.clickedTopicItem;
+          if (((Topic) this.clickedTopicItem).isClosed()) {
+            new LockTopicTask().execute(this.clickedTopicItem.getId(), "1");
+          } else {
+            new LockTopicTask().execute(this.clickedTopicItem.getId(), "2");
+          }
         }
         break;
       case R.id.categories_context_delete_yes:
-        new DeleteTopicTask().execute(this.clickedCategory.id);
+        new DeleteTopicTask().execute(this.clickedTopicItem.getId());
         break;
       case R.id.categories_add_favorite:
-        new AddToFavoritesTask().execute(this.clickedCategory.id);
+        new AddToFavoritesTask().execute(this.clickedTopicItem.getId());
         break;
       case R.id.categories_remove_favorite:
-        new RemoveFromFavoritesTask().execute(this.clickedCategory.id);
+        new RemoveFromFavoritesTask().execute(this.clickedTopicItem.getId());
         break;
       default:
         return super.onContextItemSelected(item);
@@ -645,7 +618,7 @@ public class CategoriesFragment extends ListFragment {
     super.onPrepareOptionsMenu(menu);
 
     if ((this.userid != null) && (menu != null)) {
-      if (this.subforumId.contentEquals("0")
+      if (this.subforumId == null
           || this.subforumId.contentEquals("participated")
           || this.subforumId.contentEquals("favs")
           || this.subforumId.contentEquals("search")) {
@@ -662,7 +635,7 @@ public class CategoriesFragment extends ListFragment {
         }
       }
 
-      if (this.subforumId.contentEquals("0")
+      if (this.subforumId ==  null
           || this.subforumId.contentEquals("participated")
           || this.subforumId.contentEquals("favs")
           || this.subforumId.contentEquals("userrecent")
@@ -711,7 +684,7 @@ public class CategoriesFragment extends ListFragment {
 
   private void startPost() {
 
-    if (this.subforumId.contentEquals("0") || this.userid == null) {
+    if (this.subforumId == null || this.userid == null) {
       final Toast toast = Toast.makeText(this.activity, "You are not allowed to post here!", Toast.LENGTH_LONG);
       toast.show();
       return;
@@ -736,7 +709,7 @@ public class CategoriesFragment extends ListFragment {
 
   }
 
-  public final void setOnCategorySelectedListener(final CategorySelectedListener l) {
+  public final void setOnCategorySelectedListener(final TopicItemSelectedListener l) {
     this.categorySelected = l;
   }
 
@@ -745,11 +718,11 @@ public class CategoriesFragment extends ListFragment {
   }
 
   //Category Selected Interface
-  public interface CategorySelectedListener {
-    void onCategorySelected(Category ca);
+  public interface TopicItemSelectedListener {
+    void onTopicItemSelected(TopicItem category);
   }
 
-  private class DownloadCategoriesTask extends AsyncTask<String, Void, Object[][]> {
+  private class DownloadCategoriesTask extends AsyncTask<String, Void, ResultObject> {
 
     @Override
     protected void onPreExecute() {
@@ -759,32 +732,22 @@ public class CategoriesFragment extends ListFragment {
     @SuppressLint("UseValueOf")
     @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    protected Object[][] doInBackground(final String... params) {
+    protected ResultObject doInBackground(final String... params) {
       Log.i(TAG, "DownloadCategoriesTask doInBackground subforumId " + subforumId);
       if (activity == null) {
         Log.e(TAG, "Category activity is null!");
         return null;
       }
       isLoading = true;
-      final Object[][] result = new Object[5][MAX_ITEM_COUNT];
+      final ResultObject result = new ResultObject();
       if (subforumId.contentEquals("favs")) {
         //Handle subscription category
-        try {
-          final Vector paramz = new Vector();
-          paramz.addElement(startingPos);
-          paramz.addElement(endingPos);
-          result[3][0] = application.getSession().performSynchronousCall("get_subscribed_topic", paramz);
-        } catch (Exception ex) {
-          if (ex.getMessage() != null) {
-            Log.w(TAG, ex.getMessage());
-          }
-        }
+        result.defaultTopics = application.getSession().getApi().getSubscribedTopics(subforumId, startingPos, endingPos);
       } else if (subforumId.contentEquals("forum_favs")) {
         //Handle favorites category
         try {
           final Vector paramz = new Vector();
-          //result[0] = (Object[]) client.execute("get_subscribed_forum", paramz);
-          result[4][0] = application.getSession().performSynchronousCall("get_subscribed_forum", paramz);
+          result.favoriteTopics = application.getSession().performSynchronousCall("get_subscribed_forum", paramz);
         } catch (Exception ex) {
           if (ex.getMessage() != null) {
             Log.w(TAG, "Favorites Error: " + ex.getMessage());
@@ -792,126 +755,42 @@ public class CategoriesFragment extends ListFragment {
         }
       } else if (subforumId.contentEquals("participated")) {
         //Handle participated topics category
-        try {
-          final Vector paramz = new Vector();
-          paramz.addElement(username.getBytes());
-          paramz.addElement(startingPos);
-          paramz.addElement(endingPos);
-          paramz.addElement("");
-          paramz.addElement(userid);
-          result[3][0] = application.getSession().performSynchronousCall("get_participated_topic", paramz);
-        } catch (Exception ex) {
-          if (ex.getMessage() != null) {
-            Log.w(TAG, ex.getMessage());
-          }
-        }
+        result.defaultTopics = application.getSession().getApi().getParticipatedTopics(subforumId, startingPos, endingPos);
       } else if (subforumId.contentEquals("search")) {
         //Handle topic listing for the Search function
-        try {
-          final Vector paramz = new Vector();
-          paramz.addElement(searchQuery.getBytes());
-          paramz.addElement(startingPos);
-          paramz.addElement(endingPos);
-          result[3][0] = application.getSession().performSynchronousCall("search_topic", paramz);
-        } catch (Exception ex) {
-          if (ex.getMessage() != null) {
-            Log.w(TAG, ex.getMessage());
-          }
-        }
+        result.defaultTopics = application.getSession().getApi().searchTopic(subforumId, searchQuery, startingPos, endingPos);
       } else if (subforumId.contentEquals("timeline")) {
-          //Handle timeline get_latest_topic
-          try {
-            final Vector paramz = new Vector();
-            //paramz.addElement(username.getBytes());
-            paramz.addElement(startingPos);
-            paramz.addElement(endingPos);
-            //paramz.addElement(userid);
-            result[3][0] = application.getSession().performSynchronousCall("get_latest_topic", paramz);
-          } catch (Exception ex) {
-            if (ex.getMessage() != null) {
-              Log.w(TAG, ex.getMessage());
-            }
-          }
+        //Handle timeline get_latest_topic
+        result.defaultTopics = application.getSession().getApi().getLatestTopics(subforumId, startingPos, endingPos);
       } else if (subforumId.contentEquals("unread")) {
         //Handle topic listing for the Unread category
         if (!isExtraScrolling) {
-          try {
-            final Vector paramz = new Vector();
-            result[3][0] = application.getSession().performSynchronousCall("get_unread_topic", paramz);
-          } catch (Exception ex) {
-            if (ex.getMessage() != null) {
-              Log.w(TAG, ex.getMessage());
-            }
-          }
+          //TODO: paging?
+          result.defaultTopics = application.getSession().getApi().getUnreadTopics(subforumId);
         }
       } else if (!subforumId.contentEquals("userrecent")) {
           //Do not get a forum listing if we are inside one of the special sections
         if (!isExtraScrolling) {
-          try {
-            final Vector paramz = new Vector();
-
-            if (!subforumId.contentEquals("0")) {
-              paramz.addElement(new Boolean(true));
-              paramz.addElement(subforumId);
-            }
-            result[0] = (Object[]) application.getSession().performSynchronousCall("get_forum", paramz);
-            if (result[0] == null) {
-              Log.e(TAG, "shits null on " + subforumId);
-            }
-          } catch (Exception ex) {
-            if (ex.getMessage() != null) {
-              Log.w(TAG, ex.getMessage());
-            }
+          if (subforumId != null) {
+            result.categories = CategoriesFragment.this.application.getSession().getApi().getCategory(subforumId);
+          } else {
+            result.categories = CategoriesFragment.this.application.getSession().getApi().getCategories();
           }
-          try {
-            //First grab any announcement topics
-            final Vector paramz = new Vector();
-            paramz.addElement(subforumId);
-            paramz.addElement(0);
-            paramz.addElement(CATEGORIES_PER_PAGE);
-            paramz.addElement("ANN");
-            //result[1][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-            result[1][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-          } catch (Exception ex) {
-            if (ex.getMessage() != null) {
-              Log.w(TAG, ex.getMessage());
-            }
-          }
-          try {
-            //Then grab any sticky topics
-            final Vector paramz = new Vector();
-            paramz.addElement(subforumId);
-            paramz.addElement(0);
-            paramz.addElement(CATEGORIES_PER_PAGE);
-            paramz.addElement("TOP");
-            //result[2][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-            result[2][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-          } catch (Exception ex) {
-            if (ex.getMessage() != null) {
-              Log.w(TAG, ex.getMessage());
-            }
-          }
+          //First grab any announcement topics
+          result.announcementTopics = CategoriesFragment.this.application.getSession().getApi().getTopics(subforumId, 0, CATEGORIES_PER_PAGE, Topic.Type.Announcement);
+          //Then grab any sticky topics
+          result.stickyTopics = CategoriesFragment.this.application.getSession().getApi().getTopics(subforumId, 0, CATEGORIES_PER_PAGE, Topic.Type.Sticky);
         }
-        try {
-          //Grab the non-sticky topics
-          Log.d(TAG, "Getting topics " + startingPos + " through " + endingPos);
 
-          final Vector paramz = new Vector();
-          paramz.addElement(subforumId);
-          paramz.addElement(startingPos);
-          paramz.addElement(endingPos);
-          result[3][0] = application.getSession().performSynchronousCall("get_topic", paramz);
-        } catch (Exception ex) {
-          if (ex.getMessage() != null) {
-            Log.w(TAG, ex.getMessage());
-          }
-        }
+        //Grab the non-sticky topics
+        Log.d(TAG, "Getting topics " + startingPos + " through " + endingPos);
+        result.defaultTopics = CategoriesFragment.this.application.getSession().getApi().getTopics(subforumId, startingPos, endingPos);
       }
       return result;
     }
 
     @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final Object[][] result) {
+    protected void onPostExecute(final ResultObject result) {
       Log.i(TAG, "DownloadCategoriesTask onPostExecute");
 
       if (activity != null) {
@@ -924,13 +803,13 @@ public class CategoriesFragment extends ListFragment {
           initialLoadComplete = true;
           isLoading = false;
 
-          final Object[][] cachedForum = (Object[][]) CacheService.readObject(CategoriesFragment.this.getContext(), "forums/" + storagePrefix + "forum" + subforumId);
+          final ResultObject cachedForum = (ResultObject) CacheService.readObject(CategoriesFragment.this.getContext(), "forums/" + storagePrefix + "forum" + subforumId);
           if (!result.equals(cachedForum)) {
             if (!isExtraScrolling) {
               try {
                 CacheService.writeObject(CategoriesFragment.this.getContext(), "forums/" + storagePrefix + "forum" + subforumId, result);
               } catch (IOException e) {
-                Log.e(TAG, "Error writing forum cache (" + e.getMessage() + ")");
+                Log.e(TAG, "Error writing forum cache (" + e.getMessage() + ")\n" + e);
               }
             }
             parseCachedForums(result);
@@ -1220,4 +1099,5 @@ public class CategoriesFragment extends ListFragment {
       }
     }
   }
+
 }

@@ -33,7 +33,7 @@ public final class DateTimeUtils {
   private DateTimeUtils() {
   }
 
-  public static String getTimeAgo(final Date date) throws IllegalArgumentException {
+  public static String getTimeAgo(final Date date) {
     final String timeAgo;
     final long seconds = (new Date().getTime() - date.getTime()) / MILLIS_PER_SECOND;
     if (seconds < 0) {

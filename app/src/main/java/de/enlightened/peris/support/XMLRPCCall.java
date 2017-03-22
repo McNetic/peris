@@ -23,6 +23,7 @@ package de.enlightened.peris.support;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import de.timroes.axmlrpc.XMLRPCClient;
 
@@ -42,18 +43,53 @@ public class XMLRPCCall {
     return this;
   }
 
-  public RPCMap call() {
-    Log.d(TAG, "Performing Server Call: Method = " + this.method);
+  public XMLRPCCall optionalParam(final Object param) {
+    if (param != null) {
+      this.params.add(param);
+    }
+    return this;
+  }
+
+  private Object rpcCall() throws XMLRPCCallException {
+    Log.d(TAG, String.format("XMLRPCCall: %s(%s)", this.method, this.params.toArray().toString()));
     try {
-      return RPCMap.of(this.xmlRPCClient.call(this.method, this.params.toArray()));
+      return this.xmlRPCClient.call(this.method, this.params.toArray());
     } catch (Exception ex) {
-      String.format("Tapatalk call error (%s) : %s", ex.getClass().getName(), this.method);
+      Log.e(TAG, String.format("Tapatalk call error (%s) : %s", ex.getClass().getName(), this.method));
       if (ex.getMessage() != null) {
         Log.e(TAG, ex.getMessage());
       } else {
         Log.e(TAG, "(no message available)");
       }
     }
-    return null;
+    throw new XMLRPCCallException("XMLRCPCall failed");
+  }
+
+  public List<RPCMap> callAsList() {
+    try {
+      final Object[] mapArray;
+      mapArray = (Object[]) this.rpcCall();
+      final List<RPCMap> mapList = new ArrayList<>();
+      for (Object map : mapArray) {
+        mapList.add(RPCMap.of(map));
+      }
+      return mapList;
+    } catch (XMLRPCCallException e) {
+      return null;
+    }
+  }
+
+  public RPCMap call() {
+    try {
+      return RPCMap.of(this.rpcCall());
+    } catch (XMLRPCCallException e) {
+      return null;
+    }
+  }
+
+  private class XMLRPCCallException extends Throwable {
+    public XMLRPCCallException(final String message) {
+      super(message);
+    }
   }
 }

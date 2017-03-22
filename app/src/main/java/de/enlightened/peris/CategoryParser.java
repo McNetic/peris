@@ -21,11 +21,6 @@
 
 package de.enlightened.peris;
 
-import android.util.Log;
-
-import java.util.ArrayList;
-import java.util.Map;
-
 public final class CategoryParser {
 
   private static final String TAG = CategoryParser.class.getName();
@@ -33,14 +28,14 @@ public final class CategoryParser {
   private CategoryParser() {
   }
 
-  @SuppressWarnings("rawtypes")
-  public static ArrayList<Category> parseCategories(final Object[] data, final String subforumId, final String background) {
-    final ArrayList<Category> categories = new ArrayList<Category>();
+  /*@SuppressWarnings("rawtypes")
+  public static ArrayList<CategoryOld> parseCategories(final Object[] data, final String subforumId, final String background) {
+    final ArrayList<CategoryOld> categories = new ArrayList<CategoryOld>();
 
     for (Object o : data) {
       if (o != null) {
         final Map map = (Map) o;
-        final Category ca = new Category();
+        final CategoryOld ca = new CategoryOld();
         ca.name = new String((byte[]) map.get("forum_name"));
         ca.subforumId = subforumId;
         ca.id = (String) map.get("forum_id");
@@ -81,5 +76,5 @@ public final class CategoryParser {
       }
     }
     return categories;
-  }
+  }*/
 }

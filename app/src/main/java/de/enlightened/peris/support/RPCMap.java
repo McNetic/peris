@@ -30,7 +30,11 @@ public class RPCMap extends OptMap<String, Object> {
   }
 
   public static RPCMap of(final Object obj) {
-    return new RPCMap((Map) obj);
+    return RPCMap.of((Map) obj);
+  }
+
+  public static RPCMap of(final Map map) {
+    return new RPCMap(map);
   }
 
   public Integer getInt(final String key) {

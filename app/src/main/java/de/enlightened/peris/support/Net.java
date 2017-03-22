@@ -90,7 +90,7 @@ public final class Net {
   }
 
   public static boolean isUrl(final String urlString) {
-    return urlString != null && urlString.startsWith("http://") || urlString.startsWith("https://");
+    return urlString != null && (urlString.startsWith("http://") || urlString.startsWith("https://"));
   }
 
   public static String removeProtocol(final String urlString) {

@@ -29,7 +29,7 @@ import java.util.Date;
 
 @SuppressLint("NewApi")
 @SuppressWarnings("checkstyle:visibilitymodifier")
-public class Category {
+public class CategoryOld {
   public String description = "Category Description";
   public String name = "Category Name";
   public String id = "0";
@@ -55,5 +55,5 @@ public class Category {
   public boolean hasNewTopic = false;
   public boolean hasChildren = false;
   public String topicSticky = "N";
-  public ArrayList<Category> children;
+  public ArrayList<CategoryOld> children;
 }

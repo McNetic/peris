@@ -27,7 +27,7 @@
     <string name="chat_forum">0</string>
     <string name="chat_thread">0</string>
     <string name="new_chat_id">0</string>
-    <string name="subforum_id">0</string>
+    <string name="subforum_id">---ROOT_ID---</string>
 
     <!-- Theme Related Strings -->
     <string name="default_color">#2277cc</string>

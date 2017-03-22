@@ -38,6 +38,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import de.enlightened.peris.site.Category;
+import de.enlightened.peris.site.Topic;
+import de.enlightened.peris.site.TopicItem;
 import de.enlightened.peris.support.DateTimeUtils;
 import de.enlightened.peris.support.Net;
 
@@ -212,7 +215,7 @@ final class ElementRenderer {
       final Context context,
       final boolean useOpenSans,
       final boolean useShading,
-      final Category ca,
+      final TopicItem topicItem,
       final boolean currentAvatarSetting) {
     final TextView tvCategoryName = (TextView) view.findViewById(R.id.category_name);
     final TextView tvCategoryLastThread = (TextView) view.findViewById(R.id.category_last_thread);
@@ -264,14 +267,13 @@ final class ElementRenderer {
       tvCategoryUpdate.setTypeface(opensans);
     }
 
-    if (ca.type.contentEquals("S")) {
+    if (topicItem instanceof Category) {
       tvCategoryLastThread.setVisibility(View.GONE);
       tvCategoryUpdate.setVisibility(View.GONE);
     } else {
       tvCategoryLastThread.setVisibility(View.VISIBLE);
       tvCategoryUpdate.setVisibility(View.VISIBLE);
     }
-
     tvCategoryName.setTextColor(Color.parseColor(textColor));
     tvCategoryLastThread.setTextColor(Color.parseColor(textColor));
     tvCategoryUpdate.setTextColor(Color.parseColor(textColor));
@@ -279,82 +281,88 @@ final class ElementRenderer {
     if (tvThreadReplies != null) {
       tvThreadReplies.setTextColor(Color.parseColor(textColor));
     }
-
     if (tvThreadViews != null) {
       tvThreadViews.setTextColor(Color.parseColor(textColor));
     }
-
     if (useShading) {
       tvCategoryName.setShadowLayer(2, 0, 0, Color.parseColor("#66000000"));
     }
 
     String timeAgo;
-    if (ca.lastUpdate == null) {
-      timeAgo = "never";
-    } else {
-      timeAgo = ca.lastUpdate.toString();
-      if (ca.type.contentEquals("C")) {
+    if (topicItem instanceof Topic) {
+      final Topic topic = (Topic) topicItem;
+      if (topic.getLastUpdate() == null) {
+        timeAgo = "Never";
+      } else {
         try {
-          timeAgo = DateTimeUtils.getTimeAgo(ca.lastUpdate);
+          timeAgo = DateTimeUtils.getTimeAgo(topic.getLastUpdate());
         } catch (IllegalArgumentException e) {
-          timeAgo = ca.lastUpdate.toString();
+          timeAgo = topic.getLastUpdate().toString();
         }
       }
+      if (topic.getAuthorName() != null) {
+        tvCategoryLastThread.setText(Html.fromHtml(topic.getAuthorName()));
+      } else {
+        tvCategoryLastThread.setText(Html.fromHtml(topic.getForumName()));
+      }
+      if (topic.isClosed()) {
+        tvCategoryName.setTextColor(Color.LTGRAY);
+        tvCategoryName.setText("LOCKED: " + topic.getHeading());
+      }
+    } else {
+      final Category category = (Category) topicItem;
+      timeAgo = "never";
+      // TODO: Forum Name
+      //tvCategoryLastThread.setText(Html.fromHtml("Forum Name"));
+      tvCategoryLastThread.setText(Html.fromHtml(category.getName()));
     }
-
-    tvCategoryName.setText(ca.name);
-    tvCategoryLastThread.setText(Html.fromHtml(ca.lastThread));
+    tvCategoryName.setText(topicItem.getHeading());
     tvCategoryUpdate.setText(timeAgo);
 
-    if (ca.isLocked) {
-      tvCategoryName.setTextColor(Color.LTGRAY);
-      tvCategoryName.setText("LOCKED: " + ca.name);
-    }
-
     if (useOpenSans) {
-      if (ca.hasNewTopic) {
+      if (topicItem.hasNewItems()) {
         tvCategoryName.setTypeface(opensans, Typeface.BOLD);
       } else {
         tvCategoryName.setTypeface(opensans, Typeface.NORMAL);
       }
     } else {
-      if (ca.hasNewTopic) {
+      if (topicItem.hasNewItems()) {
         tvCategoryName.setTypeface(null, Typeface.BOLD);
       } else {
         tvCategoryName.setTypeface(null, Typeface.NORMAL);
       }
     }
 
-    applyAvatarSettings(currentAvatarSetting, application, ca, ivSubforumIndicator, view, boxColor);
-
-    if (ca.type.contentEquals("C")) {
+    applyAvatarSettings(currentAvatarSetting, application, topicItem, ivSubforumIndicator, view, boxColor);
+    if (topicItem instanceof Topic) {
+      final Topic topic = (Topic) topicItem;
       if (tvThreadReplies != null) {
-        if (ca.threadCount != null) {
-          tvThreadReplies.setText(ca.threadCount);
+        if (topic.getReplyCount() > 0) {
+          tvThreadReplies.setText(Integer.toString(topic.getReplyCount()));
         } else {
           tvThreadReplies.setVisibility(View.GONE);
         }
       }
 
       if (tvThreadViews != null) {
-        if (ca.viewCount != null) {
-          tvThreadViews.setText(ca.viewCount);
+        if (topic.getViewCount() > 0) {
+          tvThreadViews.setText(Integer.toString(topic.getViewCount()));
         } else {
           tvThreadViews.setVisibility(View.GONE);
         }
       }
-    }
-
-    if (ca.topicSticky.contentEquals("Y")) {
-      tvCategoryName.setTextColor(Color.RED);
-      if (useShading) {
-        tvCategoryName.setShadowLayer(2, 0, 0, Color.parseColor("#66ff0000"));
+      if (Topic.Type.Sticky == topic.getType()) {
+        tvCategoryName.setTextColor(Color.RED);
+        if (useShading) {
+          tvCategoryName.setShadowLayer(2, 0, 0, Color.parseColor("#66ff0000"));
+        }
       }
-    }
-
-    if (Net.isUrl(ca.url)) {
-      tvCategoryUpdate.setVisibility(View.VISIBLE);
-      tvCategoryUpdate.setText(ca.url);
+    } else {
+      final Category category = (Category) topicItem;
+      if (Net.isUrl(category.getUrl())) {
+        tvCategoryUpdate.setVisibility(View.VISIBLE);
+        tvCategoryUpdate.setText(category.getUrl());
+      }
     }
   }
 
@@ -362,26 +370,27 @@ final class ElementRenderer {
   private static void applyAvatarSettings(
       final boolean currentAvatarSetting,
       final PerisApp application,
-      final Category ca,
+      final TopicItem topicItem,
       final ImageView ivSubforumIndicator,
       final View view,
       final String boxColor) {
     if (currentAvatarSetting) {
-      if (ca.type.contentEquals("S")) {
+      if (topicItem instanceof Category) {
+        final Category category = (Category) topicItem;
         if (ivSubforumIndicator != null) {
           ivSubforumIndicator.setVisibility(View.VISIBLE);
 
-          if (Net.isUrl(ca.icon)) {
-            final String imageUrl = ca.icon;
+          if (Net.isUrl(category.getLogoUrl())) {
+            final String imageUrl = category.getLogoUrl();
             ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
           } else {
-            if (Net.isUrl(ca.url)) {
+            if (Net.isUrl(category.getUrl())) {
               ivSubforumIndicator.setImageResource(R.drawable.social_global_on);
             } else {
 
               ivSubforumIndicator.setImageResource(R.drawable.default_unread);
 
-              if (ca.hasNewTopic) {
+              if (category.isHasNewTopic()) {
                 if (application.getSession().getServer().serverColor.contains("#")) {
                   final String appColor = application.getSession().getServer().serverColor;
                   ivSubforumIndicator.setColorFilter(Color.parseColor(appColor));
@@ -412,9 +421,10 @@ final class ElementRenderer {
           }
         }
       } else {
+        final Topic topic = (Topic) topicItem;
         if (ivSubforumIndicator != null) {
-          if (Net.isUrl(ca.icon)) {
-            final String imageUrl = ca.icon;
+          if (Net.isUrl(topic.getAuthorIcon())) {
+            final String imageUrl = topic.getAuthorIcon();
             ImageLoader.getInstance().displayImage(imageUrl, ivSubforumIndicator);
           } else {
             ivSubforumIndicator.setImageResource(R.drawable.no_avatar);

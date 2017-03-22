@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Vector;
 
+import de.enlightened.peris.site.Category;
+
 public class SettingsFragment extends Fragment {
 
   private static final String TAG = SettingsFragment.class.getName();
@@ -317,61 +319,57 @@ public class SettingsFragment extends Fragment {
         final String theResult = settingsOptions.get(position).settingName;
 
         if (theResult.contentEquals("Unread Topics")) {
-          final Category ca = new Category();
-          ca.name = "Unread Topics";
-          ca.subforumId = "0";
-          ca.id = "unread";
-          ca.description = "Review all of the topics with posts you haven't seen yet.";
-          ca.type = "S";
-          ca.color = background;
+          final Category category = Category.builder()
+              .name("Unread Topics")
+              .id("unread")
+          //todo: color?
+              .build();
+          //category.subforumId = "0";
+          //category.color = background;
 
           if (categorySelected != null) {
-            categorySelected.onCategorySelected(ca);
+            categorySelected.onCategorySelected(category);
           }
         } else if (theResult.contentEquals("Participated Topics")) {
-          final Category ca = new Category();
-          ca.name = "Participated Topics";
-          ca.subforumId = "0";
-          ca.id = "participated";
-          ca.description = "Check out all of the topics that you have participated in.";
-          ca.type = "S";
-          ca.color = background;
+          final Category category = Category.builder()
+              .name("Participated Topics")
+              .id("participated")
+              .build();
+          //category.subforumId = "0";
+          //category.color = background;
 
           if (categorySelected != null) {
-            categorySelected.onCategorySelected(ca);
+            categorySelected.onCategorySelected(category);
           }
         } else if (theResult.contentEquals("Subscribed Topics")) {
-          final Category ca = new Category();
-          ca.name = "Subscribed Topics";
-          ca.subforumId = "0";
-          ca.id = "favs";
-          ca.description = "Check out all of your subcriptions!";
-          ca.type = "S";
-          ca.color = background;
+          final Category category = Category.builder()
+              .name("Subscribed Topics")
+              .id("favs")
+              .build();
+          //category.subforumId = "0";
+          //category.color = background;
 
           if (categorySelected != null) {
-            categorySelected.onCategorySelected(ca);
+            categorySelected.onCategorySelected(category);
           }
         } else if (theResult.contentEquals("Favorites")) {
-          final Category ca = new Category();
-          ca.name = "Favorites";
-          ca.subforumId = "0";
-          ca.id = "forum_favs";
-          ca.description = "Your favorite forums.";
-          ca.type = "S";
-          ca.color = background;
+          final Category category = Category.builder()
+              .name("Favorites")
+              .id("forum_favs")
+              .build();
+          //category.subforumId = "0";
+          //category.color = background;
 
           if (categorySelected != null) {
-            categorySelected.onCategorySelected(ca);
+            categorySelected.onCategorySelected(category);
           }
         } else if (theResult.contentEquals("Timeline")) {
-          final Category ca = new Category();
-          ca.name = "Timeline";
-          ca.subforumId = "0";
-          ca.id = "timeline";
-          ca.description = "The latest posts forum-wide.";
-          ca.type = "S";
-          ca.color = background;
+          final Category ca = Category.builder()
+              .name("Timeline")
+              .id("timeline")
+              .build();
+          //ca.subforumId = "0";
+          //ca.color = background;
 
           if (categorySelected != null) {
             categorySelected.onCategorySelected(ca);

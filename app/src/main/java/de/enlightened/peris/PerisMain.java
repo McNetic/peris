@@ -58,6 +58,10 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
 
+import de.enlightened.peris.site.Category;
+import de.enlightened.peris.site.Topic;
+import de.enlightened.peris.site.TopicItem;
+
 @SuppressWarnings("deprecation")
 @SuppressLint("NewApi")
 public class PerisMain extends FragmentActivity {
@@ -103,11 +107,11 @@ public class PerisMain extends FragmentActivity {
             loadProfile(bundle);
         }
     };
-    private final CategoriesFragment.CategorySelectedListener categorySelected = new CategoriesFragment.CategorySelectedListener() {
+    private final CategoriesFragment.TopicItemSelectedListener categorySelected = new CategoriesFragment.TopicItemSelectedListener() {
 
     @SuppressWarnings("checkstyle:requirethis")
-    public void onCategorySelected(final Category ca) {
-      loadCategories(ca);
+    public void onTopicItemSelected(final TopicItem category) {
+      loadTopicItem(category);
     }
   };
   private final ActiveList.OnProfileSelectedListener profileActiveSelected = new ActiveList.OnProfileSelectedListener() {
@@ -128,7 +132,6 @@ public class PerisMain extends FragmentActivity {
           dl.closeDrawer(flSecondary);
         }
       }
-
     }
   };
   private SettingsFragment.ProfileSelectedListener myProfileSelected = new SettingsFragment.ProfileSelectedListener() {
@@ -149,8 +152,6 @@ public class PerisMain extends FragmentActivity {
       if (dl.isDrawerOpen(flDrawer)) {
         dl.closeDrawer(flDrawer);
       }
-
-
     }
   };
   private SocialFragment.ProfileSelectedListener profileSocialSelected = new SocialFragment.ProfileSelectedListener() {
@@ -162,7 +163,6 @@ public class PerisMain extends FragmentActivity {
       final Bundle bundle = new Bundle();
       bundle.putString("username", username);
       bundle.putString("userid", userid);
-
       loadProfile(bundle);
 
       if (seperator == null) {
@@ -171,7 +171,6 @@ public class PerisMain extends FragmentActivity {
           dl.closeDrawer(flSecondary);
         }
       }
-
     }
   };
   private SettingsFragment.IndexRequestedListener goToIndex = new SettingsFragment.IndexRequestedListener() {
@@ -181,11 +180,9 @@ public class PerisMain extends FragmentActivity {
     public void onIndexRequested() {
 
       final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);
-
       final String currentServerId = application.getSession().getServer().serverId;
       final String keyName = currentServerId + "_home_page";
       final String valueName = appPreferences.getString(keyName, getString(R.string.subforum_id));
-
 
       if (valueName.contentEquals(getString(R.string.subforum_id))) {
 
@@ -193,7 +190,7 @@ public class PerisMain extends FragmentActivity {
 
         switch (item.getType()) {
           case BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM:
-            loadForum(item.getBundle(), "SETTINGS_INDEX_REQUESTED", false);
+            loadCategory(item.getBundle(), "SETTINGS_INDEX_REQUESTED", false);
             break;
           case BackStackManager.BackStackItem.BACKSTACK_TYPE_TOPIC:
             loadTopic(item.getBundle());
@@ -208,11 +205,11 @@ public class PerisMain extends FragmentActivity {
             Log.d(TAG, "Unknown backstack item type " + item.getType());
         }
       } else {
-        final Category ca = new Category();
-        ca.id = getString(R.string.subforum_id);
-        ca.name = "Forums";
-        ca.type = "S";
-        loadCategories(ca);
+        final Category category = Category.builder()
+            .id(getString(R.string.subforum_id))
+            .name("Forums")
+            .build();
+        loadTopicItem(category);
       }
 
       final DrawerLayout dl = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -235,9 +232,8 @@ public class PerisMain extends FragmentActivity {
   private SettingsFragment.CategorySelectedListener settingsCategorySelected = new SettingsFragment.CategorySelectedListener() {
 
     @SuppressWarnings("checkstyle:requirethis")
-    public void onCategorySelected(final Category ca) {
-
-      loadCategories(ca);
+    public void onCategorySelected(final Category category) {
+      loadTopicItem(category);
       final DrawerLayout dl = (DrawerLayout) findViewById(R.id.drawer_layout);
       final FrameLayout flDrawer = (FrameLayout) findViewById(R.id.left_drawer);
 
@@ -409,7 +405,7 @@ public class PerisMain extends FragmentActivity {
 
     if (this.application.getStackManager().getBackStackSize(this.backStackId) == 0) {
       final Bundle bundle = this.initializeNewSession(appPreferences);
-      this.loadForum(bundle, "NEW_SESSION", false);
+      this.loadCategory(bundle, "NEW_SESSION", false);
       //application.stackManager.addToBackstack(backStackId, BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM,bundle);
     } else {
       this.recoverBackstack();
@@ -426,19 +422,16 @@ public class PerisMain extends FragmentActivity {
           final boolean locationNumeric = isNumeric(stealingLocation);
 
           if (stealingType.contentEquals("forum") && locationNumeric && !stealingLocation.contentEquals("0")) {
-            final Category ca = new Category();
-            ca.id = stealingLocation;
-            ca.name = "External Link";
-            ca.type = "S";
-            this.loadCategories(ca);
+            this.loadTopicItem(Category.builder()
+                .id(stealingLocation)
+                .name("External Link")
+                .build());
           }
-
           if (stealingType.contentEquals("topic") && locationNumeric && !stealingLocation.contentEquals("0")) {
-            final Category ca = new Category();
-            ca.id = stealingLocation;
-            ca.name = "External Link";
-            ca.type = "C";
-            this.loadCategories(ca);
+            this.loadTopicItem(Topic.builder()
+                .id(stealingLocation)
+                .title("External Link")
+                .build());
           }
         }
       }
@@ -504,7 +497,7 @@ public class PerisMain extends FragmentActivity {
 
     switch (item.getType()) {
       case BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM:
-        this.loadForum(item.getBundle(), "BACKSTACK_RECOVERY", true);
+        this.loadCategory(item.getBundle(), "BACKSTACK_RECOVERY", true);
         break;
       case BackStackManager.BackStackItem.BACKSTACK_TYPE_TOPIC:
         this.loadTopic(item.getBundle());
@@ -685,7 +678,7 @@ public class PerisMain extends FragmentActivity {
         bundle.putString("background", (String) background);
         bundle.putString("icon", (String) "n/a");
         bundle.putString("inTab", (String) "N");
-        loadForum(bundle, "SEARCH_QUERY", false);
+        loadCategory(bundle, "SEARCH_QUERY", false);
 
         return false;
       }
@@ -795,41 +788,42 @@ public class PerisMain extends FragmentActivity {
     }*/
   }
 
-  private void loadCategories(final Category ca) {
-    if (ca.url.contains("http")) {
-      final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(ca.url));
-      startActivity(browserIntent);
-      return;
-    }
-
-    if (ca.type.contentEquals("C")) {
+  private void loadTopicItem(final TopicItem topicItem) {
+    if (topicItem instanceof Topic) {
+      final Topic topic = (Topic) topicItem;
       String lockString = "0";
-      if (ca.isLocked) {
+      if (topic.isClosed()) {
         lockString = "1";
       }
 
       final Bundle bundle = new Bundle();
-      bundle.putString("subject", (String) ca.name);
-      bundle.putString("category_id", (String) ca.subforumId);
-      bundle.putString("subforum_id", (String) ca.subforumId);
-      bundle.putString("thread_id", (String) ca.id);
-      bundle.putString("lock", (String) lockString);
+      bundle.putString("subject", topic.getTitle());
+      bundle.putString("category_id", topic.getSubforumId());
+      bundle.putString("subforum_id", topic.getSubforumId());
+      bundle.putString("thread_id", topic.getId());
+      bundle.putString("lock", topic.isClosed() ? "1" : "0");
       bundle.putString("background", (String) this.background);
-      bundle.putString("posts", (String) ca.threadCount);
-      bundle.putString("moderator", (String) ca.moderator);
+      bundle.putString("posts", Integer.toString(topic.getPostCount()));
+      bundle.putString("moderator", (String) topic.getAuthorName());
 
-      Log.d(TAG, "Loading topic " + ca.id);
-
+      Log.d(TAG, "Loading topic " + topic.getId());
       this.loadTopic(bundle);
     } else {
-      final Bundle bundle = new Bundle();
-      bundle.putString("subforum_name", (String) ca.name);
-      bundle.putString("subforum_id", (String) ca.id);
-      bundle.putString("background", (String) ca.color);
-      bundle.putString("icon", (String) ca.icon);
-      bundle.putString("inTab", (String) "N");
-
-      this.loadForum(bundle, "LOAD_CATEGORIES", false);
+      final Category category = (Category) topicItem;
+      if (category.getUrl() != null && !"".equals(category.getUrl())) {
+        Log.d(TAG, "Found category url: " + category.getUrl());
+        final Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(category.getUrl()));
+        startActivity(browserIntent);
+      } else {
+        final Bundle bundle = new Bundle();
+        bundle.putString("subforum_name", (String) category.getName());
+        bundle.putString("subforum_id", (String) category.getId());
+        // TODO: get category color from where?
+        //bundle.putString("background", (String) category.color);
+        bundle.putString("icon", (String) category.getLogoUrl());
+        bundle.putString("inTab", (String) "N");
+        this.loadCategory(bundle, "LOAD_CATEGORIES", false);
+      }
     }
   }
 
@@ -854,7 +848,7 @@ public class PerisMain extends FragmentActivity {
 
         switch (item.getType()) {
           case BackStackManager.BackStackItem.BACKSTACK_TYPE_FORUM:
-            this.loadForum(item.getBundle(), "KEYDOWN_BACK", true);
+            this.loadCategory(item.getBundle(), "KEYDOWN_BACK", true);
             break;
           case BackStackManager.BackStackItem.BACKSTACK_TYPE_TOPIC:
             this.loadTopic(item.getBundle());
@@ -927,7 +921,7 @@ public class PerisMain extends FragmentActivity {
     super.onActivityResult(requestCode, resultCode, data);
   }
 
-  private void loadForum(final Bundle bundle, final String sender, final Boolean isBackNav) {
+  private void loadCategory(final Bundle bundle, final String sender, final Boolean isBackNav) {
 
     if (!isBackNav) {
       final SharedPreferences appPreferences = getSharedPreferences("prefs", 0);

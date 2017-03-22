@@ -37,6 +37,9 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
+import de.enlightened.peris.site.Category;
+import de.enlightened.peris.site.Topic;
+
 public class ThemeEditor extends FragmentActivity {
 
   private PerisApp application;
@@ -107,19 +110,19 @@ public class ThemeEditor extends FragmentActivity {
     final LinearLayout previewHolder = (LinearLayout) findViewById(R.id.theme_editor_preview_holder);
     previewHolder.removeAllViews();
 
-    final Category cat = new Category();
-    cat.name = "Fun Category";
-    cat.type = "S";
+    final Category sampleCategory = Category.builder()
+        .name("Sample Category")
+        .build();
 
-    final Category top = new Category();
-    top.name = "Important Thread";
-    top.topicSticky = "Y";
-    top.threadCount = "2";
-    top.viewCount = "7";
-    top.lastThread = "NR89";
-    top.type = "C";
-    top.hasNewTopic = true;
-    top.icon = "http://localhost/nr90.jpg";
+    final Topic sampleTopic = Topic.builder()
+        .title("Thread Title")
+        .type(Topic.Type.Sticky)
+        .replyCount(2)
+        .viewCount(7)
+        .authorName("Author Name")
+        .hasNewPosts(true)
+        .authorIcon("http://localhost/author_icon.jpg")
+        .build();
 
     final Post po = new Post();
     po.author = "nezkeeeze";
@@ -133,8 +136,8 @@ public class ThemeEditor extends FragmentActivity {
     final View vT = vi.inflate(R.layout.thread, null);
     final View vP = vi.inflate(R.layout.post, null);
 
-    ElementRenderer.renderCategory(vC, this.application, this, useOpenSans, useShading, cat, currentAvatarSetting);
-    ElementRenderer.renderCategory(vT, this.application, this, useOpenSans, useShading, top, currentAvatarSetting);
+    ElementRenderer.renderCategory(vC, this.application, this, useOpenSans, useShading, sampleCategory, currentAvatarSetting);
+    ElementRenderer.renderCategory(vT, this.application, this, useOpenSans, useShading, sampleTopic, currentAvatarSetting);
     ElementRenderer.renderPost(vP, this.application, 1, this, 0, useOpenSans, useShading, po, fontSize, currentAvatarSetting);
 
     previewHolder.addView(vC);

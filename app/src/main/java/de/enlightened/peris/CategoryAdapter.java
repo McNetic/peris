@@ -30,21 +30,24 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import java.util.ArrayList;
+import java.util.List;
+
+import de.enlightened.peris.site.Category;
+import de.enlightened.peris.site.TopicItem;
 
 @SuppressLint("NewApi")
 public class CategoryAdapter extends BaseAdapter {
   private static final int DEFAULT_FONT_SIZE = 16;
 
   private Context context;
-  private ArrayList<Category> data;
+  private List<TopicItem> data;
   private boolean useShading = false;
   private boolean useOpenSans = false;
   private boolean currentAvatarSetting = false;
   private int fontSize = DEFAULT_FONT_SIZE;
   private PerisApp application;
 
-  CategoryAdapter(final ArrayList<Category> data, final Context context, final PerisApp app) {
+  CategoryAdapter(final List<TopicItem> data, final Context context, final PerisApp app) {
     this.data = data;
     this.context = context;
     this.application = app;
@@ -73,19 +76,19 @@ public class CategoryAdapter extends BaseAdapter {
   }
 
   @SuppressLint("InflateParams")
-  public View getView(final int arg0, final View arg1, final ViewGroup arg2) {
-    final Category ca = this.data.get(arg0);
-    View v = arg1;
+  public View getView(final int position, final View convertView, final ViewGroup parent) {
+    final TopicItem topicItem = this.data.get(position);
+    View view = convertView;
     final LayoutInflater vi = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-    if (ca.type.contentEquals("S")) {
-      v = vi.inflate(R.layout.category, null);
+    if (topicItem instanceof Category) {
+      view = vi.inflate(R.layout.category, null);
     } else {
-      v = vi.inflate(R.layout.thread, null);
+      view = vi.inflate(R.layout.thread, null);
     }
 
-    ElementRenderer.renderCategory(v, this.application, this.context, this.useOpenSans, this.useShading, ca, this.currentAvatarSetting);
-    return v;
+    ElementRenderer.renderCategory(view, this.application, this.context, this.useOpenSans, this.useShading, topicItem, this.currentAvatarSetting);
+    return view;
   }
 
   public int dpToPx(final int dp) {

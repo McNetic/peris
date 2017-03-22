@@ -23,10 +23,11 @@ package de.enlightened.peris;
 
 import android.view.View;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 @SuppressWarnings("checkstyle:visibilitymodifier")
-public class Post {
+public class Post implements Serializable {
   public String author = "Author";
   public String body = "Post body goes here!";
   public String avatar = "n/a";
