@@ -67,12 +67,12 @@ public class AvatarUploader {
 
     String cookieString = "";
 
-    for (String s : application.getSession().getCookies().keySet()) {
+    for (String s : application.getSession().getApi().getCookies().keySet()) {
       try {
-        final BasicClientCookie aCookie = new BasicClientCookie(s, application.getSession().getCookies().get(s));
+        final BasicClientCookie aCookie = new BasicClientCookie(s, application.getSession().getApi().getCookies().get(s));
         cStore.addCookie(aCookie);
 
-        cookieString = cookieString + s + "=" + application.getSession().getCookies().get(s) + ";";
+        cookieString = cookieString + s + "=" + application.getSession().getApi().getCookies().get(s) + ";";
       } catch (Exception ex) {
         // nobody cares
         cookieString = "";

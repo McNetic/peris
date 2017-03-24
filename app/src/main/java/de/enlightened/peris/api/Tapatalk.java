@@ -29,6 +29,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -65,7 +66,8 @@ public class Tapatalk {
     this.server = server;
   }
 
-  private XMLRPCClient getXMLRPCClient() {
+  //TODO: make private when legacy calls removed
+  public XMLRPCClient getXMLRPCClient() {
     if (this.xmlRPCClient == null) {
       try {
         if (this.server.serverHttps) {
@@ -111,7 +113,7 @@ public class Tapatalk {
     return new XMLRPCCall(this.getXMLRPCClient(), method);
   }
 
-  private Map<String, String> getCookies() {
+  public Map<String, String> getCookies() {
     return this.getXMLRPCClient().getCookies();
   }
 

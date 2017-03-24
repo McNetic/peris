@@ -28,11 +28,9 @@ import android.util.Log;
 
 import java.security.cert.X509Certificate;
 import java.util.Date;
-import java.util.Map;
 import java.util.Vector;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
@@ -44,7 +42,6 @@ import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
 import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Identity;
-import de.timroes.axmlrpc.XMLRPCClient;
 
 @SuppressLint({"NewApi", "TrulyRandom"})
 public class Session {
@@ -77,7 +74,6 @@ public class Session {
   };
   private Context context;
   private Server currentServer;
-  private XMLRPCClient newClient;
   private PerisApp application;
   private SessionListener sessionListener = null;
 
@@ -118,14 +114,6 @@ public class Session {
     } else {
       new FetchForumConfigurationTask().execute();
     }
-  }
-
-  public final Map<String, String> getCookies() {
-
-    if (this.newClient == null) {
-      return null;
-    }
-    return this.newClient.getCookies();
   }
 
   public final void loginSession(final String username, final String password) {
@@ -191,18 +179,8 @@ public class Session {
         parmsobject[i] = parms.get(i);
       }
 
-      if (this.newClient == null) {
-
-        if (this.currentServer.serverHttps) {
-          this.sc = SSLContext.getInstance("SSL");
-          this.sc.init(null, this.trustAllCerts, new java.security.SecureRandom());
-          HttpsURLConnection.setDefaultSSLSocketFactory(this.sc.getSocketFactory());
-          HttpsURLConnection.setDefaultHostnameVerifier(this.hv);
-        }
-        this.newClient = new XMLRPCClient(this.currentServer.getTapatalkURL(), XMLRPCClient.FLAGS_ENABLE_COOKIES);
-      }
-
-      return this.newClient.call(method, parmsobject);
+      //TODO: when removing this, make method private
+      return this.getApi().getXMLRPCClient().call(method, parmsobject);
     } catch (Exception ex) {
       String.format("Tapatalk call error (%s) : %s", ex.getClass().getName(), method);
       if (ex.getMessage() != null) {

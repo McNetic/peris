@@ -71,11 +71,11 @@ public class FetchSubforumIconTask extends AsyncTask<Object, Void, String> {
       final URL myFileUrl = new URL(this.imageLocation);
       String cookieString = "";
 
-      for (String s : this.app.getSession().getCookies().keySet()) {
+      for (String s : this.app.getSession().getApi().getCookies().keySet()) {
         try {
-          final BasicClientCookie aCookie = new BasicClientCookie(s, this.app.getSession().getCookies().get(s));
+          final BasicClientCookie aCookie = new BasicClientCookie(s, this.app.getSession().getApi().getCookies().get(s));
           cStore.addCookie(aCookie);
-          cookieString = cookieString + s + "=" + this.app.getSession().getCookies().get(s) + ";";
+          cookieString = cookieString + s + "=" + this.app.getSession().getApi().getCookies().get(s) + ";";
         } catch (Exception ex) {
           Log.d(TAG, ex.getMessage());
         }
