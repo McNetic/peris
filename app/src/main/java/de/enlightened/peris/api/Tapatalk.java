@@ -111,6 +111,10 @@ public class Tapatalk {
     return new XMLRPCCall(this.getXMLRPCClient(), method);
   }
 
+  private Map<String, String> getCookies() {
+    return this.getXMLRPCClient().getCookies();
+  }
+
   public Config getConfig() {
     if (this.serverConfig == null) {
       final RPCMap configMap = this.xmlrpc("get_config").call();
@@ -134,6 +138,9 @@ public class Tapatalk {
         .param(username.getBytes())
         .param(password.getBytes())
         .call();
+    for (String key : this.xmlRPCClient.getCookies().keySet()) {
+      Log.d(TAG, "XMLRPC cookies[" + key + "] = " + this.xmlRPCClient.getCookies().get(key));
+    }
     final ApiResult loginResult;
     if (loginMap != null) {
       loginResult = ApiResult.builder()
