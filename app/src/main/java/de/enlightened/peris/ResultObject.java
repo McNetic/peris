@@ -1,6 +1,7 @@
 package de.enlightened.peris;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 import de.enlightened.peris.site.Category;
@@ -27,7 +28,7 @@ import de.enlightened.peris.site.ListedTopics;
 @SuppressWarnings("checkstyle:visibilitymodifier")
 class ResultObject implements Serializable {
   public ListedTopics defaultTopics;
-  public Object favoriteTopics;
+  public List<Category> favoriteTopics;
   public Map<String, Category> categories;
   public ListedTopics announcementTopics;
   public ListedTopics stickyTopics;

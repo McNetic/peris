@@ -482,4 +482,22 @@ public class Tapatalk {
         .build());
     return categories;
   }
+
+  public List<Category> getSubscribedCategories() {
+    final List<Category> categoryList = new ArrayList<>();
+    final RPCMap mapSubscribedCategories = this.xmlrpc("get_subscribed_forum").call();
+    for (RPCMap categoryMap : mapSubscribedCategories.getRPCMapArray("forums")) {
+      categoryList.add(Category.builder()
+          .id(categoryMap.getString("forum_id"))
+          .name(categoryMap.getByteString("forum_name"))
+          .isSubscribed(true)
+          .logoUrl(categoryMap.getString("icon_url"))
+          .hasNewTopic(categoryMap.getBoolOrDefault("new_post"))
+          //TODO
+          //ca.subforumId = this.subforumId;
+          //ca.color = this.background;
+          .build());
+    }
+    return categoryList;
+  }
 }

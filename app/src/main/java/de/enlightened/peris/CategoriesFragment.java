@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import de.enlightened.peris.site.Category;
@@ -360,31 +359,7 @@ public class CategoriesFragment extends ListFragment {
 
     if (result.favoriteTopics != null) {
       Log.i(TAG, "We have some favs!");
-
-      final Map map = (Map) result.favoriteTopics;
-      if (map.containsKey("result_text")) {
-        Log.d(TAG, "RESULT_TEXT: " + new String((byte[]) map.get("result_text")));
-      }
-      if (map.containsKey("forums")) {
-        for (Object f : (Object[]) map.get("forums")) {
-          final Map forumMap = (Map) f;
-
-          final Category ca = Category.builder()
-              .name(new String((byte[]) forumMap.get("forum_name")))
-              .id((String) forumMap.get("forum_id"))
-              .isSubscribed(true)
-              .logoUrl(forumMap.containsKey("icon_url") && forumMap.get("icon_url") != null
-                  ? (String) forumMap.get("icon_url") : null)
-              .hasNewTopic(forumMap.get("new_post") != null ? (Boolean) forumMap.get("new_post") : false)
-              .build();
-          //TODO
-          //ca.subforumId = this.subforumId;
-          //ca.color = this.background;
-          this.categoryList.add(ca);
-        }
-      } else {
-        Log.e(TAG, "Favs has no forums!");
-      }
+      this.categoryList.addAll(result.favoriteTopics);
     }
 
     setListAdapter(new CategoryAdapter(this.categoryList, this.activity, this.application));
@@ -745,14 +720,7 @@ public class CategoriesFragment extends ListFragment {
         result.defaultTopics = application.getSession().getApi().getSubscribedTopics(subforumId, startingPos, endingPos);
       } else if (subforumId.contentEquals("forum_favs")) {
         //Handle favorites category
-        try {
-          final Vector paramz = new Vector();
-          result.favoriteTopics = application.getSession().performSynchronousCall("get_subscribed_forum", paramz);
-        } catch (Exception ex) {
-          if (ex.getMessage() != null) {
-            Log.w(TAG, "Favorites Error: " + ex.getMessage());
-          }
-        }
+        result.favoriteTopics = application.getSession().getApi().getSubscribedCategories();
       } else if (subforumId.contentEquals("participated")) {
         //Handle participated topics category
         result.defaultTopics = application.getSession().getApi().getParticipatedTopics(subforumId, startingPos, endingPos);
@@ -760,7 +728,7 @@ public class CategoriesFragment extends ListFragment {
         //Handle topic listing for the Search function
         result.defaultTopics = application.getSession().getApi().searchTopic(subforumId, searchQuery, startingPos, endingPos);
       } else if (subforumId.contentEquals("timeline")) {
-        //Handle timeline get_latest_topic
+        //Handle timeline
         result.defaultTopics = application.getSession().getApi().getLatestTopics(subforumId, startingPos, endingPos);
       } else if (subforumId.contentEquals("unread")) {
         //Handle topic listing for the Unread category
