@@ -121,6 +121,21 @@ public class Tapatalk {
     return this.getXMLRPCClient().getCookies();
   }
 
+  private ApiResult parseApiResult(final RPCMap resultMap, final String defaultMessage) {
+    if (resultMap != null) {
+      return ApiResult.builder()
+          .success(resultMap.getBool("result"))
+          .message(resultMap.getByteStringOrDefault("result_text", defaultMessage))
+          .build();
+    } else {
+      return null;
+    }
+  }
+
+  private ApiResult parseApiResult(final RPCMap resultMap) {
+    return this.parseApiResult(resultMap, null);
+  }
+
   public Config getConfig() {
     if (this.serverConfig == null) {
       final RPCMap configMap = this.xmlrpc("get_config").call();
@@ -149,10 +164,7 @@ public class Tapatalk {
     }
     final ApiResult loginResult;
     if (loginMap != null) {
-      loginResult = ApiResult.builder()
-          .success(loginMap.getBool("result"))
-          .message(loginMap.getByteStringOrDefault("result_text", "wrong username or password"))
-          .build();
+      loginResult = this.parseApiResult(loginMap, "wrong username or password");
       if (loginResult.isSuccess()) {
         this.identity = Identity.builder()
             .id(loginMap.getString("user_id"))
@@ -328,10 +340,7 @@ public class Tapatalk {
         .param(messageId)
         .param(boxId)
         .call();
-    return ApiResult.builder()
-        .success(resultMap.getBool("result"))
-        .message(resultMap.getByteString("result_text"))
-        .build();
+    return this.parseApiResult(resultMap);
   }
 
   private static final Map<Topic.Type, String> TOPIC_TYPE_MAP = new HashMap<>();
@@ -499,5 +508,15 @@ public class Tapatalk {
           .build());
     }
     return categoryList;
+  }
+
+  public ApiResult markAllTopicsRead() {
+    return this.parseApiResult(this.xmlrpc("mark_all_as_read").call());
+  }
+
+  public ApiResult markForumTopicsRead(final String subforumId) {
+    return this.parseApiResult(this.xmlrpc("mark_all_as_read")
+        .param(subforumId)
+        .call());
   }
 }

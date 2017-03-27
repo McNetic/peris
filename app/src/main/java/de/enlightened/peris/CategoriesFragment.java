@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.site.Category;
 import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Topic;
@@ -803,41 +804,31 @@ public class CategoriesFragment extends ListFragment {
     }
   }
 
-  private class ReadMarkerTask extends AsyncTask<String, Void, String> {
+  private class ReadMarkerTask extends AsyncTask<String, Void, ApiResult> {
 
-    @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected String doInBackground(final String... params) {
-
-      if (activity == null) {
-        return null;
-      }
-      final String result = "";
-      try {
-        final Vector paramz = new Vector();
-        if (!params[0].contentEquals("0") && !params[0].contentEquals("unread")) {
-          paramz.addElement(params[0]);
+    protected ApiResult doInBackground(final String... params) {
+      final ApiResult result;
+      if (CategoriesFragment.this.activity != null) {
+        if (!"0".equals(params[0]) && !"unread".equals(params[0])) {
+          result = CategoriesFragment.this.application.getSession().getApi().markForumTopicsRead(params[0]);
+        } else {
+          result = CategoriesFragment.this.application.getSession().getApi().markAllTopicsRead();
         }
-        //application.getSession().performSynchronousCall("mark_all_as_read", paramz);
-        application.getSession().performSynchronousCall("mark_all_as_read", paramz);
-
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
+      } else {
+        result = null;
       }
-
       return result;
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-
-      if (activity != null) {
-        if (subforumId.contentEquals("unread")) {
-          activity.finish();
+    protected void onPostExecute(final ApiResult result) {
+      if (CategoriesFragment.this.activity != null) {
+        if (CategoriesFragment.this.subforumId.equals("unread")) {
+          CategoriesFragment.this.activity.finish();
         } else {
-          loadCategories();
-          final Toast toast = Toast.makeText(activity, "Posts marked read!", Toast.LENGTH_LONG);
+          CategoriesFragment.this.loadCategories();
+          final Toast toast = Toast.makeText(CategoriesFragment.this.activity, "Posts marked read!", Toast.LENGTH_LONG);
           toast.show();
         }
       }
