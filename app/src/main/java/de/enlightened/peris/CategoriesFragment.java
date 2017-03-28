@@ -857,30 +857,23 @@ public class CategoriesFragment extends ListFragment {
     }
   }
 
-  private class UnsubscribeTopicTask extends AsyncTask<String, Void, String> {
+  private class UnsubscribeTopicTask extends AsyncTask<String, Void, ApiResult> {
 
-    @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected String doInBackground(final String... params) {
-      if (activity != null) {
-        try {
-          final Vector paramz = new Vector();
-          paramz.addElement(params[0]);
-          //application.getSession().performSynchronousCall("unsubscribe_topic", paramz);
-          application.getSession().performSynchronousCall("unsubscribe_topic", paramz);
-          return "";
-        } catch (Exception ex) {
-          Log.w(TAG, ex.getMessage());
-        }
+    protected ApiResult doInBackground(final String... params) {
+      final ApiResult result;
+      if (CategoriesFragment.this.activity != null) {
+        result = CategoriesFragment.this.application.getSession().getApi().unsubscribeTopic(params[0]);
+      } else {
+        result = null;
       }
-      return null;
+      return result;
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (activity != null) {
-        loadCategories();
+    protected void onPostExecute(final ApiResult result) {
+      if (CategoriesFragment.this.activity != null) {
+        CategoriesFragment.this.loadCategories();
       }
     }
   }

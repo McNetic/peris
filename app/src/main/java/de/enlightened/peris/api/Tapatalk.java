@@ -525,4 +525,10 @@ public class Tapatalk {
         .param(topicId)
         .call());
   }
+
+  public ApiResult unsubscribeTopic(final String topicId) {
+    return this.parseApiResult(this.xmlrpc("unsubscribe_topic")
+        .param(topicId)
+        .call());
+  }
 }
