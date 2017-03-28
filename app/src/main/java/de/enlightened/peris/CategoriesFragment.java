@@ -835,33 +835,23 @@ public class CategoriesFragment extends ListFragment {
     }
   }
 
-  private class SubscribeTopicTask extends AsyncTask<String, Void, String> {
+  private class SubscribeTopicTask extends AsyncTask<String, Void, ApiResult> {
 
-    @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected String doInBackground(final String... params) {
-
-      if (activity == null) {
-        return null;
+    protected ApiResult doInBackground(final String... params) {
+      final ApiResult result;
+      if (CategoriesFragment.this.activity != null) {
+        result = CategoriesFragment.this.application.getSession().getApi().subscribeTopic(params[0]);
+      } else {
+        result = null;
       }
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(params[0]);
-        //application.getSession().performSynchronousCall("subscribe_topic", paramz);
-        application.getSession().performSynchronousCall("subscribe_topic", paramz);
-
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-
-      return "";
+      return result;
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (activity != null) {
-        final Toast toast = Toast.makeText(activity, "Subscribed!", Toast.LENGTH_SHORT);
+    protected void onPostExecute(final ApiResult result) {
+      if (CategoriesFragment.this.activity != null) {
+        final Toast toast = Toast.makeText(CategoriesFragment.this.activity, "Subscribed!", Toast.LENGTH_SHORT);
         toast.show();
       }
     }

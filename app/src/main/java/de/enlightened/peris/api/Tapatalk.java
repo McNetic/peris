@@ -519,4 +519,10 @@ public class Tapatalk {
         .param(subforumId)
         .call());
   }
+
+  public ApiResult subscribeTopic(final String topicId) {
+    return this.parseApiResult(this.xmlrpc("subscribe_topic")
+        .param(topicId)
+        .call());
+  }
 }
