@@ -538,4 +538,11 @@ public class Tapatalk {
         .param(sticky ? 1 : 2)
         .call());
   }
+
+  public ApiResult setTopicLocked(final String topicId, final boolean lock) {
+    return this.parseApiResult(this.xmlrpc("m_close_topic")
+        .param(topicId)
+        .param(lock ? 1 : 2)
+        .call());
+  }
 }
