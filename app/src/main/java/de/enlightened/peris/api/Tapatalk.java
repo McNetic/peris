@@ -531,4 +531,11 @@ public class Tapatalk {
         .param(topicId)
         .call());
   }
+
+  public ApiResult setTopicSticky(final String topicId, final boolean sticky) {
+    return this.parseApiResult(this.xmlrpc("m_stick_topic")
+        .param(topicId)
+        .param(sticky ? 1 : 2)
+        .call());
+  }
 }

@@ -878,34 +878,28 @@ public class CategoriesFragment extends ListFragment {
     }
   }
 
-  private class StickyTopicTask extends AsyncTask<String, Void, String> {
+  private class StickyTopicTask extends AsyncTask<String, Void, ApiResult> {
     // parm[0] - (string)topic_id
     // parm[1] - (int)mode (1 - stick; 2 - unstick)
-    @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected String doInBackground(final String... params) {
-
-      if (activity == null) {
-        return null;
+    protected ApiResult doInBackground(final String... params) {
+      final ApiResult result;
+      if (CategoriesFragment.this.activity != null) {
+        if ("1".equals(params[1])) {
+          result = CategoriesFragment.this.application.getSession().getApi().setTopicSticky(params[0], true);
+        } else {
+          result = CategoriesFragment.this.application.getSession().getApi().setTopicSticky(params[0], false);
+        }
+      } else {
+        result = null;
       }
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(params[0]);
-        paramz.addElement(Integer.parseInt(params[1]));
-        //application.getSession().performSynchronousCall("m_stick_topic", paramz);
-        application.getSession().performSynchronousCall("m_stick_topic", paramz);
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-
-      return "";
+      return result;
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (activity != null) {
-        loadCategories();
+    protected void onPostExecute(final ApiResult result) {
+      if (CategoriesFragment.this.activity != null) {
+        CategoriesFragment.this.loadCategories();
       }
     }
   }
