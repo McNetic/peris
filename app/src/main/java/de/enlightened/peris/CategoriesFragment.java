@@ -930,35 +930,26 @@ public class CategoriesFragment extends ListFragment {
     }
   }
 
-  private class DeleteTopicTask extends AsyncTask<String, Void, String> {
+  private class DeleteTopicTask extends AsyncTask<String, Void, ApiResult> {
 
     // parm[0] - (string)topic_id
 
     @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected String doInBackground(final String... params) {
-
-      if (activity == null) {
-        return null;
+    protected ApiResult doInBackground(final String... params) {
+      final ApiResult result;
+      if (CategoriesFragment.this.activity != null) {
+        result = CategoriesFragment.this.application.getSession().getApi().deleteTopic(params[0]);
+      } else {
+        result = null;
       }
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(params[0]);
-        paramz.addElement(2);
-        //application.getSession().performSynchronousCall("m_delete_topic", paramz);
-        application.getSession().performSynchronousCall("m_delete_topic", paramz);
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-
-      return "";
+      return result;
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (activity != null) {
-        loadCategories();
+    protected void onPostExecute(final ApiResult result) {
+      if (CategoriesFragment.this.activity != null && result.isSuccess()) {
+        CategoriesFragment.this.loadCategories();
       }
     }
   }

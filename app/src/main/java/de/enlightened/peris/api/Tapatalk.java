@@ -545,4 +545,11 @@ public class Tapatalk {
         .param(lock ? 1 : 2)
         .call());
   }
+
+  public ApiResult deleteTopic(final String topicId) {
+    return this.parseApiResult(this.xmlrpc("m_delete_topic")
+        .param(topicId)
+        .param(2)
+        .call());
+  }
 }
