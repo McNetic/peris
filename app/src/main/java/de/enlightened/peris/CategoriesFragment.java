@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.site.Category;
@@ -978,36 +977,27 @@ public class CategoriesFragment extends ListFragment {
   }
 
 
-  private class RemoveFromFavoritesTask extends AsyncTask<String, Void, String> {
+  private class RemoveFromFavoritesTask extends AsyncTask<String, Void, ApiResult> {
 
     @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected String doInBackground(final String... params) {
-
-      if (activity == null) {
-        return null;
+    protected ApiResult doInBackground(final String... params) {
+      final ApiResult result;
+      if (CategoriesFragment.this.activity != null) {
+        result = CategoriesFragment.this.application.getSession().getApi().unsubscribeCategory(params[0]);
+      } else {
+        result = null;
       }
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(params[0]);
-        //application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
-        application.getSession().performSynchronousCall("unsubscribe_forum", paramz);
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-      return "";
+      return result;
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (activity != null) {
-        final Toast toast = Toast.makeText(activity, "Forum removed from favorites!", Toast.LENGTH_SHORT);
+    protected void onPostExecute(final ApiResult result) {
+      if (CategoriesFragment.this.activity != null && result.isSuccess()) {
+        final Toast toast = Toast.makeText(CategoriesFragment.this.activity, "Category removed to favorites!", Toast.LENGTH_SHORT);
         toast.show();
-
-        loadCategories();
+        CategoriesFragment.this.loadCategories();
       }
     }
   }
-
 }

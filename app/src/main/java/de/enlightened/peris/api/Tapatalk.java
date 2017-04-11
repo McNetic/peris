@@ -558,4 +558,10 @@ public class Tapatalk {
         .param(categoryId)
         .call());
   }
+
+  public ApiResult unsubscribeCategory(final String categoryId) {
+    return this.parseApiResult(this.xmlrpc("unsubscribe_forum")
+        .param(categoryId)
+        .call());
+  }
 }
