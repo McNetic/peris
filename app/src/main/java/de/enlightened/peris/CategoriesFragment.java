@@ -933,7 +933,6 @@ public class CategoriesFragment extends ListFragment {
   private class DeleteTopicTask extends AsyncTask<String, Void, ApiResult> {
 
     // parm[0] - (string)topic_id
-
     @SuppressLint("UseValueOf")
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
@@ -954,33 +953,26 @@ public class CategoriesFragment extends ListFragment {
     }
   }
 
-  private class AddToFavoritesTask extends AsyncTask<String, Void, String> {
+  private class AddToFavoritesTask extends AsyncTask<String, Void, ApiResult> {
 
     @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected String doInBackground(final String... params) {
-
-      if (activity == null) {
-        return null;
+    protected ApiResult doInBackground(final String... params) {
+      final ApiResult result;
+      if (CategoriesFragment.this.activity != null) {
+        result = CategoriesFragment.this.application.getSession().getApi().subscribeCategory(params[0]);
+      } else {
+        result = null;
       }
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(params[0]);
-        //application.getSession().performSynchronousCall("subscribe_forum", paramz);
-        application.getSession().performSynchronousCall("subscribe_forum", paramz);
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-      return "";
+      return result;
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (activity != null) {
-        final Toast toast = Toast.makeText(activity, "Forum added to favorites!", Toast.LENGTH_SHORT);
+    protected void onPostExecute(final ApiResult result) {
+      if (CategoriesFragment.this.activity != null && result.isSuccess()) {
+        final Toast toast = Toast.makeText(CategoriesFragment.this.activity, "Category added to favorites!", Toast.LENGTH_SHORT);
         toast.show();
-        loadCategories();
+        CategoriesFragment.this.loadCategories();
       }
     }
   }

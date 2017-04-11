@@ -552,4 +552,10 @@ public class Tapatalk {
         .param(2)
         .call());
   }
+
+  public ApiResult subscribeCategory(final String categoryId) {
+    return this.parseApiResult(this.xmlrpc("subscribe_forum")
+        .param(categoryId)
+        .call());
+  }
 }
