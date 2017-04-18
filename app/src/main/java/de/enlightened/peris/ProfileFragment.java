@@ -55,10 +55,11 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+import java.util.Map;
+import java.util.Set;
+
+import de.enlightened.peris.site.User;
 
 @SuppressLint("NewApi")
 @SuppressWarnings("deprecation")
@@ -72,7 +73,7 @@ public class ProfileFragment extends Fragment {
   private static final int THUMBNAIL_SIZE = 100;
   private static final int MAX_ITEM_COUNT = 50;
   private static final int PHOTO_PADDING = 12;
-  private String categoryId;
+  private String userId;
   private TextView tvCreated;
   private TextView tvPostCount;
   private TextView tvActivity;
@@ -92,7 +93,6 @@ public class ProfileFragment extends Fragment {
 
     this.activity = (FragmentActivity) getActivity();
     this.application = (PerisApp) this.activity.getApplication();
-
     this.setHasOptionsMenu(true);
   }
 
@@ -106,14 +106,14 @@ public class ProfileFragment extends Fragment {
     super.onStart();
 
     final Bundle bundle = getArguments();
-    this.categoryId = bundle.getString("userid");
+    this.userId = bundle.getString("userid");
     this.userName = bundle.getString("username");
     this.setupElements();
 
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      new DownloadProfile().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      new DownloadProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[] {this.userId, this.userName});
     } else {
-      new DownloadProfile().execute();
+      new DownloadProfileTask().execute(new String[] {this.userId, this.userName});
     }
   }
 
@@ -135,9 +135,9 @@ public class ProfileFragment extends Fragment {
     final String userid = this.application.getSession().getServer().serverUserId;
     final LinearLayout avatarButtons = (LinearLayout) this.activity.findViewById(R.id.profile_avatar_editor_buttons);
 
-    if (this.categoryId == null) {
+    if (this.userId == null) {
       avatarButtons.setVisibility(View.GONE);
-    } else if (!this.categoryId.equals(userid)) {
+    } else if (!this.userId.equals(userid)) {
       avatarButtons.setVisibility(View.GONE);
     }
 
@@ -225,18 +225,18 @@ public class ProfileFragment extends Fragment {
       @Override
       public void onSessionConnectionFailed(final String reason) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-          new DownloadProfile().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+          new DownloadProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[] {ProfileFragment.this.userId, ProfileFragment.this.userName});
         } else {
-          new DownloadProfile().execute();
+          new DownloadProfileTask().execute(new String[] {ProfileFragment.this.userId, ProfileFragment.this.userName});
         }
       }
 
       @Override
       public void onSessionConnected() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-          new DownloadProfile().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+          new DownloadProfileTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[] {ProfileFragment.this.userId, ProfileFragment.this.userName});
         } else {
-          new DownloadProfile().execute();
+          new DownloadProfileTask().execute(new String[] {ProfileFragment.this.userId, ProfileFragment.this.userName});
         }
       }
     });
@@ -342,99 +342,72 @@ public class ProfileFragment extends Fragment {
     return results.size() > 0;
   }
 
-  private class DownloadProfile extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
+  private class DownloadProfileTask extends AsyncTask<String, Void, User> {
+    private String userId;
+    private String userName;
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    protected Object[] doInBackground(final String... params) {
+    protected User doInBackground(final String... params) {
+      final User user;
 
-      if (activity != null) {
-        try {
-          final Object[] result = new Object[MAX_ITEM_COUNT];
-          Log.d(TAG, "Viewing profile of " + userName);
+      this.userId = params[0];
+      this.userName = params[1];
 
-          final Vector paramz = new Vector();
-          paramz.addElement(userName.getBytes());
-          if (categoryId != null) {
-            paramz.addElement(categoryId);
-            Log.i(TAG, "Loading profile for " + userName + " (" + categoryId + ")");
-          } else {
-            Log.i(TAG, "Loading profile for " + userName + " (null)");
-          }
-          result[0] = application.getSession().performSynchronousCall("get_user_info", paramz);
-          return result;
-        } catch (Exception e) {
-          Log.w(TAG, e.getMessage());
+      if (ProfileFragment.this.activity != null) {
+        Log.d(TAG, "Viewing profile of " + this.userName);
+        if (this.userId != null) {
+          Log.i(TAG, "Loading profile for username " + this.userName + " / userid " + this.userId);
+          user = ProfileFragment.this.application.getSession().getApi().getUser(this.userName, this.userId);
+        } else {
+          Log.i(TAG, "Loading profile for username " + this.userName);
+          user = ProfileFragment.this.application.getSession().getApi().getUser(this.userName);
         }
+      } else {
+        user = null;
       }
-      return null;
+      return user;
     }
 
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
-    protected void onPostExecute(final Object[] result) {
-      if (result == null || result[0] == null) {
+    @SuppressWarnings("rawtypes")
+    protected void onPostExecute(final User user) {
+      if (user == null) {
         Log.e(TAG, "No response for profile!");
-        if (result != null) {
-          Log.e(TAG, Integer.toString(result.length));
-        }
-        return;
-      }
-      final HashMap topicMap = (HashMap) result[0];
-
-      if (topicMap == null) {
-        Log.e(TAG, "No topicmap!");
-        Log.e(TAG, result[0].toString());
-        return;
       } else {
-        Log.i(TAG, result[0].toString());
-      }
-
-      Date timestamp = null;
-
-      if (topicMap.containsKey("reg_time")) {
-        timestamp = (Date) topicMap.get("reg_time");
-      }
-
-      final Date lastactive = (Date) topicMap.get("last_activity_time");
-
-      if (timestamp != null) {
-        tvCreated.setText("Member Since: " + timestamp.toString());
-      }
-
-      if (topicMap.containsKey("post_count")) {
-        tvPostCount.setText("Post Count: " + Integer.toString((Integer) topicMap.get("post_count")));
-      } else {
-        tvPostCount.setVisibility(View.GONE);
-      }
-
-      if (lastactive == null) {
-        tvActivity.setVisibility(View.GONE);
-      } else {
-        tvActivity.setText("Last Activity: " + lastactive.toString());
-      }
-
-      if (topicMap.get("current_activity") != null) {
-        tvTagline.setText(new String((byte[]) topicMap.get("current_activity")));
-      }
-
-      if (topicMap.containsKey("icon_url")) {
-        if (((String) topicMap.get("icon_url")).contains("http://")) {
-          ImageLoader.getInstance().displayImage((String) topicMap.get("icon_url"), ivProfilePic);
-        }
-      }
-
-      final Object[] fieldsMap = (Object[]) topicMap.get("custom_fields_list");
-      String aboutSection = "";
-
-      if (fieldsMap != null) {
-        for (Object t : fieldsMap) {
-          final HashMap m = (HashMap) t;
-          final String tName = new String((byte[]) m.get("name"));
-          final String tValue = new String((byte[]) m.get("value"));
-          aboutSection = aboutSection + "<b>" + tName + ":</b> " + tValue + "<br /><br />";
+        if (null != user.getRegistrationDate()) {
+          ProfileFragment.this.tvCreated.setText("Member Since: " + user.getRegistrationDate().toString());
         }
 
-        tvAbout.setText(Html.fromHtml(aboutSection));
-        Linkify.addLinks(tvAbout, Linkify.ALL);
+        if (0 < user.getPostCount()) {
+          ProfileFragment.this.tvPostCount.setText("Post Count: " + Integer.toString(user.getPostCount()));
+        } else {
+          ProfileFragment.this.tvPostCount.setVisibility(View.GONE);
+        }
+
+        if (null != user.getLastActivity()) {
+          ProfileFragment.this.tvActivity.setText("Last Activity: " + user.getLastActivity().toString());
+        } else {
+          ProfileFragment.this.tvActivity.setVisibility(View.GONE);
+        }
+
+        if (null != user.getLastActivity()) {
+          ProfileFragment.this.tvTagline.setText(user.getLastActivity().toString());
+        }
+
+        final String avatarUrl;
+        if (null != user.getAvatarUrl()) {
+          avatarUrl = user.getAvatarUrl();
+        } else {
+          avatarUrl = ProfileFragment.this.application.getSession().getServer().getAvatarURL(user.getUserId()).toExternalForm();
+        }
+        ImageLoader.getInstance().displayImage(avatarUrl, ProfileFragment.this.ivProfilePic);
+
+        final StringBuilder aboutSectionBuilder = new StringBuilder();
+        for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) user.getCustomFields().entrySet()) {
+          aboutSectionBuilder.append(String.format("<b>%s:</b>%s<br /><br />", entry.getKey(), entry.getValue()));
+        }
+        ProfileFragment.this.tvAbout.setText(Html.fromHtml(aboutSectionBuilder.toString()));
+        Linkify.addLinks(ProfileFragment.this.tvAbout, Linkify.ALL);
       }
     }
   }

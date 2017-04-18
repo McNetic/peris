@@ -21,6 +21,7 @@
 
 package de.enlightened.peris;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.net.MalformedURLException;
@@ -82,6 +83,10 @@ public class Server extends DBEntity {
 
   public URL getUploadURL() {
     return this.getURL("mobiquo/upload.php");
+  }
+
+  public URL getAvatarURL(final String userId) {
+    return this.getURL(String.format("mobiquo/avatar.php?user_id=%s", Uri.encode(userId)));
   }
 
   public URL getURL() {

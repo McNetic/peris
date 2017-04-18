@@ -52,6 +52,7 @@ import de.enlightened.peris.site.Message;
 import de.enlightened.peris.site.MessageBox;
 import de.enlightened.peris.site.MessageFolder;
 import de.enlightened.peris.site.Topic;
+import de.enlightened.peris.site.User;
 import de.enlightened.peris.support.RPCMap;
 import de.enlightened.peris.support.XMLRPCCall;
 import de.timroes.axmlrpc.XMLRPCClient;
@@ -562,6 +563,53 @@ public class Tapatalk {
   public ApiResult unsubscribeCategory(final String categoryId) {
     return this.parseApiResult(this.xmlrpc("unsubscribe_forum")
         .param(categoryId)
+        .call());
+  }
+
+  private Map parseCustomFields(final RPCMap[] customFieldsMapArray) {
+    final HashMap<String, String> customFieldMap = new HashMap<>();
+    for (RPCMap categoryMap : customFieldsMapArray) {
+      customFieldMap.put(categoryMap.getByteString("name"), categoryMap.getByteString("value"));
+    }
+    return customFieldMap;
+  }
+
+  private User parseUser(final RPCMap userMap, final String userId) {
+    return User.builder()
+        .userId(userMap.getStringOrDefault("user_id", userId))
+        .userName(userMap.getByteString("user_name"))
+        .postCount(userMap.getInt("post_count"))
+        .registrationDate(userMap.getDate("reg_time"))
+        .lastActivity(userMap.getDateOrDefault("last_activity_time", null))
+        .online(userMap.getBoolOrDefault("is_online"))
+        .acceptMessages(userMap.getBoolOrDefault("accept_pm", true))
+        .followedByMe(userMap.getBoolOrDefault("i_follow_u"))
+        .followsMe(userMap.getBoolOrDefault("u_follow_me"))
+        .acceptFollow(userMap.getBoolOrDefault("accept_follow"))
+        .followingCount(userMap.getIntOrDefault("following_count", 0))
+        .followerCount(userMap.getIntOrDefault("followers", 0))
+        .description(userMap.getByteStringOrDefault("display_text", null))
+        .currentAction(userMap.getByteStringOrDefault("current_activity", null))
+        .topicId(userMap.getStringOrDefault("topic_id", null))
+        .avatarUrl(userMap.getStringOrDefault("icon_url", null))
+        .customFields(this.parseCustomFields(userMap.getRPCMapArray("custom_fields_list")))
+        .build();
+  }
+
+  private User parseUser(final RPCMap userMap) {
+    return this.parseUser(userMap, null);
+  }
+
+  public User getUser(final String userName, final String userId) {
+    return this.parseUser(this.xmlrpc("get_user_info")
+        .param(userName.getBytes())
+        .param(userId)
+        .call(), userId);
+  }
+
+  public User getUser(final String userName) {
+    return this.parseUser(this.xmlrpc("get_user_info")
+        .param(userName.getBytes())
         .call());
   }
 }
