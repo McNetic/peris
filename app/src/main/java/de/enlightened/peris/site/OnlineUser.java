@@ -19,15 +19,16 @@
  *
  */
 
-package de.enlightened.peris;
+package de.enlightened.peris.site;
 
-@SuppressWarnings("checkstyle:visibilitymodifier")
-public class IgnoreItem {
-  public String ignoreItemUsername;
-  public String ignoreItemAvatar;
-  public String ignoreItemDate;
-  public String ignoreUserId;
-  public String ignoreProfileColor;
-  public String ignoreCount;
-  public String reportCount;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class OnlineUser {
+  private final String userName;
+  private final String avatarUrl;
+  private final String displayText;
+  private final String id;
 }

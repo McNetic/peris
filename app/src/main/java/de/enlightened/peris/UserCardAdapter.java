@@ -33,14 +33,18 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
 
-import java.util.ArrayList;
+import java.util.List;
+
+import de.enlightened.peris.site.OnlineUser;
 
 @SuppressLint("NewApi")
 public class UserCardAdapter extends BaseAdapter {
-  private Context context;
-  private ArrayList<IgnoreItem> data;
+  private final Session session;
+  private final Context context;
+  private final List<OnlineUser> data;
 
-  UserCardAdapter(final ArrayList<IgnoreItem> data, final Context context) {
+  UserCardAdapter(final Session session, final List<OnlineUser> data, final Context context) {
+    this.session = session;
     this.data = data;
     this.context = context;
   }
@@ -58,33 +62,35 @@ public class UserCardAdapter extends BaseAdapter {
   }
 
   @SuppressLint("InflateParams")
-  public View getView(final int arg0, final View arg1, final ViewGroup arg2) {
-    View v = arg1;
-    if (v == null) {
+  public View getView(final int position, final View convertView, final ViewGroup parent) {
+    View view = convertView;
+    if (view == null) {
       final LayoutInflater vi = (LayoutInflater) this.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      v = vi.inflate(R.layout.ignore_item, null);
+      view = vi.inflate(R.layout.online_user, null);
     }
 
-    final TextView iiUsername = (TextView) v.findViewById(R.id.ignore_item_username);
-    final TextView iiTimestamp = (TextView) v.findViewById(R.id.ignore_item_timestamp);
-    final ImageView iiAvatar = (ImageView) v.findViewById(R.id.ignore_item_avatar);
-    final IgnoreItem ii = this.data.get(arg0);
-    iiUsername.setText(ii.ignoreItemUsername);
-    String via = ii.ignoreItemDate;
-    if (via.contentEquals("Index page")) {
-      via = "Lurking...";
+    final TextView viewUserName = (TextView) view.findViewById(R.id.online_user_username);
+    final TextView viewTimestamp = (TextView) view.findViewById(R.id.online_user_timestamp);
+    final ImageView viewAvatar = (ImageView) view.findViewById(R.id.online_user_avatar);
+    final OnlineUser onlineUser = this.data.get(position);
+    viewUserName.setText(onlineUser.getUserName());
+    String displayText = onlineUser.getDisplayText();
+    if (displayText.contentEquals("Index page")) {
+      displayText = "Lurking...";
     }
 
-    iiTimestamp.setText(via);
-    iiUsername.setTextColor(Color.parseColor("#333333"));
-    iiTimestamp.setTextColor(Color.parseColor("#333333"));
+    viewTimestamp.setText(displayText);
+    viewUserName.setTextColor(Color.parseColor("#333333"));
+    viewTimestamp.setTextColor(Color.parseColor("#333333"));
 
-    if (ii.ignoreItemAvatar != null && ii.ignoreItemAvatar.contains("http://")) {
-      final String imageUrl = ii.ignoreItemAvatar;
-      ImageLoader.getInstance().displayImage(imageUrl, iiAvatar);
+    final String avatarUrl;
+    if (null != onlineUser.getAvatarUrl()) {
+      avatarUrl = onlineUser.getAvatarUrl();
     } else {
-      iiAvatar.setImageResource(R.drawable.no_avatar);
+      avatarUrl = UserCardAdapter.this.session.getServer().getAvatarURL(onlineUser.getId()).toExternalForm();
     }
-    return v;
+    //TODO: else viewAvatar.setImageResource(R.drawable.no_avatar);
+    ImageLoader.getInstance().displayImage(avatarUrl, viewAvatar);
+    return view;
   }
 }

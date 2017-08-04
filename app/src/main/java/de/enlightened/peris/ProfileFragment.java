@@ -400,6 +400,7 @@ public class ProfileFragment extends Fragment {
         } else {
           avatarUrl = ProfileFragment.this.application.getSession().getServer().getAvatarURL(user.getUserId()).toExternalForm();
         }
+        //TODO: else viewAvatar.setImageResource(R.drawable.no_avatar);
         ImageLoader.getInstance().displayImage(avatarUrl, ProfileFragment.this.ivProfilePic);
 
         final StringBuilder aboutSectionBuilder = new StringBuilder();

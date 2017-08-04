@@ -32,9 +32,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Vector;
+import java.util.List;
+
+import de.enlightened.peris.site.OnlineUser;
 
 @SuppressLint("NewApi")
 public class ActiveList extends ListFragment {
@@ -47,9 +47,7 @@ public class ActiveList extends ListFragment {
   @Override
   public final void onCreate(final Bundle bundle) {
     super.onCreate(bundle);
-
     this.application = (PerisApp) getActivity().getApplication();
-
     setHasOptionsMenu(true);
   }
 
@@ -63,22 +61,20 @@ public class ActiveList extends ListFragment {
   public final void onStart() {
 
     super.onStart();
-
     getListView().setDivider(null);
-
-    this.loadMail();
+    this.loadUserList();
   }
 
-  private void loadMail() {
+  private void loadUserList() {
     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
-      new DownloadMailTask(this.profileSelected).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+      new DownloadUserlistTask(this.profileSelected).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     } else {
-      new DownloadMailTask(this.profileSelected).execute();
+      new DownloadUserlistTask(this.profileSelected).execute();
     }
   }
 
-  public final void setOnProfileSelectedListener(final OnProfileSelectedListener l) {
-    this.profileSelected = l;
+  public final void setOnProfileSelectedListener(final OnProfileSelectedListener listener) {
+    this.profileSelected = listener;
   }
 
   //Profile selected interface
@@ -86,115 +82,45 @@ public class ActiveList extends ListFragment {
     void onProfileSelected(String username, String userid);
   }
 
-  private class DownloadMailTask extends AsyncTask<String, Void, Object[]> {
+  private class DownloadUserlistTask extends AsyncTask<String, Void, List<OnlineUser>> {
     private static final int NUM_MAIL_TASKS = 50;
     private final OnProfileSelectedListener profileSelected;
 
-    DownloadMailTask(final OnProfileSelectedListener profileSelected) {
+    DownloadUserlistTask(final OnProfileSelectedListener profileSelected) {
       this.profileSelected = profileSelected;
     }
 
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings("rawtypes")
     @Override
-    protected Object[] doInBackground(final String... params) {
-
-      final Object[] result = new Object[NUM_MAIL_TASKS];
-
-      try {
-
-        final Vector paramz = new Vector();
-
-        result[0] = (HashMap) application.getSession().performSynchronousCall("get_online_users", paramz);
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
+    protected List<OnlineUser> doInBackground(final String... params) {
+      return ActiveList.this.application.getSession().getApi().getOnlineUsers();
     }
 
     @SuppressWarnings("rawtypes")
-    protected void onPostExecute(final Object[] result) {
-      if (result == null) {
+    protected void onPostExecute(final List<OnlineUser> listOnlineUsers) {
+      if (listOnlineUsers == null) {
         Log.d(TAG, "Null active list");
         return;
-      }
+      } else {
+        setListAdapter(new UserCardAdapter(ActiveList.this.application.getSession(), listOnlineUsers, getActivity()));
 
+        getListView().setOnItemClickListener(new OnItemClickListener() {
 
-      try {
-        try {
-          final ArrayList<IgnoreItem> inboxList = new ArrayList<IgnoreItem>();
+          private OnProfileSelectedListener profileSelected;
 
-
-          for (Object o : result) {
-
-            if (o != null) {
-              final HashMap map = (HashMap) o;
-
-              if (map.containsKey("list")) {
-                final Object[] topics = (Object[]) map.get("list");
-                for (Object t : topics) {
-
-                  final HashMap topicMap = (HashMap) t;
-
-                  final IgnoreItem ii = new IgnoreItem();
-
-                  if (topicMap.containsKey("username")) {
-                    ii.ignoreItemUsername = new String((byte[]) topicMap.get("username"));
-                  } else {
-                    if (topicMap.containsKey("user_name")) {
-                      ii.ignoreItemUsername = new String((byte[]) topicMap.get("user_name"));
-                    }
-                  }
-
-                  if (topicMap.containsKey("icon_url")) {
-                    ii.ignoreItemAvatar = (String) topicMap.get("icon_url");
-                  }
-
-                  if (topicMap.containsKey("display_text")) {
-                    ii.ignoreItemDate = new String((byte[]) topicMap.get("display_text"));
-                  }
-
-                  if (topicMap.containsKey("user_id")) {
-                    ii.ignoreUserId = (String) topicMap.get("user_id");
-                  }
-
-
-                  ii.ignoreProfileColor = "#000000";
-
-                  inboxList.add(ii);
-
-                }
-              }
-            }
+          private OnItemClickListener initialize(final OnProfileSelectedListener profileSelectedListener) {
+            this.profileSelected = profileSelectedListener;
+            return this;
           }
 
+          public void onItemClick(final AdapterView<?> adapterView, final View view, final int itemPosition, final long arg3) {
+            final OnlineUser onlineUser = (OnlineUser) adapterView.getItemAtPosition(itemPosition);
 
-          setListAdapter(new UserCardAdapter(inboxList, getActivity()));
-          //registerForContextMenu(getListView());
-
-          getListView().setOnItemClickListener(new OnItemClickListener() {
-
-            private OnProfileSelectedListener profileSelected;
-
-            private OnItemClickListener initialize(final OnProfileSelectedListener profileSelectedListener) {
-              this.profileSelected = profileSelectedListener;
-              return this;
-            };
-
-            public void onItemClick(final AdapterView<?> adapterView, final View view, final int itemPosition, final long arg3) {
-              final IgnoreItem sender = (IgnoreItem) adapterView.getItemAtPosition(itemPosition);
-
-              if (this.profileSelected != null) {
-                this.profileSelected.onProfileSelected(sender.ignoreItemUsername, sender.ignoreUserId);
-              }
+            if (this.profileSelected != null) {
+              this.profileSelected.onProfileSelected(onlineUser.getUserName(), onlineUser.getId());
             }
-          }.initialize(this.profileSelected));
-
-        } catch (Exception ex) {
-          Log.d(TAG, "ex1 - " + ex.getMessage());
-        }
-      } catch (Exception e) {
-        Log.d(TAG, "ex2 - " + e.getMessage());
+          }
+        }.initialize(this.profileSelected));
       }
     }
   }

@@ -40,6 +40,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import de.enlightened.peris.site.OnlineUser;
 import de.enlightened.peris.InboxItem;
 import de.enlightened.peris.Post;
 import de.enlightened.peris.PostAttachment;
@@ -611,5 +612,20 @@ public class Tapatalk {
     return this.parseUser(this.xmlrpc("get_user_info")
         .param(userName.getBytes())
         .call());
+  }
+
+  public List<OnlineUser> getOnlineUsers() {
+    final List<OnlineUser> userList = new ArrayList<>();
+    final RPCMap mapOnlineUsers = this.xmlrpc("get_online_users").call();
+    for (RPCMap userMap : mapOnlineUsers.getRPCMapArray("list")) {
+      userList.add(OnlineUser.builder()
+          .id(userMap.getString("user_id"))
+          .userName(userMap.getByteStringOrDefault("username", userMap.getByteString("user_name")))
+          .avatarUrl(userMap.getString("icon_url"))
+          .displayText(userMap.getByteString("display_text"))
+          //TODO: topic_id, from
+          .build());
+    }
+    return userList;
   }
 }

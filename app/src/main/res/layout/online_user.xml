@@ -26,7 +26,7 @@
 
 
             <ImageView
-                android:id="@+id/ignore_item_avatar"
+                android:id="@+id/online_user_avatar"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_marginRight="8dp"
@@ -40,14 +40,14 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/ignore_item_username"
+                    android:id="@+id/online_user_username"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="username"
                     android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/ignore_item_timestamp"
+                    android:id="@+id/online_user_timestamp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha=".5"
