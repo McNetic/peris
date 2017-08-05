@@ -405,7 +405,7 @@ public class ProfileFragment extends Fragment {
 
         final StringBuilder aboutSectionBuilder = new StringBuilder();
         for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) user.getCustomFields().entrySet()) {
-          aboutSectionBuilder.append(String.format("<b>%s:</b>%s<br /><br />", entry.getKey(), entry.getValue()));
+          aboutSectionBuilder.append(String.format("<b>%s:</b> %s<br /><br />", entry.getKey(), entry.getValue()));
         }
         ProfileFragment.this.tvAbout.setText(Html.fromHtml(aboutSectionBuilder.toString()));
         Linkify.addLinks(ProfileFragment.this.tvAbout, Linkify.ALL);
