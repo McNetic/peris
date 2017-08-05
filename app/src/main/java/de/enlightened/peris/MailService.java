@@ -39,21 +39,18 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
 
 import de.enlightened.peris.db.MessageNotificationRepository;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
+import de.enlightened.peris.site.MessageBox;
 
 
 public class MailService extends Service {
 
   private static final String TAG = MailService.class.getName();;
   private static final int SERVICE_TIMER = 20000000;
-  private static final int MAX_ITEM_COUNT = 50;
   private static final int LED_ON_MS = 500;
   private static final int LED_OFF_MS = 500;
 
@@ -208,99 +205,30 @@ public class MailService extends Service {
     public void onTick(final long millisUntilFinished) {
       //whatever
     }
-
   }
 
-  private class CheckMailTask extends AsyncTask<Server, Void, Object[]> {
+  private class CheckMailTask extends AsyncTask<Server, Object, List<InboxItem>> {
     private long serverId;
 
-    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(final Server... params) {
-      serverId = params[0].getId();
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-
-      try {
-        Vector paramz = new Vector();
-        final HashMap map = (HashMap) mailSession.performSynchronousCall("get_box_info", paramz);
-        final Object[] boxes = (Object[]) map.get("list");
-
-        String ourInboxId = "0";
-
-        for (Object o : boxes) {
-          final HashMap boxMap = (HashMap) o;
-          final String boxType = (String) boxMap.get("box_type");
-
-          if (boxType.contentEquals("INBOX")) {
-            ourInboxId = (String) boxMap.get("box_id");
-          }
-        }
-
-        paramz = new Vector();
-        paramz.addElement(ourInboxId);
-
-        result[0] = mailSession.performSynchronousCall("get_box", paramz);
-
-      } catch (Exception e) {
-        //null response
-        return null;
+    protected List<InboxItem> doInBackground(final Server... params) {
+      this.serverId = params[0].getId();
+      final MessageBox messageBox = MailService.this.mailSession.getApi().getMessageBox();
+      if (messageBox != null) {
+        return MailService.this.mailSession.getApi().getMessages(messageBox.getInboxFolder());
       }
-      return result;
+      return new ArrayList<>();
     }
 
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
-    protected void onPostExecute(final Object[] result) {
-      if (result == null) {
-        //Toast toast = Toast.makeText(getActivity(), "Server connection timeout :-(", Toast.LENGTH_SHORT);
-        //toast.show();
-        return;
-      }
-
-      try {
-
-        try {
-          final ArrayList<InboxItem> inboxList = new ArrayList<InboxItem>();
-          for (Object o : result) {
-            if (o != null) {
-              final HashMap map = (HashMap) o;
-
-              if (map.containsKey("list")) {
-                final Object[] topics = (Object[]) map.get("list");
-                for (Object t : topics) {
-                  final HashMap topicMap = (HashMap) t;
-                  final Date timestamp = (Date) topicMap.get("sent_date");
-                  final InboxItem ii = new InboxItem();
-
-                  if (topicMap.containsKey("msg_state")) {
-                    final int state = (Integer) topicMap.get("msg_state");
-
-                    if (state == 1) {
-                      ii.isUnread = true;
-                    }
-                  }
-
-                  ii.sentDate = timestamp.toString();
-                  ii.subject = new String((byte[]) topicMap.get("msg_subject"));
-                  ii.messageId = (String) topicMap.get("msg_id");
-                  ii.sender = new String((byte[]) topicMap.get("msg_from"));
-                  ii.senderId = (String) topicMap.get("msg_from_id");
-                  inboxList.add(ii);
-
-                  if (ii.isUnread) {
-                    processUnreadMessage(ii, this.serverId);
-                  }
-
-                }
-              }
-            }
+    protected void onPostExecute(final List<InboxItem> messages) {
+      if (messages != null) {
+        for (InboxItem inboxItem : messages) {
+          if (inboxItem.isUnread) {
+            MailService.this.processUnreadMessage(inboxItem, this.serverId);
           }
-        } catch (Exception ex) {
-          Log.d(TAG, ex.getMessage());
         }
-      } catch (Exception e) {
-        Log.d(TAG, e.getMessage());
+        MailService.this.nextServer();
       }
-      nextServer();
     }
   }
 }
