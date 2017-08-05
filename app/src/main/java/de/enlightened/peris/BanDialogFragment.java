@@ -37,9 +37,9 @@ import android.widget.TextView;
 
 import java.util.Vector;
 
-public class BanHammerDialogFragment extends DialogFragment {
+public class BanDialogFragment extends DialogFragment {
 
-  private static final String TAG = BanHammerDialogFragment.class.getName();;
+  private static final String TAG = BanDialogFragment.class.getName();;
 
   private TextView tvIntro;
   private EditText etReason;
@@ -61,8 +61,8 @@ public class BanHammerDialogFragment extends DialogFragment {
 
   };
 
-  static BanHammerDialogFragment newInstance() {
-    final BanHammerDialogFragment f = new BanHammerDialogFragment();
+  static BanDialogFragment newInstance() {
+    final BanDialogFragment f = new BanDialogFragment();
     final Bundle args = new Bundle();
     args.putString("username", "cylon");
     f.setArguments(args);
@@ -122,7 +122,7 @@ public class BanHammerDialogFragment extends DialogFragment {
       if (getActivity() == null) {
         return;
       }
-      BanHammerDialogFragment.this.dismiss();
+      BanDialogFragment.this.dismiss();
     }
   }
 }

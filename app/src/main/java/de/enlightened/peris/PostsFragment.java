@@ -658,7 +658,7 @@ public class PostsFragment extends Fragment {
     final Bundle bundle = new Bundle();
     bundle.putString("username", this.selectedPost.author);
 
-    final BanHammerDialogFragment newFragment = BanHammerDialogFragment.newInstance();
+    final BanDialogFragment newFragment = BanDialogFragment.newInstance();
     newFragment.setArguments(bundle);
     newFragment.show(this.activity.getSupportFragmentManager(), "dialog");
   }
