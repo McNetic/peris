@@ -739,15 +739,18 @@ public class CategoriesFragment extends ListFragment {
       } else if (!subforumId.contentEquals("userrecent")) {
           //Do not get a forum listing if we are inside one of the special sections
         if (!isExtraScrolling) {
-          if (subforumId != null) {
+          final String topicId;
+          if (subforumId != null  && !Category.ROOT_ID.equals(subforumId)) {
             result.categories = CategoriesFragment.this.application.getSession().getApi().getCategory(subforumId);
+            topicId = subforumId;
           } else {
             result.categories = CategoriesFragment.this.application.getSession().getApi().getCategories();
+            topicId = "-1";
           }
           //First grab any announcement topics
-          result.announcementTopics = CategoriesFragment.this.application.getSession().getApi().getTopics(subforumId, 0, CATEGORIES_PER_PAGE, Topic.Type.Announcement);
+          result.announcementTopics = CategoriesFragment.this.application.getSession().getApi().getTopics(topicId, 0, CATEGORIES_PER_PAGE, Topic.Type.Announcement);
           //Then grab any sticky topics
-          result.stickyTopics = CategoriesFragment.this.application.getSession().getApi().getTopics(subforumId, 0, CATEGORIES_PER_PAGE, Topic.Type.Sticky);
+          result.stickyTopics = CategoriesFragment.this.application.getSession().getApi().getTopics(topicId, 0, CATEGORIES_PER_PAGE, Topic.Type.Sticky);
         }
 
         //Grab the non-sticky topics
