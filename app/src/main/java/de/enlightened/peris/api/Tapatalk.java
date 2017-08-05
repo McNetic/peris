@@ -82,7 +82,7 @@ public class Tapatalk {
           HttpsURLConnection.setDefaultSSLSocketFactory(this.sc.getSocketFactory());
           HttpsURLConnection.setDefaultHostnameVerifier(this.hostnameVerifier);
         }
-        this.xmlRPCClient = new XMLRPCClient(this.server.getTapatalkURL(), XMLRPCClient.FLAGS_ENABLE_COOKIES);
+        this.xmlRPCClient = new XMLRPCClient(this.server.getTapatalkURL(), XMLRPCClient.FLAGS_ENABLE_COOKIES | XMLRPCClient.FLAGS_FORWARD);
       } catch (NoSuchAlgorithmException | KeyManagementException ex) {
         String.format("Tapatalk call error (SSL initialization): %s", ex.getClass().getName());
         if (ex.getMessage() != null) {

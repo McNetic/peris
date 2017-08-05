@@ -766,7 +766,7 @@ public class CategoriesFragment extends ListFragment {
           final Toast toast = Toast.makeText(activity, "Error pulling data from the server, ecCFDL", Toast.LENGTH_SHORT);
           toast.show();
         } else {
-          Log.i(TAG, "Recieved category data!");
+          Log.i(TAG, "Received category data!");
 
           initialLoadComplete = true;
           isLoading = false;
@@ -781,6 +781,7 @@ public class CategoriesFragment extends ListFragment {
               }
             }
             parseCachedForums(result);
+            Log.i(TAG, "Found " + CategoriesFragment.this.categoryList.size() + " categories");
           }
           /*
           final String objectString = GsonHelper.CUSTOM_GSON.toJson(result);

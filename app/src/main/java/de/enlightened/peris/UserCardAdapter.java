@@ -75,7 +75,7 @@ public class UserCardAdapter extends BaseAdapter {
     final OnlineUser onlineUser = this.data.get(position);
     viewUserName.setText(onlineUser.getUserName());
     String displayText = onlineUser.getDisplayText();
-    if (displayText.contentEquals("Index page")) {
+    if ("Index page".equals(displayText)) {
       displayText = "Lurking...";
     }
 
