@@ -21,11 +21,9 @@
 
 package de.enlightened.peris;
 
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -34,8 +32,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import java.util.Vector;
+import de.enlightened.peris.api.ApiResult;
+import de.enlightened.peris.api.Tapatalk;
 
 public class BanDialogFragment extends DialogFragment {
 
@@ -94,35 +94,36 @@ public class BanDialogFragment extends DialogFragment {
     return v;
   }
 
-  private class SubmitBanTask extends AsyncTask<String, Void, String> {
-    // parm[0] - (string)topic_id
+  private class SubmitBanTask extends AsyncTask<String, Void, ApiResult> {
+    // param[0] - (string)userId
+    // param[1] - (string)reason
 
-    @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
+    @SuppressWarnings("rawtypes")
     @Override
-    protected String doInBackground(final String... params) {
+    protected ApiResult doInBackground(final String... params) {
       if (getActivity() == null) {
         return null;
+      } else {
+        return BanDialogFragment.this.application.getSession().getApi().banUser(params[0], Tapatalk.BanMode.BAN, params[1]);
       }
-
-      try {
-        Vector paramz;
-        paramz = new Vector();
-        paramz.addElement(params[0].getBytes());
-        paramz.addElement(1);
-        paramz.addElement(params[1].getBytes());
-        application.getSession().performSynchronousCall("m_ban_user", paramz);
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-      return "";
     }
 
-    protected void onPostExecute(final String result) {
-      if (getActivity() == null) {
-        return;
+    protected void onPostExecute(final ApiResult result) {
+      if (getActivity() != null) {
+        if (!result.isSuccess()) {
+          final Toast toast;
+
+          BanDialogFragment.this.dismiss();
+          if (result.isPrivilegeRequired()) {
+            toast = Toast.makeText(BanDialogFragment.this.getContext(), "Ban failed: Re-authentication as mod required.", Toast.LENGTH_LONG);
+          } else if (!result.getMessage().isEmpty()) {
+            toast = Toast.makeText(BanDialogFragment.this.getContext(), "Ban failed: " + result.getMessage(), Toast.LENGTH_LONG);
+          } else {
+            toast = Toast.makeText(BanDialogFragment.this.getContext(), "Ban failed for unknown reason.", Toast.LENGTH_LONG);
+          }
+          toast.show();
+        }
       }
-      BanDialogFragment.this.dismiss();
     }
   }
 }

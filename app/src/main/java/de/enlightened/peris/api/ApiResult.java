@@ -26,6 +26,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ApiResult {
-  private boolean success;
-  private String message;
+  private final boolean success;
+  private final String message;
+  private boolean privilegeRequired = false;
 }

@@ -57,6 +57,7 @@ import de.enlightened.peris.site.User;
 import de.enlightened.peris.support.RPCMap;
 import de.enlightened.peris.support.XMLRPCCall;
 import de.timroes.axmlrpc.XMLRPCClient;
+import lombok.Getter;
 
 public class Tapatalk {
 
@@ -128,6 +129,7 @@ public class Tapatalk {
       return ApiResult.builder()
           .success(resultMap.getBool("result"))
           .message(resultMap.getByteStringOrDefault("result_text", defaultMessage))
+          .privilegeRequired(resultMap.getBoolOrDefault("is_login_mod"))
           .build();
     } else {
       return null;
@@ -627,5 +629,25 @@ public class Tapatalk {
           .build());
     }
     return userList;
+  }
+
+  @Getter
+  public enum BanMode {
+    BAN(1),
+    BAN_AND_DELETE_POSTS(2);
+
+    private final int value;
+
+    BanMode(final int value) {
+      this.value = value;
+    }
+  }
+
+  public ApiResult banUser(final String userId, final BanMode banMode, final String reason) {
+    return this.parseApiResult(this.xmlrpc("m_ban_user")
+        .param(userId)
+        .param(banMode)
+        .param(reason)
+        .call());
   }
 }
