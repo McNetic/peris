@@ -25,7 +25,6 @@ import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -36,8 +35,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.HashMap;
-import java.util.Vector;
+import de.enlightened.peris.api.ApiDataResult;
 
 @SuppressLint("NewApi")
 public class NewAccount extends FragmentActivity {
@@ -116,70 +114,37 @@ public class NewAccount extends FragmentActivity {
     this.btnCreate.setOnClickListener(this.createAccountListener);
   }
 
-  private class CreateAccountTask extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings("checkstyle:requirethis")
+  private class CreateAccountTask extends AsyncTask<Object, Object, ApiDataResult<String>> {
     protected void onPreExecute() {
-      btnCreate.setEnabled(false);
+      NewAccount.this.btnCreate.setEnabled(false);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    protected Object[] doInBackground(final String... params) {
-      final String username = tvUsername.getText().toString().trim();
-      final String emailaddress = tvEmail.getText().toString().trim();
-      final String password = etPassword1.getText().toString().trim();
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(username.getBytes());
-        paramz.addElement(password.getBytes());
-        paramz.addElement(emailaddress.getBytes());
-        result[0] = application.getSession().performSynchronousCall("register", paramz);
-      } catch (Exception ex) {
-        Log.d(TAG, ex.getMessage());
-      }
-      return result;
+    protected ApiDataResult<String> doInBackground(final Object... params) {
+      final String userName = NewAccount.this.tvUsername.getText().toString().trim();
+      final String emailAddress = NewAccount.this.tvEmail.getText().toString().trim();
+      final String password = NewAccount.this.etPassword1.getText().toString().trim();
+      return NewAccount.this.application.getSession().getApi().register(userName, password, emailAddress);
     }
 
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
-    protected void onPostExecute(final Object[] result) {
+    protected void onPostExecute(final ApiDataResult<String> result) {
+      final Toast toast;
       if (result == null) {
-        final Toast toast = Toast.makeText(NewAccount.this, "There was an error connecting to the server.  Please try again later.", Toast.LENGTH_LONG);
-        toast.show();
-        btnCreate.setEnabled(true);
-        return;
-      }
-
-      if (result[0] != null) {
-        final HashMap map = (HashMap) result[0];
-        if (map.containsKey("result")) {
-          final Boolean loginSuccess = (Boolean) map.get("result");
-
-          if (loginSuccess) {
-            final Toast toast = Toast.makeText(NewAccount.this, "Welcome to the forums, " + tvUsername.getText().toString().trim() + ".  Please log in to get started!", Toast.LENGTH_LONG);
-            toast.show();
-
-            if (getString(R.string.server_location).contentEquals("0")) {
-              ah.trackEvent("account creation", "created", serverAddress, false);
-            }
-            finish();
-          } else {
-            final String regError = new String((byte[]) map.get("result_text"));
-            final Toast toast = Toast.makeText(NewAccount.this, regError, Toast.LENGTH_LONG);
-            toast.show();
-            btnCreate.setEnabled(true);
-          }
-        } else {
-          final Toast toast = Toast.makeText(NewAccount.this, "Server communication error!  Please try again later.", Toast.LENGTH_LONG);
-          toast.show();
-          btnCreate.setEnabled(true);
-        }
+        toast = Toast.makeText(NewAccount.this, "There was an error connecting to the server.  Please try again later.", Toast.LENGTH_LONG);
       } else {
-        final Toast toast = Toast.makeText(NewAccount.this, "Connection to the server could not be established :-(  Please try again later.", Toast.LENGTH_LONG);
-        toast.show();
-        btnCreate.setEnabled(true);
+        if (result.isSuccess()) {
+          toast = Toast.makeText(NewAccount.this, "Welcome to the forums, " + NewAccount.this.tvUsername.getText().toString().trim() + ".  Please log in to get started!", Toast.LENGTH_LONG);
+
+          if (NewAccount.this.getString(R.string.server_location).contentEquals("0")) {
+            NewAccount.this.ah.trackEvent("account creation", "created", NewAccount.this.serverAddress, false);
+          }
+          NewAccount.this.finish();
+        } else {
+          toast = Toast.makeText(NewAccount.this, result.getMessage(), Toast.LENGTH_LONG);
+        }
       }
+      toast.show();
+      NewAccount.this.btnCreate.setEnabled(true);
     }
   }
 }

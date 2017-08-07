@@ -631,6 +631,23 @@ public class Tapatalk {
     return userList;
   }
 
+  public ApiDataResult<String> register(final String userName, final String password, final String emailAddress) {
+    //TODO: implement complete register logic
+    final RPCMap rpcMap = this.xmlrpc("register")
+        .param(userName)
+        .param(password)
+        .param(emailAddress)
+        .call();
+    if (rpcMap != null) {
+      return ApiDataResult.<String>builder()
+          .apiResult(this.parseApiResult(rpcMap))
+          .data(rpcMap.getString("preview_topic_id"))
+          .build();
+    } else {
+      return null;
+    }
+  }
+
   @Getter
   public enum BanMode {
     BAN(1),
