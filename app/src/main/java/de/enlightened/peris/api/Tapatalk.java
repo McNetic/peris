@@ -648,6 +648,43 @@ public class Tapatalk {
     }
   }
 
+  public ApiResult newTopic(final String subforumId, final String subject, final String textBody) {
+    // TODO: handle complete api
+    return this.parseApiResult(this.xmlrpc("new_topic")
+        .param(subforumId)
+        .param(subject)
+        .param(textBody)
+        .call());
+  }
+
+  public ApiResult replyPost(final String subforumId, final String topicId, final String subject, final String textBody) {
+    // TODO: handle complete api
+    return this.parseApiResult(this.xmlrpc("reply_post")
+        .param(subforumId)
+        .param(topicId)
+        .param(subject)
+        .param(textBody)
+        .call());
+  }
+
+  public ApiResult saveEditedPost(final String postId, final String subject, final String textBody) {
+    // TODO: handle complete api
+    return this.parseApiResult(this.xmlrpc("save_raw_post")
+        .param(postId)
+        .param(subject)
+        .param(textBody)
+        .call());
+  }
+
+  public ApiResult sendMessage(final List<String> recipients, final String subject, final String textBody) {
+    // TODO: handle complete api
+    return this.parseApiResult(this.xmlrpc("send_message")
+        .param(recipients)
+        .param(subject)
+        .param(textBody)
+        .call());
+  }
+
   @Getter
   public enum BanMode {
     BAN(1),

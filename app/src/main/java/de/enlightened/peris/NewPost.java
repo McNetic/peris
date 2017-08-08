@@ -46,9 +46,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
+import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.db.PerisDBHelper;
 import de.enlightened.peris.db.ServerRepository;
 
@@ -56,7 +57,6 @@ import de.enlightened.peris.db.ServerRepository;
 public class NewPost extends FragmentActivity {
 
   private static final String TAG = NewPost.class.getName();
-  private static final int MAX_ITEM_COUNT = 50;
   private static final int MAX_SUBJECT_LENGTH = 45;
 
   private Type postType = Type.NewThread;
@@ -466,32 +466,15 @@ public class NewPost extends FragmentActivity {
     final PreviewDialogFragment newFragment = PreviewDialogFragment.newInstance();
     newFragment.setArguments(bundle);
     newFragment.show(getSupportFragmentManager(), "preview");
-
   }
 
-  private class PostDataTask extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
-    protected Object[] doInBackground(final String... args) {
-      String comment = bodyInputter.getText().toString().trim();
-      if (comment.length() > 1) {
-        String subject = theSubject;
-      /*
-        CookieManager cookiemanager = new CookieManager();
-        cookiemanager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        CookieHandler.setDefault(cookiemanager);
-
-        for(HttpCookie c:mailSession.getCookies()) {
-          try {
-          URI cookieUri = new URI(c.getDomain());
-            cookiemanager.getCookieStore().add(cookieUri, c);
-          } catch(Exception ex) {
-            //nobody cares
-          }
-        }
-        */
-        final Object[] result = new Object[MAX_ITEM_COUNT];
-        if (postType == Type.NewThread || postType == Type.Message) {
-          subject = subjectInputter.getText().toString();
+  private class PostDataTask extends AsyncTask<Object, Object, ApiResult> {
+    protected ApiResult doInBackground(final Object... args) {
+      String textBody = NewPost.this.bodyInputter.getText().toString().trim();
+      if (textBody.length() > 1) {
+        String subject = NewPost.this.theSubject;
+        if (NewPost.this.postType == Type.NewThread || NewPost.this.postType == Type.Message) {
+          subject = NewPost.this.subjectInputter.getText().toString();
         }
         subject = subject.trim();
 
@@ -501,77 +484,53 @@ public class NewPost extends FragmentActivity {
         if (subject.length() < 1) {
           subject = "no subject";
         }
-        if ((postType == Type.NewThread || postType == Type.Reply | postType == Type.Message) && tagline.length() > 0) {
-          comment = comment + "\n\n" + tagline;
+        if ((NewPost.this.postType == Type.NewThread || NewPost.this.postType == Type.Reply | NewPost.this.postType == Type.Message) && NewPost.this.tagline.length() > 0) {
+          textBody = textBody + "\n\n" + NewPost.this.tagline;
         }
 
-        try {
-          /*
-          XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-          config.setUserAgent("Peris");
-          config.setServerURL(new URL(mailSession.getServer().serverAddress + "/mobiquo/mobiquo.php"));
-          XmlRpcClient client = new XmlRpcClient();
-          client.setConfig(config);
-          cookiemanager.getCookieStore();
-
-          XmlRpcTransportFactory tFactory = new XmlRpcSun15HttpTransportFactory(client);
-          client.setTransportFactory(tFactory);
-          */
-
-          if (postType == Type.NewThread) {
-            final Vector paramz = new Vector();
-            paramz.addElement(category);
-            paramz.addElement(subject.getBytes());
-            paramz.addElement(comment.getBytes());
-            result[0] = mailSession.performSynchronousCall("new_topic", paramz);
-          } else if (postType == Type.Reply) {
-            final Vector paramz = new Vector();
-            paramz.addElement(category);
-            paramz.addElement(parent);
-            paramz.addElement(subject.getBytes());
-            paramz.addElement(comment.getBytes());
-            result[0] = mailSession.performSynchronousCall("reply_post", paramz);
-          } else if (postType == Type.EditPost) {
-            final Vector paramz = new Vector();
-            paramz.addElement(postId);
-            paramz.addElement(subject.getBytes());
-            paramz.addElement(comment.getBytes());
-            result[0] = mailSession.performSynchronousCall("save_raw_post", paramz);
-          } else if (postType == Type.Message) {
-            final byte[][] toname = new byte[1][MAX_ITEM_COUNT];
-            toname[0] = category.getBytes();
-            Log.d(TAG, "Sending message to " + parent);
-
-            final Vector paramz = new Vector();
-            paramz.addElement(toname);
-            paramz.addElement(subject.getBytes());
-            paramz.addElement(comment.getBytes());
-            result[0] = mailSession.performSynchronousCall("create_message", paramz);
-          }
-          //cookiemanager.getCookieStore();
-          return result;
-        } catch (Exception e) {
-          Log.w(TAG, e.getMessage());
+        final ApiResult result;
+        switch (NewPost.this.postType) {
+          case NewThread:
+            result = NewPost.this.mailSession.getApi().newTopic(NewPost.this.category, subject, textBody);
+            break;
+          case Reply:
+            result = NewPost.this.mailSession.getApi().replyPost(NewPost.this.category, NewPost.this.parent, subject, textBody);
+            break;
+          case EditPost:
+            result = NewPost.this.mailSession.getApi().saveEditedPost(NewPost.this.postId, subject, textBody);
+            break;
+          case Message:
+            //TODO: why parent?
+            Log.d(TAG, "Sending message to " + NewPost.this.parent);
+            result = NewPost.this.mailSession.getApi().sendMessage(Arrays.asList(new String[] {NewPost.this.category}), subject, textBody);
+            break;
+          default:
+            result = null;
+            break;
         }
+        return result;
+      } else {
+        return null;
       }
-      return null;
     }
 
-    //This method is executed after the thread has completed.
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final Object[] result) {
-      if (result == null) {
-        submitter.setEnabled(true);
-
-        final Toast toast = Toast.makeText(NewPost.this, "Submission error, please retry :-(", Toast.LENGTH_LONG);
+    protected void onPostExecute(final ApiResult result) {
+      if (result == null || !result.isSuccess()) {
+        NewPost.this.submitter.setEnabled(true);
+        final String error;
+        if (result == null) {
+          error = "Submission error, please retry";
+        } else {
+          error = "Submission error (" + result.getMessage() + ")";
+        }
+        final Toast toast = Toast.makeText(NewPost.this, error, Toast.LENGTH_LONG);
         toast.show();
-        postSubmitted = false;
-        return;
+        NewPost.this.postSubmitted = false;
+      } else {
+        NewPost.this.postSubmitted = true;
+        NewPost.this.setResult(1);
+        NewPost.this.finish();
       }
-
-      postSubmitted = true;
-      NewPost.this.setResult(1);
-      finish();
     }
   }
 }
