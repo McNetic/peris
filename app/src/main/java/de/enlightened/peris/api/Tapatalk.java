@@ -634,9 +634,9 @@ public class Tapatalk {
   public ApiDataResult<String> register(final String userName, final String password, final String emailAddress) {
     //TODO: implement complete register logic
     final RPCMap rpcMap = this.xmlrpc("register")
-        .param(userName)
-        .param(password)
-        .param(emailAddress)
+        .param(userName.getBytes())
+        .param(password.getBytes())
+        .param(emailAddress.getBytes())
         .call();
     if (rpcMap != null) {
       return ApiDataResult.<String>builder()
@@ -652,18 +652,18 @@ public class Tapatalk {
     // TODO: handle complete api
     return this.parseApiResult(this.xmlrpc("new_topic")
         .param(subforumId)
-        .param(subject)
-        .param(textBody)
+        .param(subject.getBytes())
+        .param(textBody.getBytes())
         .call());
   }
 
-  public ApiResult replyPost(final String subforumId, final String topicId, final String subject, final String textBody) {
+  public ApiResult replyToPost(final String subforumId, final String topicId, final String subject, final String textBody) {
     // TODO: handle complete api
     return this.parseApiResult(this.xmlrpc("reply_post")
         .param(subforumId)
         .param(topicId)
-        .param(subject)
-        .param(textBody)
+        .param(subject.getBytes())
+        .param(textBody.getBytes())
         .call());
   }
 
@@ -671,17 +671,17 @@ public class Tapatalk {
     // TODO: handle complete api
     return this.parseApiResult(this.xmlrpc("save_raw_post")
         .param(postId)
-        .param(subject)
-        .param(textBody)
+        .param(subject.getBytes())
+        .param(textBody.getBytes())
         .call());
   }
 
   public ApiResult sendMessage(final List<String> recipients, final String subject, final String textBody) {
     // TODO: handle complete api
     return this.parseApiResult(this.xmlrpc("send_message")
-        .param(recipients)
-        .param(subject)
-        .param(textBody)
+        .param(XMLRPCCall.stringListToByteArray(recipients))
+        .param(subject.getBytes())
+        .param(textBody.getBytes())
         .call());
   }
 

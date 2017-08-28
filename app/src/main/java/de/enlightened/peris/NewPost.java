@@ -494,7 +494,7 @@ public class NewPost extends FragmentActivity {
             result = NewPost.this.mailSession.getApi().newTopic(NewPost.this.category, subject, textBody);
             break;
           case Reply:
-            result = NewPost.this.mailSession.getApi().replyPost(NewPost.this.category, NewPost.this.parent, subject, textBody);
+            result = NewPost.this.mailSession.getApi().replyToPost(NewPost.this.category, NewPost.this.parent, subject, textBody);
             break;
           case EditPost:
             result = NewPost.this.mailSession.getApi().saveEditedPost(NewPost.this.postId, subject, textBody);

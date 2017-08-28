@@ -56,6 +56,7 @@ import android.widget.Toast;
 import java.net.URL;
 import java.util.Vector;
 
+import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.site.Config;
 import de.enlightened.peris.site.Topic;
 import de.enlightened.peris.support.Net;
@@ -67,7 +68,6 @@ public class PostsFragment extends Fragment {
   private static final String TAG = PostsFragment.class.getName();;
   static final int POST_RESPONSE = 1;
   static final int POSTS_PER_PAGE = 20;
-  private static final int MAX_ITEM_COUNT = 50;
   private static final int MAX_SUBJECT_LENGTH = 45;
   private String serverAddress;
   private String subforumId;
@@ -821,15 +821,12 @@ public class PostsFragment extends Fragment {
     }
   }
 
-  private class QuickReplyTask extends AsyncTask<String, Void, Object[]> {
+  private class QuickReplyTask extends AsyncTask<Object, Object, ApiResult> {
 
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
-    protected Object[] doInBackground(final String... args) {
-      String comment = postsQuickReply.getText().toString().trim();
+    protected ApiResult doInBackground(final Object... args) {
+      String comment = PostsFragment.this.postsQuickReply.getText().toString().trim();
       if (comment.length() > 0) {
-        String subject = currentThreadSubject.trim();
-
-        final Object[] result = new Object[MAX_ITEM_COUNT];
+        String subject = PostsFragment.this.currentThreadSubject.trim();
 
         if (subject.length() > MAX_SUBJECT_LENGTH) {
           subject = subject.substring(0, MAX_SUBJECT_LENGTH - 1);
@@ -838,44 +835,38 @@ public class PostsFragment extends Fragment {
           subject = "no subject";
         }
 
-        final String tagline = application.getSession().getServer().serverTagline;
+        final String tagline = PostsFragment.this.application.getSession().getServer().serverTagline;
 
         if (tagline.length() > 0) {
           comment = comment + "\n\n" + tagline;
         }
+        return PostsFragment.this.application.getSession().getApi().replyToPost(
+            PostsFragment.this.categoryId,
+            PostsFragment.this.threadId,
+            subject,
+            comment);
+      } else {
+        return null;
+      }
+    }
 
-        try {
-          final Vector paramz = new Vector();
-          paramz.addElement(categoryId);
-          paramz.addElement(threadId);
-          paramz.addElement(subject.getBytes());
-          paramz.addElement(comment.getBytes());
-          result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
-          return result;
-        } catch (Exception e) {
-          Log.w(TAG, e.getMessage());
+    protected void onPostExecute(final ApiResult result) {
+      PostsFragment.this.postsQuickReplySubmit.setEnabled(true);
+      PostsFragment.this.postsQuickReply.setEnabled(true);
+      if (result == null || !result.isSuccess()) {
+        final String error;
+        if (result == null) {
+          error = "Submission error, please retry";
+        } else {
+          error = "Submission error (" + result.getMessage() + ")";
         }
-      }
-      return null;
-    }
-
-    //This method is executed after the thread has completed.
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final Object[] result) {
-
-      postsQuickReplySubmit.setEnabled(true);
-      postsQuickReply.setEnabled(true);
-
-      if (result == null) {
-        final Toast toast = Toast.makeText(activity, "Submission error, please retry :-(", Toast.LENGTH_LONG);
+        final Toast toast = Toast.makeText(PostsFragment.this.activity, error, Toast.LENGTH_LONG);
         toast.show();
-        return;
+      } else {
+        PostsFragment.this.forceBottomScroll = true;
+        PostsFragment.this.postsQuickReply.setText("");
+        PostsFragment.this.loadPosts();
       }
-
-      forceBottomScroll = true;
-      postsQuickReply.setText("");
-      loadPosts();
     }
-
   }
 }

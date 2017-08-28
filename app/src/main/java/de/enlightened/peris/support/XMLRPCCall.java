@@ -87,6 +87,14 @@ public class XMLRPCCall {
     }
   }
 
+  public static byte[][] stringListToByteArray(final List<String> strings) {
+    final byte[][] result = new byte[strings.size()][];
+    for (int i = 0; i < strings.size(); i++) {
+      result[i] = strings.get(i).getBytes();
+    }
+    return result;
+  }
+
   private class XMLRPCCallException extends Throwable {
     public XMLRPCCallException(final String message) {
       super(message);
