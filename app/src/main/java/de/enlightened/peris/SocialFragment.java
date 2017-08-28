@@ -54,6 +54,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
+import de.enlightened.peris.api.ApiResult;
+
 @SuppressLint("NewApi")
 public class SocialFragment extends Fragment {
 
@@ -312,46 +314,26 @@ public class SocialFragment extends Fragment {
     void onProfileSelected(String username, String userid);
   }
 
-  private class SocialPostTask extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"rawtypes", "unchecked", "checkstyle:requirethis"})
+  private class SocialPostTask extends AsyncTask<String, Void, ApiResult> {
     @Override
-    protected Object[] doInBackground(final String... params) {
-      //String tagline = application.getSession().getServer().serverTagline;
-      final String comment = newStatus.getText().toString().trim();
-      final String subject = "RE: Social";
-
-      /*
-      if(tagline.length() > 0) {
-        comment = comment + "\n\n" + tagline;
-      }
-      */
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(chatForum);
-        paramz.addElement(chatThread);
-        paramz.addElement(subject.getBytes());
-        paramz.addElement(comment.getBytes());
-        result[0] = application.getSession().performSynchronousCall("reply_post", paramz);
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
+    protected ApiResult doInBackground(final String... params) {
+      return SocialFragment.this.application.getSession().getApi().replyToPost(
+          SocialFragment.this.chatForum,
+          SocialFragment.this.chatThread,
+          "RE: Social",
+          SocialFragment.this.newStatus.getText().toString().trim()
+      );
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final Object[] result) {
-      if (result == null) {
-        final Toast toast = Toast.makeText(getActivity(), "Error connecting to the server!  erSPE", Toast.LENGTH_SHORT);
-        toast.show();
-        return;
+    protected void onPostExecute(final ApiResult result) {
+      if (result == null || !result.isSuccess()) {
+        Toast.makeText(getActivity(), "Error connecting to the server!", Toast.LENGTH_SHORT).show();
+      } else {
+        SocialFragment.this.loadStatuses();
+        SocialFragment.this.newStatus.setText("");
+        SocialFragment.this.updateStatusButton.setEnabled(true);
+        SocialFragment.this.newStatus.setEnabled(true);
       }
-
-      loadStatuses();
-      newStatus.setText("");
-      updateStatusButton.setEnabled(true);
-      newStatus.setEnabled(true);
     }
   }
 
