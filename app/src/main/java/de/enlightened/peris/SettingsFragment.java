@@ -154,12 +154,7 @@ public class SettingsFragment extends Fragment {
   private void doLogout() {
     final SharedPreferences appPreferences = getActivity().getSharedPreferences("prefs", 0);
 
-    try {
-      final Vector paramz = new Vector();
-      this.application.getSession().performSynchronousCall("logout_user", paramz);
-    } catch (Exception ex) {
-      Log.d(TAG, ex.getMessage());
-    }
+    this.application.getSession().getApi().logout();
 
     final SharedPreferences.Editor editor = appPreferences.edit();
     editor.putInt("cookie_count", 0);

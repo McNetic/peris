@@ -188,6 +188,11 @@ public class Tapatalk {
     return loginResult;
   }
 
+  public void logout() {
+    this.xmlrpc("logout_user").call();
+
+  }
+
   public Topic getTopic(final String topicId, final int startNum, final int lastNum, final boolean returnHtml) {
     final RPCMap topicMap = this.xmlrpc("get_thread")
         .param(topicId)
