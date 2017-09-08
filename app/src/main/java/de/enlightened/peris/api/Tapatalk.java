@@ -58,6 +58,7 @@ import de.enlightened.peris.support.RPCMap;
 import de.enlightened.peris.support.XMLRPCCall;
 import de.timroes.axmlrpc.XMLRPCClient;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 public class Tapatalk {
 
@@ -550,10 +551,25 @@ public class Tapatalk {
         .call());
   }
 
+  @RequiredArgsConstructor
+  public static enum DeleteMode {
+    SOFT(1),
+    HARD(2);
+
+    private final int apiArgument;
+  }
+
   public ApiResult deleteTopic(final String topicId) {
     return this.parseApiResult(this.xmlrpc("m_delete_topic")
         .param(topicId)
-        .param(2)
+        .param(DeleteMode.HARD.apiArgument)
+        .call());
+  }
+
+  public ApiResult deletePost(final String postId) {
+    return this.parseApiResult(this.xmlrpc("m_delete_post")
+        .param(postId)
+        .param(DeleteMode.HARD.apiArgument)
         .call());
   }
 
