@@ -556,6 +556,12 @@ public class Tapatalk {
         .call());
   }
 
+  public ApiResult likePost(final String postId) {
+    return this.parseApiResult(this.xmlrpc("like_post")
+        .param(postId)
+        .call());
+  }
+
   @RequiredArgsConstructor
   public static enum DeleteMode {
     SOFT(1),

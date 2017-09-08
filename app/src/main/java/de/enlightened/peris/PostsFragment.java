@@ -54,7 +54,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.URL;
-import java.util.Vector;
 
 import de.enlightened.peris.api.ApiResult;
 import de.enlightened.peris.site.Config;
@@ -767,31 +766,21 @@ public class PostsFragment extends Fragment {
     }
   }
 
-  private class LikePostTask extends AsyncTask<String, Void, String> {
+  private class LikePostTask extends AsyncTask<String, Object, ApiResult> {
 
-    @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    protected String doInBackground(final String... params) {
-      if (activity == null) {
+    protected ApiResult doInBackground(final String... params) {
+      if (PostsFragment.this.activity == null) {
         return null;
+      } else {
+        return PostsFragment.this.application.getSession().getApi().likePost(params[0]);
       }
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(params[0]);
-        application.getSession().performSynchronousCall("like_post", paramz);
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-      return "";
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-      if (activity == null) {
-        return;
+    protected void onPostExecute(final ApiResult result) {
+      if (PostsFragment.this.activity != null) {
+        PostsFragment.this.loadPosts();
       }
-      loadPosts();
     }
   }
 
