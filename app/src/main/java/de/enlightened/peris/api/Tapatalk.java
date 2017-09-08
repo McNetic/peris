@@ -40,6 +40,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import de.enlightened.peris.site.InboxStatistics;
 import de.enlightened.peris.site.OnlineUser;
 import de.enlightened.peris.InboxItem;
 import de.enlightened.peris.Post;
@@ -565,6 +566,15 @@ public class Tapatalk {
     return this.parseApiResult(this.xmlrpc("like_post")
         .param(postId)
         .call());
+  }
+
+  public InboxStatistics getInboxStatistics() {
+    final RPCMap inboxStatMap = this.xmlrpc("get_inbox_stat")
+        .call();
+    return InboxStatistics.builder()
+        .unreadCountInbox(inboxStatMap.getInt("inbox_unread_count"))
+        .unreadCountSubscribedTopics(inboxStatMap.getIntOrDefault("subscribed_topic_unread_count", 0))
+        .build();
   }
 
   @RequiredArgsConstructor

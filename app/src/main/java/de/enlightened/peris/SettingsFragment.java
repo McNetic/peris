@@ -26,7 +26,6 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,15 +40,13 @@ import android.widget.Toast;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Vector;
 
 import de.enlightened.peris.site.Category;
+import de.enlightened.peris.site.InboxStatistics;
 
 public class SettingsFragment extends Fragment {
 
   private static final String TAG = SettingsFragment.class.getName();
-  private static final int MAX_ITEM_COUNT = 50;
 
   private boolean editingProfile = false;
   private String storagePrefix = "";
@@ -456,42 +453,19 @@ public class SettingsFragment extends Fragment {
     void onCategorySelected(Category ca);
   }
 
-  private class CheckUnreadMailTask extends AsyncTask<String, Void, Object[]> {
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
+  private class CheckUnreadMailTask extends AsyncTask<Object, Object, InboxStatistics> {
     @Override
-    protected Object[] doInBackground(final String... params) {
-      final Object[] result = new Object[MAX_ITEM_COUNT];
-
-      try {
-        final Vector paramz = new Vector();
-
-        result[0] = application.getSession().performSynchronousCall("get_inbox_stat", paramz);
-      } catch (Exception e) {
-        Log.w(TAG, e.getMessage());
-        return null;
-      }
-      return result;
+    protected InboxStatistics doInBackground(final Object... params) {
+      return SettingsFragment.this.application.getSession().getApi().getInboxStatistics();
     }
 
-    @SuppressWarnings({"rawtypes", "checkstyle:requirethis"})
-    protected void onPostExecute(final Object[] result) {
+    protected void onPostExecute(final InboxStatistics result) {
       if (result == null) {
-        final Toast toast = Toast.makeText(getActivity(), "No response from the server!", Toast.LENGTH_LONG);
-        toast.show();
-        return;
+        Toast.makeText(getActivity(), "No response from the server!", Toast.LENGTH_LONG).show();
+      } else {
+        SettingsFragment.this.unreadMail = result.getUnreadCountInbox();
+        SettingsFragment.this.juiceUpMenu();
       }
-
-      for (Object o : result) {
-        if (o != null) {
-          final HashMap map = (HashMap) o;
-
-          if (map.get("inbox_unread_count") != null) {
-            unreadMail = (Integer) map.get("inbox_unread_count");
-          }
-        }
-      }
-
-      juiceUpMenu();
     }
   }
 }
