@@ -57,7 +57,6 @@ import de.enlightened.peris.site.User;
 import de.enlightened.peris.support.RPCMap;
 import de.enlightened.peris.support.XMLRPCCall;
 import de.timroes.axmlrpc.XMLRPCClient;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 public class Tapatalk {
@@ -551,25 +550,31 @@ public class Tapatalk {
         .call());
   }
 
+  public ApiResult thankPost(final String postId) {
+    return this.parseApiResult(this.xmlrpc("thank_post")
+        .param(postId)
+        .call());
+  }
+
   @RequiredArgsConstructor
   public static enum DeleteMode {
     SOFT(1),
     HARD(2);
 
-    private final int apiArgument;
+    private final int value;
   }
 
   public ApiResult deleteTopic(final String topicId) {
     return this.parseApiResult(this.xmlrpc("m_delete_topic")
         .param(topicId)
-        .param(DeleteMode.HARD.apiArgument)
+        .param(DeleteMode.HARD.value)
         .call());
   }
 
   public ApiResult deletePost(final String postId) {
     return this.parseApiResult(this.xmlrpc("m_delete_post")
         .param(postId)
-        .param(DeleteMode.HARD.apiArgument)
+        .param(DeleteMode.HARD.value)
         .call());
   }
 
@@ -701,22 +706,18 @@ public class Tapatalk {
         .call());
   }
 
-  @Getter
+  @RequiredArgsConstructor
   public enum BanMode {
     BAN(1),
     BAN_AND_DELETE_POSTS(2);
 
     private final int value;
-
-    BanMode(final int value) {
-      this.value = value;
-    }
   }
 
   public ApiResult banUser(final String userId, final BanMode banMode, final String reason) {
     return this.parseApiResult(this.xmlrpc("m_ban_user")
         .param(userId)
-        .param(banMode)
+        .param(banMode.value)
         .param(reason)
         .call());
   }

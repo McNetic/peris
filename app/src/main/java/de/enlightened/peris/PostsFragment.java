@@ -749,33 +749,21 @@ public class PostsFragment extends Fragment {
     }
   }
 
-  private class ThankPostTask extends AsyncTask<String, Void, String> {
+  private class ThankPostTask extends AsyncTask<String, Object, ApiResult> {
 
-    @SuppressLint("UseValueOf")
-    @SuppressWarnings({"unchecked", "rawtypes", "checkstyle:requirethis"})
     @Override
-    protected String doInBackground(final String... params) {
-      if (activity == null) {
+    protected ApiResult doInBackground(final String... params) {
+      if (PostsFragment.this.activity == null) {
         return null;
+      } else {
+        return PostsFragment.this.application.getSession().getApi().thankPost(params[0]);
       }
-      try {
-        final Vector paramz = new Vector();
-        paramz.addElement(params[0]);
-        application.getSession().performSynchronousCall("thank_post", paramz);
-      } catch (Exception ex) {
-        Log.w(TAG, ex.getMessage());
-      }
-      return "";
     }
 
-    @SuppressWarnings("checkstyle:requirethis")
-    protected void onPostExecute(final String result) {
-
-      if (activity == null) {
-        return;
+    protected void onPostExecute(final ApiResult result) {
+      if (PostsFragment.this.activity != null) {
+        PostsFragment.this.loadPosts();
       }
-
-      loadPosts();
     }
   }
 
